@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "589576910055",
+    "project_id": "argoscareseniorsafeguard",
+    "storage_bucket": "argoscareseniorsafeguard.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:589576910055:android:773aa12b1ddf83a6441e42",
+        "android_client_info": {
+          "package_name": "kr.co.esct.argoscareseniorsafeguard"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAQ6ZHW_yfgLc3B9IjmaVzw4UG_FCskSag"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
