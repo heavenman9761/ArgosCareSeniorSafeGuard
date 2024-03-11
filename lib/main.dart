@@ -66,13 +66,13 @@ class MyApp extends StatelessWidget {
     } else if (snapshot.hasData) {
       return isLogin()
           ? const HomePage(title: 'SCT Senior Care')
-          : const LoginPage();
+          : LoginPage();
     } else {
       return const IntroScreen();
     }
   }
 
   bool isLogin() {
-    return true; //Get.find<Controller>().isLogin.value;
+    return false; //Get.find<Controller>().isLogin.value;
   }
 }
