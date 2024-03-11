@@ -73,6 +73,6 @@ class MyApp extends StatelessWidget {
   }
 
   bool isLogin() {
-    return false; //Get.find<Controller>().isLogin.value;
+    return true; //Get.find<Controller>().isLogin.value;
   }
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:argoscareseniorsafeguard/components/my_button.dart';
 import 'package:argoscareseniorsafeguard/components/my_textfield.dart';
 import 'package:argoscareseniorsafeguard/components/square_tile.dart';
+import 'package:argoscareseniorsafeguard/pages/home_page.dart';
 
 class LoginPage extends StatelessWidget {
   LoginPage({super.key});
@@ -11,12 +12,19 @@ class LoginPage extends StatelessWidget {
   final passwordController = TextEditingController();
 
   // sign user in method
-  void signUserIn() {}
+  void signUserIn(BuildContext context) {
+    Navigator.pushReplacement(context, MaterialPageRoute(
+      builder: (context) {
+        return const HomePage(title: 'SCT Senior Care');
+      },
+    ));
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[300],
+      resizeToAvoidBottomInset: false,
       body: SafeArea(
         child: Center(
           child: Column(
@@ -79,7 +87,7 @@ class LoginPage extends StatelessWidget {
 
               // sign in button
               MyButton(
-                onTap: signUserIn,
+                onTap: () => signUserIn(context),
               ),
 
               const SizedBox(height: 30),
@@ -115,19 +123,15 @@ class LoginPage extends StatelessWidget {
               const SizedBox(height: 10),
               // google + apple sign in buttons
               const Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children:  [
-                  // google button
+                  SquareTile(imagePath: 'lib/images/google.png'),
                   SquareTile(imagePath: 'lib/images/facebook.png'),
-
-                  SizedBox(width: 25),
-
-                  // apple button
-                  SquareTile(imagePath: 'lib/images/twitter.png')
+                  SquareTile(imagePath: 'lib/images/twitter.png'),
                 ],
               ),
 
-              const SizedBox(height: 10),
+              const SizedBox(height: 20),
 
               // not a member? register now
               Row(

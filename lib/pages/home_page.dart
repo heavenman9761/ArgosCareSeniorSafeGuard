@@ -28,7 +28,16 @@ class HomePage extends ConsumerStatefulWidget {
 }
 
 class _HomePageState extends ConsumerState<HomePage> {
-  final List<Sensor> _sensorList = [];
+  //final List<Sensor> _sensorList = [];
+  final List<String> _sensorList = [
+    "허브",
+    '문열림 센서',
+    '동작감지센서',
+    '화재센서',
+    '온습도센서',
+    '조도센서',
+    '응급벨'
+  ];
 
   late IMQTTController _manager;
   bool loadingDeviceList = false;
@@ -59,7 +68,6 @@ class _HomePageState extends ConsumerState<HomePage> {
         logger.i('subscribed to $requestTopic');
 
         // mqttCommand(MqttCommand.mcSensorList, deviceId);
-
       } else {
         logger.i('not hubID');
       }
@@ -73,18 +81,23 @@ class _HomePageState extends ConsumerState<HomePage> {
       if (_manager.currentState.getReceivedTopic != '') {
         logger.w(_manager.currentState.getReceivedTopic);
       }
-      if (_manager.currentState.getReceivedTopic == resultTopic && _manager.currentState.getReceivedText != '') {
+      if (_manager.currentState.getReceivedTopic == resultTopic &&
+          _manager.currentState.getReceivedText != '') {
         final mqttMsg = json.decode(_manager.currentState.getReceivedText);
         logger.i(mqttMsg);
 
-        if (mqttMsg['event'] == 'gatewayADD') { //gatewayADD는 처음 hub를 찾으면 들어온다.
+        if (mqttMsg['event'] == 'gatewayADD') {
+          //gatewayADD는 처음 hub를 찾으면 들어온다.
           logger.i('received event: gatewayADD');
-          Navigator.popUntil(context, (route) {
-            return route.isFirst;
-          },
+          Navigator.popUntil(
+            context,
+            (route) {
+              return route.isFirst;
+            },
           );
         }
-      } else if (_manager.currentState.getReceivedTopic == requestTopic && _manager.currentState.getReceivedText != '') {
+      } else if (_manager.currentState.getReceivedTopic == requestTopic &&
+          _manager.currentState.getReceivedText != '') {
         final mqttMsg = json.decode(_manager.currentState.getReceivedText);
         logger.i(mqttMsg);
 
@@ -101,9 +114,9 @@ class _HomePageState extends ConsumerState<HomePage> {
       _manager.currentState.setReceivedText('');
       _manager.currentState.setReceivedTopic('');
 
-      setState(() {
-
-      });
+      // setState(() {
+      //
+      // });
     });
   }
 
@@ -111,97 +124,207 @@ class _HomePageState extends ConsumerState<HomePage> {
     var now = DateTime.now();
     String formatDate = DateFormat('yyyyMMdd_HHmmss').format(now);
 
-    if (mc == MqttCommand.mcSensorList) { //펌웨어 에서 기능 구현 안됨.
-      _manager.publishTopic(commandTopic, jsonEncode({
-        "order": "sensorList",
-        "deviceID": deviceId,
-        "time": formatDate
-      }));
+    if (mc == MqttCommand.mcSensorList) {
+      //펌웨어 에서 기능 구현 안됨.
+      _manager.publishTopic(
+          commandTopic,
+          jsonEncode({
+            "order": "sensorList",
+            "deviceID": deviceId,
+            "time": formatDate
+          }));
     } else if (mc == MqttCommand.mcParing) {
-      _manager.publishTopic(commandTopic, jsonEncode({
-        "order": "pairingEnabled",
-        "deviceID": deviceId,
-        "time": formatDate
-      }));
+      _manager.publishTopic(
+          commandTopic,
+          jsonEncode({
+            "order": "pairingEnabled",
+            "deviceID": deviceId,
+            "time": formatDate
+          }));
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    _manager = ref.watch(mqttManagerProvider);
     return Scaffold(
+      backgroundColor: Colors.grey[300],
       appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: const Text('Home'),
-        // actions: [
-        //   Permissions(),
-        // ],
+        backgroundColor: Colors.white,
+        title: const Text('Argos Care'),
+        centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.notifications_none_outlined),
+            tooltip: "Menu",
+            color: Colors.grey,
+            onPressed: () {
+              // onPressed handler
+            },
+          ),
+        ],
       ),
-      body: FutureBuilder<List<DeviceList>>(
-        future: loadDeviceList(),
-        builder: (context, snapshot) {
-          final List<DeviceList>? devices = snapshot.data;
-          if (snapshot.connectionState != ConnectionState.done) {
-            return Center(
-              child: waitWidget(),
-            );
-          }
-          if (snapshot.hasError) {
-            return Center(
-              child: Text(snapshot.error.toString()),
-            );
-          }
-          if (snapshot.hasData) {
-            if (devices != null) {
-              if (devices.isEmpty) {
-                return Center(
-                  child: waitWidget(),
-                );
-              }
-              return ListView.builder(
-                itemCount: devices.length,
-                itemBuilder: (context, index) {
-                  final device = devices[index];
-                  return Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Card(
-                      child: ListTile(
-                        title: Text(device.deviceType),
-                        trailing: const Icon(Icons.add),
-                        onTap: () {
-
-                          // Get.toNamed("/Setting_Hub", arguments: {"hubName": device});
-                          Navigator.push(context,
-                              MaterialPageRoute(builder: (context) {
-                                return const AddHubPage1();
-                              }));
-                        },
-                      ),
-                    ),
+      body: Column(
+        children: [
+          Padding(
+            padding: EdgeInsets.fromLTRB(16, 16, 8, 8),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text("안녕하세요 홍 보호님,\n"
+                    "홍길동님은 현재 외출중입니다.",
+                style: TextStyle(fontSize: 16.0),),
+                IconButton(
+                  icon: const Icon(Icons.account_circle, size: 48.0),
+                  tooltip: "Menu",
+                  color: Colors.grey,
+                  onPressed: () {
+                    print('icon press');
+                  },
+                ),
+              ]
+            )
+          ),
+          Expanded(
+            child: FutureBuilder<List<String>>(
+              future: _loadDeviceList(),
+              builder: (context, snapshot) {
+                final List<String>? devices = snapshot.data;
+                if (snapshot.connectionState != ConnectionState.done) {
+                  return Center(
+                    child: waitWidget(),
                   );
-                },
-              );
-            } else {
-              return Center(
-                child: waitWidget(),
-              );
-            }
-          } else {
-            return Center(
-              child: waitWidget(),
-            );
-          }
-        },
-      ),
-      floatingActionButton: FloatingActionButton(
-          onPressed: () {
-            Navigator.push(context,
-                MaterialPageRoute(builder: (context) {
-                  return const AddHubPage1();
-                }));
+                }
+                if (snapshot.hasError) {
+                  return Center(
+                    child: Text(snapshot.error.toString()),
+                  );
+                }
+                if (snapshot.hasData) {
+                  if (devices != null) {
+                    if (devices.isEmpty) {
+                      return Center(
+                        child: waitWidget(),
+                      );
+                    }
+                    return ListView.builder(
+                      itemCount: devices.length,
+                      itemBuilder: (context, index) {
+                        final device = devices[index];
+                        return Padding(
+                          padding: const EdgeInsets.all(8),
+                          child: Card(
+                            color: Colors.white,
+                            surfaceTintColor: Colors.transparent,
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16.0)),
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(16.0),
+                              onTap: () {
+                                print('card press');
+                              },
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(16.0),
+                                  color: Colors.transparent,
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.fromLTRB(16, 8, 8, 8),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Text(device,
+                                                style: const TextStyle(
+                                                    fontSize: 20.0,
+                                                    fontWeight: FontWeight.w700,
+                                                    color: Colors.grey)),
+                                            IconButton(
+                                              icon: const Icon(Icons.more_horiz),
+                                              tooltip: "Menu",
+                                              color: Colors.grey,
+                                              onPressed: () {
+                                                print('icon press');
+                                              },
+                                            ),
+                                          ]
+                                      ),
+                                      const Text(
+                                        "상태",
+                                        style:
+                                        TextStyle(fontSize: 12.0, color: Colors.grey),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
 
-          },//_findingEsp32 ? null : _findEsp32,
-          child: const Icon(Icons.add)),
+                            // onTap: () {
+                            //   Navigator.push(context,
+                            //       MaterialPageRoute(builder: (context) {
+                            //         return const AddHubPage1();
+                            //       }));
+                            // },
+                          ),
+                        );
+                      },
+                    );
+                  } else {
+                    return Center(
+                      child: waitWidget(),
+                    );
+                  }
+                } else {
+                  return Center(
+                    child: waitWidget(),
+                  );
+                }
+              },
+            ),
+          )
+
+        ],
+      ),
+      floatingActionButton: SizedBox(
+        height: 50,
+        width: 120,
+        child: extendButton(),
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        items: const <BottomNavigationBarItem>[
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: '홈',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.sensors),
+            label: '내 기기',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.account_circle),
+            label: '프로필',
+          ),
+        ],
+        selectedItemColor: Colors.lightBlue,
+      ),
+    );
+  }
+
+  FloatingActionButton extendButton() {
+    return FloatingActionButton.extended(
+      foregroundColor: Colors.white60,
+      backgroundColor: Colors.lightBlue,
+      onPressed: () {
+        Navigator.push(context, MaterialPageRoute(builder: (context) {
+          return const AddHubPage1();
+        }));
+      }, //_find
+      label: const Text("기기등록"),
+      isExtended: true, // ingEsp32 ? null : _findEsp32,
+      icon: const Icon(Icons.add, size: 30),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
     );
   }
 
@@ -220,7 +343,6 @@ class _HomePageState extends ConsumerState<HomePage> {
     _checkPermissions();
 
     FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
-
       RemoteNotification? notification = message.notification;
 
       if (notification != null) {
@@ -246,10 +368,13 @@ class _HomePageState extends ConsumerState<HomePage> {
     super.initState();
   }
 
+  Future<List<String>> _loadDeviceList() async {
+    return _sensorList;
+  }
+
   Future<bool> _checkPermissions() async {
     Map<Permission, PermissionStatus> statuses = await [
       Permission.notification,
-
     ].request();
 
     logger.i('location ${statuses[Permission.location]}');
@@ -263,12 +388,15 @@ class _HomePageState extends ConsumerState<HomePage> {
   void initMqtt() {
     _manager = ref.watch(mqttManagerProvider);
 
-    _manager.initializeMQTTClient(host: '14.42.209.174', identifier: 'SCT Senior Care');
+    _manager.initializeMQTTClient(
+        host: '14.42.209.174', identifier: 'SCT Senior Care');
     _manager.connect();
 
     Future.delayed(const Duration(seconds: 1), () {
-      if (_manager.currentState.getAppConnectionState == MQTTAppConnectionState.connected
-          || _manager.currentState.getAppConnectionState == MQTTAppConnectionState.connectedSubscribed) {
+      if (_manager.currentState.getAppConnectionState ==
+              MQTTAppConnectionState.connected ||
+          _manager.currentState.getAppConnectionState ==
+              MQTTAppConnectionState.connectedSubscribed) {
         logger.i("MQTT Connected!");
 
         getHubIdToPrefs();
@@ -277,7 +405,8 @@ class _HomePageState extends ConsumerState<HomePage> {
   }
 
   Widget waitWidget() {
-    return loadingDeviceList ? const CircularProgressIndicator(backgroundColor: Colors.blue) : const Text("");
+    return loadingDeviceList
+        ? const CircularProgressIndicator(backgroundColor: Colors.blue)
+        : const Text("");
   }
 }
-

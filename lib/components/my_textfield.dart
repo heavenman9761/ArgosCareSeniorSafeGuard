@@ -16,8 +16,9 @@ class MyTextField extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 25.0),
-      //padding: const EdgeInsets.all(15),
+      // padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
       child: TextField(
+        style: const TextStyle(fontSize: 12),
         controller: controller,
         obscureText: obscureText,
         decoration: InputDecoration(
@@ -30,7 +31,8 @@ class MyTextField extends StatelessWidget {
             fillColor: Colors.grey.shade200,
             filled: true,
             hintText: hintText,
-            hintStyle: TextStyle(color: Colors.grey[500])),
+            hintStyle: TextStyle(color: Colors.grey[500])
+        ),
       ),
     );
   }
