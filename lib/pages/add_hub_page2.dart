@@ -12,6 +12,9 @@ import 'package:argoscareseniorsafeguard/models/accesspoint.dart';
 import 'package:argoscareseniorsafeguard/mqtt/IMQTTController.dart';
 import 'package:argoscareseniorsafeguard/Constants.dart';
 
+import 'package:argoscareseniorsafeguard/database/db.dart';
+import 'package:argoscareseniorsafeguard/models/device.dart';
+
 class AddHubPage2 extends ConsumerStatefulWidget {
   const AddHubPage2({super.key});
 
@@ -28,6 +31,13 @@ class _AddHubPage2State extends ConsumerState<AddHubPage2> {
   String wifiPassword = "";
   bool _hasError = false;
 
+  final ButtonStyle elevatedButtonStyle = ElevatedButton.styleFrom(
+    foregroundColor: Colors.white60,
+    backgroundColor: Colors.lightBlue, // text color
+    elevation: 5, //
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))
+  );
+
   Future<void> setHubIdToPrefs(String value) async {
     try {
       final SharedPreferences pref = await SharedPreferences.getInstance();
@@ -43,8 +53,33 @@ class _AddHubPage2State extends ConsumerState<AddHubPage2> {
     }
   }
 
+  Future<void> saveDevice(String deviceID) async {
+    DBHelper sd = DBHelper();
+    int? count = await sd.getDeviceCount();
+
+    Device device = Device(
+      deviceID: deviceID,
+      deviceType: Constants.DEVICE_TYPE_HUB,
+      deviceName: 'hub1',
+      displaySunBun: count,
+      accountID: 'dn9318dn@naver.com',
+      state: " ",
+      updateTime: DateTime.now().toString(),
+      createTime: DateTime.now().toString(),
+    );
+
+    await sd.insertDevice(device);
+
+    Navigator.popUntil(context, (route) {
+        return route.isFirst;
+      },
+    );
+  }
+
   @override
   void initState() {
+    super.initState();
+
     setState(() {
       configState = ConfigState.none;
       _pairingHub(context);
@@ -158,8 +193,6 @@ class _AddHubPage2State extends ConsumerState<AddHubPage2> {
 
       print('received from java [hubID]: $result');
 
-
-
       setState(() {
         configState = ConfigState.settingMqttDone;
       });
@@ -228,6 +261,7 @@ class _AddHubPage2State extends ConsumerState<AddHubPage2> {
       setState(() {
         configState = ConfigState.settingWifiDone;
         setHubIdToPrefs(_hubID);
+        saveDevice(_hubID);
       });
 
     } on PlatformException catch (e) {
@@ -244,9 +278,11 @@ class _AddHubPage2State extends ConsumerState<AddHubPage2> {
     _manager = ref.watch(mqttManagerProvider);
     final hub = ref.watch(hubNameProvider);
     return Scaffold(
+        backgroundColor: Colors.grey[300],
         appBar: AppBar(
-          backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-          title: const Text('Find IoT Hub'),
+          backgroundColor: Colors.white,
+          title: const Text('허브 추가'),
+          centerTitle: true,
         ),
         body: Center(child: controlUI()));
   }
@@ -267,7 +303,7 @@ class _AddHubPage2State extends ConsumerState<AddHubPage2> {
           return Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              ElevatedButton(onPressed:() async => _pairingHub(context), child: const Text('다시 시도')),
+              ElevatedButton(onPressed:() async => _pairingHub(context), style: elevatedButtonStyle, child: const Text('다시 시도')),
               const SizedBox(height: 20,),
               const Text("허브를 찾을 수 없습니다.\n다시 시도해보시기 바랍니다.")
           ]);
@@ -275,7 +311,7 @@ class _AddHubPage2State extends ConsumerState<AddHubPage2> {
           return Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              ElevatedButton(onPressed:() async => _pairingHub(context), child: const Text('다시 시도')),
+              ElevatedButton(onPressed:() async => _pairingHub(context), style: elevatedButtonStyle, child: const Text('다시 시도')),
               const SizedBox(height: 20,),
               const Text("오류가 발생 했습니다.\n다시 시도해보시기 바랍니다.")
           ]);
@@ -283,7 +319,7 @@ class _AddHubPage2State extends ConsumerState<AddHubPage2> {
           return Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                ElevatedButton(onPressed:() async => _pairingHub(context), child: const Text('다시 시도')),
+                ElevatedButton(onPressed:() async => _pairingHub(context), style: elevatedButtonStyle, child: const Text('다시 시도')),
                 const SizedBox(height: 20,),
                 const Text("사용 권한을 부여해주시고\n다시 시도해보시기 바랍니다.")
               ]);
@@ -298,7 +334,7 @@ class _AddHubPage2State extends ConsumerState<AddHubPage2> {
           return Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              ElevatedButton(onPressed:() async => _pairingHub(context), child: const Text('다시 시도')),
+              ElevatedButton(onPressed:() async => _pairingHub(context), style: elevatedButtonStyle, child: const Text('다시 시도')),
               const SizedBox(height: 20,),
               const Text("오류가 발생 했습니다.\n다시 시도해보시기 바랍니다.")
           ]);
@@ -336,7 +372,6 @@ class _AddHubPage2State extends ConsumerState<AddHubPage2> {
 
   Widget lastWidget()
   {
-
     return const Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [

@@ -1,25 +1,15 @@
 import 'dart:ffi';
 
-class Sensor {
-  final String? sensorID;
+class Hub {
   final String? hubID;
-  final String? deviceType;
   final String? deviceName;
   final int? displaySunBun;
   final String? state;
   final String? updateTime;
   final String? createTime;
 
-  String? getSensorID() {
-    return sensorID;
-  }
-
   String? getHubID() {
     return hubID;
-  }
-
-  String? getDeviceType() {
-    return deviceType;
   }
 
   String? getDeviceName() {
@@ -42,27 +32,23 @@ class Sensor {
     return createTime;
   }
 
-  Sensor({required this.sensorID, required this.hubID, required this.deviceType, required this.deviceName, required this.displaySunBun,
+  Hub({required this.hubID, required this.deviceName, required this.displaySunBun,
     required this.state, required this.updateTime, required this.createTime});
 
   Map<String, dynamic> toMap() {
     return {
-      'sensorID': sensorID ?? '',
       'hubID': hubID ?? '',
-      'deviceType': deviceType ?? '',
       'deviceName': deviceName ?? '',
-      'displaySunBun': displaySunBun ?? '',
+      'displaySunBun': displaySunBun ?? 0,
       'state': state ?? '',
       'updateTime': updateTime ?? '',
       'createTime': createTime ?? '',
     };
   }
 
-  factory Sensor.fromJson(Map<String, dynamic> json) {
-    return Sensor(
-      sensorID: json['sensorID'],
+  factory Hub.fromJson(Map<String, dynamic> json) {
+    return Hub(
       hubID: json['hubID'],
-      deviceType: json['deviceType'],
       deviceName: json['deviceName'],
       displaySunBun: json['displaySunBun'],
       state: json['state'],
@@ -73,6 +59,6 @@ class Sensor {
 
   @override
   String toString() {
-    return 'Sensor {sensorID: $sensorID, deviceType: $deviceType, deviceName: $deviceName, displaySunBun: $displaySunBun, state: $state, updateTime: $updateTime, createTime: $createTime}';
+    return 'Hub {hubID: $hubID, deviceName: $deviceName, displaySunBun: $displaySunBun, state: $state, updateTime: $updateTime, createTime: $createTime}';
   }
 }

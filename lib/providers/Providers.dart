@@ -11,3 +11,15 @@ final mqttManagerProvider = ChangeNotifierProvider<IMQTTController>((ref) {
 final hubNameProvider = StateProvider<String>((ref) {
   return "";
 });
+
+final resultTopicProvider = StateProvider<String>((ref) {
+  return "";
+});
+
+final requestTopicProvider = StateProvider<String>((ref) {
+  return "";
+});
+
+final commandTopicProvider = StateProvider<String>((ref) {
+  return "";
+});

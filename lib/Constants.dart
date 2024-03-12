@@ -9,9 +9,18 @@ import 'package:permission_handler/permission_handler.dart';
 
 import 'package:argoscareseniorsafeguard/utils/firebase_options.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:argoscareseniorsafeguard/mqtt/IMQTTController.dart';
+import 'dart:convert';
+import 'package:intl/intl.dart';
+import 'package:flutter/material.dart';
+import 'package:argoscareseniorsafeguard/providers/Providers.dart';
 
-class Constants {
+class Constants{
+
+  static String resultTopic = '';
+
   static const platform = MethodChannel('est.co.kr/IoT_Hub');
+  static const DEVICE_TYPE_HUB = 'hub';
 }
 
 var logger = Logger(
@@ -30,6 +39,30 @@ enum ConfigState {
   settingMqtt, settingMqttError, settingMqttDone,
   settingWifiScan, settingWifiScanError, settingWifiScanDone,
   settingWifi, settingWifiError, settingWifiDone
+}
+
+void mqttCommand(IMQTTController _manager, String topic, MqttCommand mc, String deviceId) {
+  var now = DateTime.now();
+  String formatDate = DateFormat('yyyyMMdd_HHmmss').format(now);
+
+  if (mc == MqttCommand.mcSensorList) {
+    //펌웨어 에서 기능 구현 안됨.
+    _manager.publishTopic(
+        topic,
+        jsonEncode({
+          "order": "sensorList",
+          "deviceID": deviceId,
+          "time": formatDate
+        }));
+  } else if (mc == MqttCommand.mcParing) {
+    _manager.publishTopic(
+        topic,
+        jsonEncode({
+          "order": "pairingEnabled",
+          "deviceID": deviceId,
+          "time": formatDate
+        }));
+  }
 }
 
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
