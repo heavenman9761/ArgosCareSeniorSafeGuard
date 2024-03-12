@@ -166,7 +166,7 @@ class _HomePageState extends ConsumerState<HomePage> {
       body: Column(
         children: [
           Padding(
-            padding: EdgeInsets.fromLTRB(16, 16, 8, 8),
+            padding: const EdgeInsets.fromLTRB(16, 16, 8, 8),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -207,70 +207,64 @@ class _HomePageState extends ConsumerState<HomePage> {
                       );
                     }
                     return ListView.builder(
-                      itemCount: devices.length,
-                      itemBuilder: (context, index) {
-                        final device = devices[index];
-                        return Padding(
-                          padding: const EdgeInsets.all(8),
-                          child: Card(
-                            color: Colors.white,
-                            surfaceTintColor: Colors.transparent,
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16.0)),
-                            child: InkWell(
-                              borderRadius: BorderRadius.circular(16.0),
-                              onTap: () {
-                                print('card press');
-                              },
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(16.0),
-                                  color: Colors.transparent,
-                                ),
-                                child: Padding(
-                                  padding: const EdgeInsets.fromLTRB(16, 8, 8, 8),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            Text(device,
-                                                style: const TextStyle(
-                                                    fontSize: 20.0,
-                                                    fontWeight: FontWeight.w700,
-                                                    color: Colors.grey)),
-                                            IconButton(
-                                              icon: const Icon(Icons.more_horiz),
-                                              tooltip: "Menu",
-                                              color: Colors.grey,
-                                              onPressed: () {
-                                                print('icon press');
-                                              },
-                                            ),
-                                          ]
-                                      ),
-                                      const Text(
-                                        "상태",
-                                        style:
-                                        TextStyle(fontSize: 12.0, color: Colors.grey),
-                                      ),
-                                    ],
+                        itemCount: devices.length,
+                        itemBuilder: (context, index) {
+                          final device = devices[index];
+                          return Padding(
+                            padding: const EdgeInsets.all(8),
+                            child: Card(
+                              color: Colors.white,
+                              surfaceTintColor: Colors.transparent,
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16.0)),
+                              child: InkWell(
+                                borderRadius: BorderRadius.circular(16.0),
+                                onTap: () {
+                                  debugPrint('card press');
+                                },
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(16.0),
+                                    color: Colors.transparent,
+                                  ),
+                                  child: Padding(
+                                    padding: const EdgeInsets.fromLTRB(16, 8, 8, 8),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Text(device,
+                                                  style: const TextStyle(
+                                                      fontSize: 20.0,
+                                                      fontWeight: FontWeight.w700,
+                                                      color: Colors.grey)),
+                                              IconButton(
+                                                icon: const Icon(Icons.more_horiz),
+                                                tooltip: "Menu",
+                                                color: Colors.grey,
+                                                onPressed: () {
+                                                  debugPrint('icon press');
+                                                },
+                                              ),
+                                            ]
+                                        ),
+                                        const Text(
+                                          "상태",
+                                          style:
+                                          TextStyle(fontSize: 12.0, color: Colors.grey),
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 ),
                               ),
                             ),
+                          );
+                        },
+                      );
 
-                            // onTap: () {
-                            //   Navigator.push(context,
-                            //       MaterialPageRoute(builder: (context) {
-                            //         return const AddHubPage1();
-                            //       }));
-                            // },
-                          ),
-                        );
-                      },
-                    );
                   } else {
                     return Center(
                       child: waitWidget(),
