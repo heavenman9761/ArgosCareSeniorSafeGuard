@@ -106,6 +106,13 @@ class _HomePageState extends ConsumerState<HomePage> {
             logger.i('received event: sensorList');
           } else if (mqttMsg['order'] == 'device_add') {
             logger.i('received event: device_add');
+
+            Navigator.popUntil(
+              context,
+                  (route) {
+                return route.isFirst;
+              },
+            );
           }
 
           if (mqttMsg['event'] == 'device_detected') {
