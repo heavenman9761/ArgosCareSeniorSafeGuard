@@ -1,24 +1,13 @@
-import 'package:flutter/material.dart';
-
-import 'dart:async';
-import 'dart:io';
 import 'dart:convert';
 
-import 'package:logger/logger.dart';
-import 'package:my_mqtt_exam/providers/Providers.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:my_mqtt_exam/mqtt/mqtt.dart';
 
 import 'package:mqtt_client/mqtt_client.dart';
 
-var logger = Logger(
-  printer: PrettyPrinter(),
-);
-
-var loggerNoStack = Logger(
-  printer: PrettyPrinter(methodCount: 0),
-);
-
+import 'package:argoscareseniorsafeguard/providers/Providers.dart';
+import 'package:argoscareseniorsafeguard/mqtt/mqtt.dart';
+import 'package:argoscareseniorsafeguard/Constants.dart';
 
 void main() {
   runApp(

@@ -1,17 +1,12 @@
+import 'dart:io';
+
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
-import 'package:logger/logger.dart';
-import 'dart:io';
-import 'package:my_mqtt_exam/providers/Providers.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:argoscareseniorsafeguard/Constants.dart';
 
-var logger = Logger(
-  printer: PrettyPrinter(),
-);
-
-var loggerNoStack = Logger(
-  printer: PrettyPrinter(methodCount: 0),
-);
+import 'package:argoscareseniorsafeguard/providers/Providers.dart';
 
 late MqttServerClient client;
 late WidgetRef _ref;

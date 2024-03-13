@@ -6,11 +6,11 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:intl/intl.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:mqtt_client/mqtt_client.dart';
 
-import 'package:argoscareseniorsafeguard/mqtt/MQTTAppState.dart';
-import 'package:argoscareseniorsafeguard/mqtt/IMQTTController.dart';
+//import 'package:argoscareseniorsafeguard/mqtt/IMQTT/Controller.dart';
+import 'package:argoscareseniorsafeguard/mqtt/mqtt.dart';
 import 'package:argoscareseniorsafeguard/providers/Providers.dart';
 import 'package:argoscareseniorsafeguard/models/device.dart';
 import 'package:argoscareseniorsafeguard/pages/add_hub_page1.dart';
@@ -29,7 +29,7 @@ class HomePage extends ConsumerStatefulWidget {
 
 class _HomePageState extends ConsumerState<HomePage> {
   late List<Device> _deviceList = [];
-  late IMQTTController _manager;
+  // late IMQTTController _manager;
   bool loadingDeviceList = false;
 
   Future<void> getHubIdToPrefs() async {
@@ -42,11 +42,11 @@ class _HomePageState extends ConsumerState<HomePage> {
         ref.read(commandTopicProvider.notifier).state = 'command/$deviceId';
         ref.read(requestTopicProvider.notifier).state = 'request/$deviceId';
 
-        _manager.subScribeTo(ref.watch(resultTopicProvider));
-        logger.i('subscribed to ${ref.watch(resultTopicProvider)}');
-
-        _manager.subScribeTo(ref.watch(requestTopicProvider));
-        logger.i('subscribed to ${ref.watch(requestTopicProvider)}');
+        // _manager.subScribeTo(ref.watch(resultTopicProvider));
+        // logger.i('subscribed to ${ref.watch(resultTopicProvider)}');
+        //
+        // _manager.subScribeTo(ref.watch(requestTopicProvider));
+        // logger.i('subscribed to ${ref.watch(requestTopicProvider)}');
       } else {
         logger.i('not hubID');
       }
@@ -60,14 +60,19 @@ class _HomePageState extends ConsumerState<HomePage> {
     List<Device> hubList = await sd.getDeviceOfHubs();
     for (var hub in hubList) {
       ref.read(resultTopicProvider.notifier).state = 'result/${hub.getDeviceID()}';
+      mqttAddSubscribeTo('result/${hub.getDeviceID()}');
+
       ref.read(commandTopicProvider.notifier).state = 'command/${hub.getDeviceID()}';
+      mqttAddSubscribeTo('command/${hub.getDeviceID()}');
+
       ref.read(requestTopicProvider.notifier).state = 'request/${hub.getDeviceID()}';
+      mqttAddSubscribeTo('request/${hub.getDeviceID()}');
 
-      _manager.subScribeTo(ref.watch(resultTopicProvider));
-      logger.i('subscribed to ${ref.watch(resultTopicProvider)}');
-
-      _manager.subScribeTo(ref.watch(requestTopicProvider));
-      logger.i('subscribed to ${ref.watch(requestTopicProvider)}');
+      // _manager.subScribeTo(ref.watch(resultTopicProvider));
+      // logger.i('subscribed to ${ref.watch(resultTopicProvider)}');
+      //
+      // _manager.subScribeTo(ref.watch(requestTopicProvider));
+      // logger.i('subscribed to ${ref.watch(requestTopicProvider)}');
     }
   }
 
@@ -93,6 +98,7 @@ class _HomePageState extends ConsumerState<HomePage> {
     });
   }
 
+  /*
   void _mqttGetMessageTimer() {
     Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_manager.currentState.getReceivedTopic != '' && _manager.currentState.getReceivedText != '') {
@@ -150,15 +156,23 @@ class _HomePageState extends ConsumerState<HomePage> {
       }
     });
   }
-
+*/
   @override
   Widget build(BuildContext context) {
-    ref.listen(_manager, (previous, next) {
-      print('result ---------------------------------');
+    ref.listen(mqttCurrentTopicProvider, (previous, next) {
+      logger.i('current topic: ${ref.watch(mqttCurrentTopicProvider)}');
     });
 
-    ref.listen(_manager as ProviderListenable<Object>, (previous, next) {
-      print('request --------------------------------');
+    ref.listen(mqttCurrentMessageProvier, (previous, next) {
+      logger.i('current msg: ${ref.watch(mqttCurrentMessageProvier)}');
+    });
+
+    ref.listen(mqttCurrentStateProvider, (previous, next) {
+      logger.i('current state: ${ref.watch(mqttCurrentStateProvider)}');
+      if (ref.watch(mqttCurrentStateProvider) == MqttConnectionState.connected) {
+        _mqttStartSubscribeTo();
+        //mqttAddSubscribeTo('request/00003494543ebb58');
+      }
     });
 
     return Scaffold(
@@ -348,14 +362,13 @@ class _HomePageState extends ConsumerState<HomePage> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    initMqtt();
   }
 
   @override
   void initState() {
     getMyDeviceToken();
-
     _checkPermissions();
+    mqttInit(ref, '14.42.209.174', 6002, 'ArgosCareSeniorSafeGuard', 'mings', 'Sct91234!');
 
     FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
       RemoteNotification? notification = message.notification;
@@ -383,6 +396,12 @@ class _HomePageState extends ConsumerState<HomePage> {
     super.initState();
   }
 
+  @override
+  void dispose() {
+    mqttDisconnect();
+    super.dispose();
+  }
+
   Future<List<Device>> _getDeviceList() async {
     DBHelper sd = DBHelper();
     _deviceList = await sd.getDevices();
@@ -400,24 +419,6 @@ class _HomePageState extends ConsumerState<HomePage> {
       return true;
     }
     return false;
-  }
-
-  void initMqtt() {
-    _manager = ref.watch(mqttManagerProvider);
-    _manager.initializeMQTTClient(
-        host: '14.42.209.174', identifier: 'SCT Senior Care');
-    _manager.connect();
-
-    Future.delayed(const Duration(seconds: 1), () {
-      if (_manager.currentState.getAppConnectionState ==
-              MQTTAppConnectionState.connected ||
-          _manager.currentState.getAppConnectionState ==
-              MQTTAppConnectionState.connectedSubscribed) {
-        logger.i("MQTT Connected!");
-        _mqttStartSubscribeTo();
-        _mqttGetMessageTimer();
-      }
-    });
   }
 
   Widget waitWidget() {
