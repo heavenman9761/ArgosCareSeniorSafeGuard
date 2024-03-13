@@ -30,7 +30,6 @@ class HomePage extends ConsumerStatefulWidget {
 class _HomePageState extends ConsumerState<HomePage> {
   late List<Device> _deviceList = [];
   late IMQTTController _manager;
-  late String _resultTopic;
   bool loadingDeviceList = false;
 
   Future<void> getHubIdToPrefs() async {
@@ -48,9 +47,6 @@ class _HomePageState extends ConsumerState<HomePage> {
 
         _manager.subScribeTo(ref.watch(requestTopicProvider));
         logger.i('subscribed to ${ref.watch(requestTopicProvider)}');
-
-        // mqttCommand(MqttCommand.mcSensorList, deviceId);
-        // Constants.mqttCommand(_manager, MqttCommand.mcSensorList, )
       } else {
         logger.i('not hubID');
       }
@@ -59,13 +55,13 @@ class _HomePageState extends ConsumerState<HomePage> {
     }
   }
 
-  void _mqttGetMessageTimer() async {
+  void _mqttStartSubscribeTo() async {
     DBHelper sd = DBHelper();
-    List<Device> list = await sd.getDeviceOfHubs();
-    for (var device in list) {
-      ref.read(resultTopicProvider.notifier).state = 'result/${device.getDeviceID()}';
-      ref.read(commandTopicProvider.notifier).state = 'command/${device.getDeviceID()}';
-      ref.read(requestTopicProvider.notifier).state = 'request/${device.getDeviceID()}';
+    List<Device> hubList = await sd.getDeviceOfHubs();
+    for (var hub in hubList) {
+      ref.read(resultTopicProvider.notifier).state = 'result/${hub.getDeviceID()}';
+      ref.read(commandTopicProvider.notifier).state = 'command/${hub.getDeviceID()}';
+      ref.read(requestTopicProvider.notifier).state = 'request/${hub.getDeviceID()}';
 
       _manager.subScribeTo(ref.watch(resultTopicProvider));
       logger.i('subscribed to ${ref.watch(resultTopicProvider)}');
@@ -73,50 +69,76 @@ class _HomePageState extends ConsumerState<HomePage> {
       _manager.subScribeTo(ref.watch(requestTopicProvider));
       logger.i('subscribed to ${ref.watch(requestTopicProvider)}');
     }
+  }
 
-    if (list.isNotEmpty) {
-      final resultTopic = ref.watch(resultTopicProvider);
-      final requestTopic = ref.watch(requestTopicProvider);
+  Future<void> saveHub(String deviceID) async {
+    DBHelper sd = DBHelper();
+    int? count = await sd.getDeviceCount();
 
-      Timer.periodic(const Duration(seconds: 1), (timer) {
-        if (_manager.currentState.getReceivedTopic != '') {
-          logger.w(_manager.currentState.getReceivedTopic);
-        }
-        if (_manager.currentState.getReceivedTopic == resultTopic &&
-            _manager.currentState.getReceivedText != '') {
-          final mqttMsg = json.decode(_manager.currentState.getReceivedText);
-          logger.i(mqttMsg);
+    Device device = Device(
+      deviceID: deviceID,
+      deviceType: Constants.DEVICE_TYPE_HUB,
+      deviceName: 'hub1',
+      displaySunBun: count,
+      accountID: 'dn9318dn@naver.com',
+      state: " ",
+      updateTime: DateTime.now().toString(),
+      createTime: DateTime.now().toString(),
+    );
 
+    await sd.insertDevice(device).then((value) {
+      setState(() {
+
+      });
+    });
+  }
+
+  void _mqttGetMessageTimer() {
+    Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (_manager.currentState.getReceivedTopic != '' && _manager.currentState.getReceivedText != '') {
+
+        final mqttMsg = json.decode(_manager.currentState.getReceivedText);
+        //
+        logger.w(_manager.currentState.getReceivedTopic);
+        logger.w(mqttMsg);
+
+        if (_manager.currentState.getReceivedTopic == ref.watch(requestTopicProvider)) {
+          logger.w('request - $mqttMsg');
+          if (mqttMsg['order'] == 'device_add' || mqttMsg['order'] == 'pairingEnabled') {
+            // Navigator.popUntil(
+            //   context,
+            //       (route) {
+            //     return route.isFirst;
+            //   },
+            // );
+          }
+        } else if (_manager.currentState.getReceivedTopic == ref.watch(resultTopicProvider)) {
+          logger.i('result - $mqttMsg');
           if (mqttMsg['event'] == 'gatewayADD') {
+            Navigator.popUntil(
+              context,
+                  (route) {
+                return route.isFirst;
+              },
+            );
+            if (mqttMsg['state'] == 'success') {
+              saveHub(mqttMsg['deviceID']);
+
+            } else if (mqttMsg['state'] == 'failure') {
+
+            }
             //gatewayADD는 처음 hub를 찾으면 들어온다.
-            logger.i('received event: gatewayADD');
-            Navigator.popUntil(
-              context,
-                  (route) {
-                return route.isFirst;
-              },
-            );
-          }
-        } else if (_manager.currentState.getReceivedTopic == requestTopic &&
-            _manager.currentState.getReceivedText != '') {
-          final mqttMsg = json.decode(_manager.currentState.getReceivedText);
-          logger.i(mqttMsg);
+            // Navigator.popUntil(context, (route) {
+            //     return route.isFirst;
+            //   },
+            // );
 
-          if (mqttMsg['order'] == 'sensorList') {
-            logger.i('received event: sensorList');
-          } else if (mqttMsg['order'] == 'device_add') {
-            logger.i('received event: device_add');
+          } else if (mqttMsg['event'] == 'device_add') {
+            if (mqttMsg['state'] == 'device add success') {
 
-            Navigator.popUntil(
-              context,
-                  (route) {
-                return route.isFirst;
-              },
-            );
-          }
+            } else if (mqttMsg['state'] == 'device add failure') {
 
-          if (mqttMsg['event'] == 'device_detected') {
-            logger.i('received event: device_detected');
+            }
           }
         }
         _manager.currentState.setReceivedText('');
@@ -125,36 +147,20 @@ class _HomePageState extends ConsumerState<HomePage> {
         // setState(() {
         //
         // });
-      });
-    }
-  }
-
-  void mqttCommand(MqttCommand mc, String deviceId) {
-    var now = DateTime.now();
-    String formatDate = DateFormat('yyyyMMdd_HHmmss').format(now);
-
-    // if (mc == MqttCommand.mcSensorList) {
-    //   //펌웨어 에서 기능 구현 안됨.
-    //   _manager.publishTopic(
-    //       commandTopic,
-    //       jsonEncode({
-    //         "order": "sensorList",
-    //         "deviceID": deviceId,
-    //         "time": formatDate
-    //       }));
-    // } else if (mc == MqttCommand.mcParing) {
-    //   _manager.publishTopic(
-    //       commandTopic,
-    //       jsonEncode({
-    //         "order": "pairingEnabled",
-    //         "deviceID": deviceId,
-    //         "time": formatDate
-    //       }));
-    // }
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    ref.listen(_manager, (previous, next) {
+      print('result ---------------------------------');
+    });
+
+    ref.listen(_manager as ProviderListenable<Object>, (previous, next) {
+      print('request --------------------------------');
+    });
+
     return Scaffold(
       backgroundColor: Colors.grey[300],
       appBar: AppBar(
@@ -398,9 +404,6 @@ class _HomePageState extends ConsumerState<HomePage> {
 
   void initMqtt() {
     _manager = ref.watch(mqttManagerProvider);
-    _resultTopic = ref.watch(resultTopicProvider);
-
-
     _manager.initializeMQTTClient(
         host: '14.42.209.174', identifier: 'SCT Senior Care');
     _manager.connect();
@@ -411,8 +414,7 @@ class _HomePageState extends ConsumerState<HomePage> {
           _manager.currentState.getAppConnectionState ==
               MQTTAppConnectionState.connectedSubscribed) {
         logger.i("MQTT Connected!");
-
-        // getHubIdToPrefs();
+        _mqttStartSubscribeTo();
         _mqttGetMessageTimer();
       }
     });

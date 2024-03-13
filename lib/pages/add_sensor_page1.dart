@@ -30,36 +30,34 @@ class _AddSensorPage1State extends ConsumerState<AddSensorPage1> {
         ),
         body: Center(
           child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 8, 8),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  descriptWidget(),
-                  const SizedBox(height: 20,),
-                  ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                          foregroundColor: Colors.white60,
-                          backgroundColor: Colors.lightBlue, // text color
-                          elevation: 5, //
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))
-                      ),
-                      onPressed: (){
-                        if (!_finding) {
-                          _finding = true;
-                          final topic = ref.watch(commandTopicProvider);
-                          mqttCommand(_manager, topic, MqttCommand.mcParing, widget.deviceID);
-                        }
-                        // Navigator.push(context,
-                        //     MaterialPageRoute(builder: (context) {
-                        //       return const AddSensorPage2();
-                        //     }));
-                      },//findHub,
-                      child: const Text('검색')
-                  )
-                ],
-              )
-          ),
-        )
+            padding: const EdgeInsets.fromLTRB(16, 16, 8, 8),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                descriptWidget(),
+                const SizedBox(height: 20,),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                      foregroundColor: Colors.white60,
+                      backgroundColor: Colors.lightBlue, // text color
+                      elevation: 5, //
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))
+                  ),
+                  onPressed: (){
+                    if (!_finding) {
+                      _finding = true;
+                      final topic = ref.watch(commandTopicProvider);
+                      mqttCommand(_manager, topic, MqttCommand.mcParing, widget.deviceID);
+                    } else {
+                      Navigator.pop(context);
+                    }
+                  },//findHub,
+                  child: !_finding ? const Text('검색') : const Text('검색 취소')
+                )
+              ],
+            )
+          )
+        ),
     );
   }
 

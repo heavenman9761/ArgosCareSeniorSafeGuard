@@ -10,6 +10,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:argoscareseniorsafeguard/providers/Providers.dart';
 import 'package:argoscareseniorsafeguard/models/accesspoint.dart';
 import 'package:argoscareseniorsafeguard/mqtt/IMQTTController.dart';
+import 'package:argoscareseniorsafeguard/mqtt/MQTTAppState.dart';
 import 'package:argoscareseniorsafeguard/Constants.dart';
 
 import 'package:argoscareseniorsafeguard/database/db.dart';
@@ -68,12 +69,12 @@ class _AddHubPage2State extends ConsumerState<AddHubPage2> {
       createTime: DateTime.now().toString(),
     );
 
-    await sd.insertDevice(device);
-
-    Navigator.popUntil(context, (route) {
-        return route.isFirst;
-      },
-    );
+    await sd.insertDevice(device).then((value) {
+        Navigator.popUntil(context, (route) {
+          return route.isFirst;
+        },
+      );
+    });
   }
 
   @override
@@ -260,8 +261,22 @@ class _AddHubPage2State extends ConsumerState<AddHubPage2> {
 
       setState(() {
         configState = ConfigState.settingWifiDone;
-        setHubIdToPrefs(_hubID);
-        saveDevice(_hubID);
+        // setHubIdToPrefs(_hubID);
+
+        ref.read(resultTopicProvider.notifier).state = 'result/$_hubID';
+        ref.read(requestTopicProvider.notifier).state = 'request/$_hubID';
+
+        logger.i(ref.watch(requestTopicProvider));
+        logger.i(ref.watch(resultTopicProvider));
+
+        if (_manager.currentState.getAppConnectionState == MQTTAppConnectionState.connected
+              || _manager.currentState.getAppConnectionState == MQTTAppConnectionState.connectedSubscribed) {
+          _manager.subScribeTo('result/$_hubID');
+          _manager.subScribeTo('request/$_hubID');
+          logger.i("Subscribed To");
+        }
+
+        // saveDevice(_hubID);
       });
 
     } on PlatformException catch (e) {

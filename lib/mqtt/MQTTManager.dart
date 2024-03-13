@@ -37,11 +37,10 @@ class MQTTManager extends IMQTTController {
 
     final MqttConnectMessage connMess = MqttConnectMessage()
         .withClientIdentifier(_identifier)
-        .withWillTopic(
-        'willtopic') // If you set this you must set a will message
+        .withWillTopic('willtopic') // If you set this you must set a will message
         .withWillMessage('My Will message')
         .startClean() // Non persistent session for testing
-    .authenticateAs("mings", "Sct91234!")// Non persistent session for testing
+        .authenticateAs("mings", "Sct91234!")// Non persistent session for testing
         .withWillQos(MqttQos.atLeastOnce);
     print('EXAMPLE::Mosquitto client connecting....');
     _client!.connectionMessage = connMess;
@@ -129,8 +128,12 @@ class MQTTManager extends IMQTTController {
       MqttPublishPayload.bytesToStringAsString(recMess.payload.message);
       _currentState.setReceivedTopic(c[0].topic);
       _currentState.setReceivedText(pt);
+
+      // ref.read(resultTopicProvider.notifier).state = 'result/$_hubID';
+      // ref.read(requestTopicProvider.notifier).state = 'request/$_hubID';
+
       updateState();
-      // logger.i('[${c[0].topic}] $pt');
+      logger.i('[${c[0].topic}] $pt');
     });
   }
 
