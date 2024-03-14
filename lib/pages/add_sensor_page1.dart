@@ -1,8 +1,7 @@
-import 'package:argoscareseniorsafeguard/Constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:argoscareseniorsafeguard/mqtt/IMQTTController.dart';
 import 'package:argoscareseniorsafeguard/providers/Providers.dart';
+import 'package:argoscareseniorsafeguard/mqtt/mqtt.dart';
 
 class AddSensorPage1 extends ConsumerStatefulWidget {
   const AddSensorPage1({super.key, required this.deviceID});
@@ -15,12 +14,9 @@ class AddSensorPage1 extends ConsumerStatefulWidget {
 
 class _AddSensorPage1State extends ConsumerState<AddSensorPage1> {
   bool _finding = false;
-  late IMQTTController _manager;
 
   @override
   Widget build(BuildContext context) {
-    _manager = ref.watch(mqttManagerProvider);
-
     return Scaffold(
         backgroundColor: Colors.grey[300],
         appBar: AppBar(
@@ -47,7 +43,7 @@ class _AddSensorPage1State extends ConsumerState<AddSensorPage1> {
                     if (!_finding) {
                       _finding = true;
                       final topic = ref.watch(commandTopicProvider);
-                      mqttCommand(_manager, topic, MqttCommand.mcParing, widget.deviceID);
+                      mqttSendCommand(topic, MqttCommand.mcParing, widget.deviceID);
                     } else {
                       Navigator.pop(context);
                     }

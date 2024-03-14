@@ -9,18 +9,17 @@ import 'package:permission_handler/permission_handler.dart';
 
 import 'package:argoscareseniorsafeguard/utils/firebase_options.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:argoscareseniorsafeguard/mqtt/IMQTTController.dart';
-import 'dart:convert';
-import 'package:intl/intl.dart';
-import 'package:flutter/material.dart';
-import 'package:argoscareseniorsafeguard/providers/Providers.dart';
 
-class Constants{
-
-  static String resultTopic = '';
-
+class Constants {
   static const platform = MethodChannel('est.co.kr/IoT_Hub');
   static const DEVICE_TYPE_HUB = 'hub';
+  static const DEVICE_TYPE_ILLUMINANCE = 'illuminance_sensor';
+  static const DEVICE_TYPE_TEMPERATURE_HUMIDITY = 'temperature_humidity';
+  static const DEVICE_TYPE_SMOKE = 'smoke_sensor';
+  static const DEVICE_TYPE_EMERGENCY = 'emergency_button';
+  static const DEVICE_TYPE_MOTION = 'motion_sensor';
+  static const DEVICE_TYPE_DOOR = 'door_sensor';
+  static const ACCOUNT_ID = 'dn9318dn@gmail.com';
 }
 
 var logger = Logger(
@@ -31,38 +30,12 @@ var loggerNoStack = Logger(
   printer: PrettyPrinter(methodCount: 0),
 );
 
-enum MqttCommand {mcSensorList, mcParing}
-
 enum ConfigState {
   none,
   findingHub, findingHubError, findingHubPermissionError, findingHubDone,
   settingMqtt, settingMqttError, settingMqttDone,
   settingWifiScan, settingWifiScanError, settingWifiScanDone,
   settingWifi, settingWifiError, settingWifiDone
-}
-
-void mqttCommand(IMQTTController _manager, String topic, MqttCommand mc, String deviceId) {
-  var now = DateTime.now();
-  String formatDate = DateFormat('yyyyMMdd_HHmmss').format(now);
-
-  if (mc == MqttCommand.mcSensorList) {
-    //펌웨어 에서 기능 구현 안됨.
-    _manager.publishTopic(
-        topic,
-        jsonEncode({
-          "order": "sensorList",
-          "deviceID": deviceId,
-          "time": formatDate
-        }));
-  } else if (mc == MqttCommand.mcParing) {
-    _manager.publishTopic(
-        topic,
-        jsonEncode({
-          "order": "pairingEnabled",
-          "deviceID": deviceId,
-          "time": formatDate
-        }));
-  }
 }
 
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {

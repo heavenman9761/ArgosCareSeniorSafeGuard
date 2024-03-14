@@ -69,8 +69,8 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
       logger.i('current topic: ${ref.watch(mqttCurrentTopicProvider)}');
     });
 
-    ref.listen(mqttCurrentMessageProvier, (previous, next) {
-      logger.i('current msg: ${ref.watch(mqttCurrentMessageProvier)}');
+    ref.listen(mqttCurrentMessageProvider, (previous, next) {
+      logger.i('current msg: ${ref.watch(mqttCurrentMessageProvider)}');
     });
 
     ref.listen(mqttCurrentStateProvider, (previous, next) {
@@ -93,7 +93,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
               'You have pushed the button this many times:',
             ),
             Text(
-              ref.watch(mqttCurrentMessageProvier),
+              ref.watch(mqttCurrentMessageProvider),
               style: Theme.of(context).textTheme.headlineMedium,
             ),
           ],

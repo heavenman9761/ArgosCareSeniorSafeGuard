@@ -167,6 +167,33 @@ class DBHelper {
     });
   }
 
+  Future<List<Device>> findDeviceBySensor(String deviceType) async {
+    final db = await database;
+
+    final List<Map<String, dynamic>> maps =
+    await db.query(tableNameDevices, where: 'deviceType = ?', whereArgs: [deviceType]);
+
+    return List.generate(maps.length, (i) {
+      return Device(
+        deviceID: maps[i]['deviceID'],
+        deviceType: maps[i]['deviceType'],
+        deviceName: maps[i]['deviceName'],
+        displaySunBun: maps[i]['displaySunBun'],
+        accountID: maps[i]['accountID'],
+        state: maps[i]['state'],
+        updateTime: maps[i]['updateTime'],
+        createTime: maps[i]['createTime'],
+      );
+    });
+  }
+
+  Future<int?> getDeviceCountByType(String deviceType) async {
+    final db = await database;
+    var x = await db.rawQuery("SELECT COUNT (*) from $tableNameDevices WHERE deviceType = '$deviceType'");
+    int? count = Sqflite.firstIntValue(x);
+    return count;
+  }
+
   Future<int?> getDeviceCount() async {
     final db = await database;
     var x = await db.rawQuery('SELECT COUNT (*) from $tableNameDevices');
@@ -335,7 +362,7 @@ class DBHelper {
       return SensorEvent(
         id: maps[i]['id'],
         hubID: maps[i]['hubID'],
-        sensorID: maps[i]['sensorID'],
+        deviceID: maps[i]['deviceID'],
         deviceType: maps[i]['deviceType'],
         event: maps[i]['event'],
         state: maps[i]['state'],
@@ -376,7 +403,7 @@ class DBHelper {
       return SensorEvent(
         id: maps[i]['id'],
         hubID: maps[i]['hubID'],
-        sensorID: maps[i]['sensorID'],
+        deviceID: maps[i]['deviceID'],
         deviceType: maps[i]['deviceType'],
         event: maps[i]['event'],
         state: maps[i]['state'],

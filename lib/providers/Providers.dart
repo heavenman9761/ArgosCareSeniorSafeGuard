@@ -1,11 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import 'package:mqtt_client/mqtt_client.dart';
 
-import 'package:argoscareseniorsafeguard/mqtt/MQTTManager.dart';
-import 'package:argoscareseniorsafeguard/mqtt/IMQTTController.dart';
-
-final mqttCurrentMessageProvier = StateProvider<String>((ref) {
+final mqttCurrentMessageProvider = StateProvider<String>((ref) {
   return "";
 });
 
@@ -25,20 +21,6 @@ class MqttConnectionStateNotifier extends StateNotifier<MqttConnectionState> {
   }
 }
 
-
-
-
-
-
-
-final mqttManagerProvider = ChangeNotifierProvider<IMQTTController>((ref) {
-  return MQTTManager();
-});
-
-final hubNameProvider = StateProvider<String>((ref) {
-  return "";
-});
-
 final resultTopicProvider = StateProvider<String>((ref) {
   return "";
 });
@@ -51,17 +33,6 @@ final commandTopicProvider = StateProvider<String>((ref) {
   return "";
 });
 
-final mqttReceivedTopic = StateProvider<String>((ref) {
+final doorSensorStateProvider = StateProvider<String>((ref) {
   return "";
 });
-
-final mqttReceivedMsg = StateProvider<String>((ref) {
-  return "";
-});
-
-
-
-
-
-
-

@@ -4,17 +4,21 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+// import 'package:shared_preferences/shared_preferences.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import 'package:argoscareseniorsafeguard/providers/Providers.dart';
 import 'package:argoscareseniorsafeguard/models/accesspoint.dart';
-import 'package:argoscareseniorsafeguard/mqtt/IMQTTController.dart';
-import 'package:argoscareseniorsafeguard/mqtt/MQTTAppState.dart';
+// import 'package:argoscareseniorsafeguard/mqtt/IMQTTController.dart';
+// import 'package:argoscareseniorsafeguard/mqtt/MQTTAppState.dart';
 import 'package:argoscareseniorsafeguard/Constants.dart';
 
 import 'package:argoscareseniorsafeguard/database/db.dart';
 import 'package:argoscareseniorsafeguard/models/device.dart';
+import 'package:argoscareseniorsafeguard/mqtt/mqtt.dart';
+
+import 'package:mqtt_client/mqtt_client.dart';
+// import 'package:mqtt_client/mqtt_server_client.dart';
 
 class AddHubPage2 extends ConsumerStatefulWidget {
   const AddHubPage2({super.key});
@@ -25,7 +29,6 @@ class AddHubPage2 extends ConsumerStatefulWidget {
 
 class _AddHubPage2State extends ConsumerState<AddHubPage2> {
   ConfigState configState = ConfigState.none;
-  late IMQTTController _manager;
   String _hubID = "";
   List<AccessPoint> accessPoints = <AccessPoint>[];
   late AccessPoint selectedAp;
@@ -39,43 +42,20 @@ class _AddHubPage2State extends ConsumerState<AddHubPage2> {
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))
   );
 
-  Future<void> setHubIdToPrefs(String value) async {
-    try {
-      final SharedPreferences pref = await SharedPreferences.getInstance();
-
-      pref.setString('deviceID', value).then((bool success) {
-        if (success) {
-          _manager.subScribeTo('result/$value');
-          logger.i('subscribed to result/$value');
-        }
-      });
-    } catch (error) {
-      logger.e(error);
-    }
-  }
-
-  Future<void> saveDevice(String deviceID) async {
-    DBHelper sd = DBHelper();
-    int? count = await sd.getDeviceCount();
-
-    Device device = Device(
-      deviceID: deviceID,
-      deviceType: Constants.DEVICE_TYPE_HUB,
-      deviceName: 'hub1',
-      displaySunBun: count,
-      accountID: 'dn9318dn@naver.com',
-      state: " ",
-      updateTime: DateTime.now().toString(),
-      createTime: DateTime.now().toString(),
-    );
-
-    await sd.insertDevice(device).then((value) {
-        Navigator.popUntil(context, (route) {
-          return route.isFirst;
-        },
-      );
-    });
-  }
+  // Future<void> setHubIdToPrefs(String value) async {
+  //   try {
+  //     final SharedPreferences pref = await SharedPreferences.getInstance();
+  //
+  //     pref.setString('deviceID', value).then((bool success) {
+  //       if (success) {
+  //         _manager.subScribeTo('result/$value');
+  //         logger.i('subscribed to result/$value');
+  //       }
+  //     });
+  //   } catch (error) {
+  //     logger.e(error);
+  //   }
+  // }
 
   @override
   void initState() {
@@ -97,20 +77,20 @@ class _AddHubPage2State extends ConsumerState<AddHubPage2> {
 
     }).then((isGranted) {
       if (isGranted) {
-        _findHub().catchError((onError) {
+        _findHub().catchError((onError){
           _hasError = true;
+          return [];
         }).then((devices) {
           if (devices.isNotEmpty && !_hasError) {
-            _settingHub(devices[0]).catchError((onError) {
+            _settingHub(devices[0]).catchError((onError){
               _hasError = true;
+              return '';
             }).then((hubID) {
               if (hubID != '' && !_hasError) {
                 _hubID = hubID;
                 logger.i(_hubID);
                 if (!_hasError) {
-                  _wifiScan(context).catchError((onError) {
-                    _hasError = true;
-                  }).then((isAccessPoint) {
+                  _wifiScan(context).catchError((onError) => _hasError = true).then((isAccessPoint) {
                     if (isAccessPoint && !_hasError) {
                       if (accessPoints.isNotEmpty) {
                         showWifiDialog(context);
@@ -126,7 +106,6 @@ class _AddHubPage2State extends ConsumerState<AddHubPage2> {
         setState(() {
           configState = ConfigState.findingHubPermissionError;
         });
-
       }
     });
   }
@@ -185,14 +164,14 @@ class _AddHubPage2State extends ConsumerState<AddHubPage2> {
       final String result =
           await Constants.platform.invokeMethod('settingHub', <String, dynamic>{
         "hubName": hubName,
-        "accountID": "dn9318dn@gmail.com",
+        "accountID": Constants.ACCOUNT_ID,
         "serverIp": "14.42.209.174",
         "serverPort": "6002",
         "userID": "mings",
         "userPw": "Sct91234!"
       });
 
-      print('received from java [hubID]: $result');
+      debugPrint('received from java [hubID]: $result');
 
       setState(() {
         configState = ConfigState.settingMqttDone;
@@ -200,7 +179,7 @@ class _AddHubPage2State extends ConsumerState<AddHubPage2> {
 
       return result;
     } on PlatformException catch (e) {
-      print(e.message);
+        debugPrint(e.message);
       return '';
       setState(() {
         configState = ConfigState.settingMqttError;
@@ -223,7 +202,7 @@ class _AddHubPage2State extends ConsumerState<AddHubPage2> {
 
       for (int i = 0; i < list.length; i++) {
         AccessPoint ap = AccessPoint.fromJson(list[i]);
-        print(ap.toString());
+        debugPrint(ap.toString());
         accessPoints.add(ap);
       }
 
@@ -261,22 +240,13 @@ class _AddHubPage2State extends ConsumerState<AddHubPage2> {
 
       setState(() {
         configState = ConfigState.settingWifiDone;
-        // setHubIdToPrefs(_hubID);
-
         ref.read(resultTopicProvider.notifier).state = 'result/$_hubID';
         ref.read(requestTopicProvider.notifier).state = 'request/$_hubID';
 
-        logger.i(ref.watch(requestTopicProvider));
-        logger.i(ref.watch(resultTopicProvider));
-
-        if (_manager.currentState.getAppConnectionState == MQTTAppConnectionState.connected
-              || _manager.currentState.getAppConnectionState == MQTTAppConnectionState.connectedSubscribed) {
-          _manager.subScribeTo('result/$_hubID');
-          _manager.subScribeTo('request/$_hubID');
-          logger.i("Subscribed To");
+        if (ref.watch(mqttCurrentStateProvider) == MqttConnectionState.connected) {
+          mqttAddSubscribeTo(ref.watch(resultTopicProvider));
+          mqttAddSubscribeTo(ref.watch(requestTopicProvider));
         }
-
-        // saveDevice(_hubID);
       });
 
     } on PlatformException catch (e) {
@@ -290,8 +260,6 @@ class _AddHubPage2State extends ConsumerState<AddHubPage2> {
 
   @override
   Widget build(BuildContext context) {
-    _manager = ref.watch(mqttManagerProvider);
-    final hub = ref.watch(hubNameProvider);
     return Scaffold(
         backgroundColor: Colors.grey[300],
         appBar: AppBar(
@@ -395,7 +363,7 @@ class _AddHubPage2State extends ConsumerState<AddHubPage2> {
     );
   }
 
-  Widget RssiWidget(AccessPoint ap) {
+  Widget rssiWidget(AccessPoint ap) {
     if (ap.getRssi()! > -50) {
       return const Icon(Icons.wifi);
     } else if (ap.getRssi()! >= -60) {
@@ -421,7 +389,7 @@ class _AddHubPage2State extends ConsumerState<AddHubPage2> {
                       itemBuilder: (ctx, index) {
                         return ListTile(
                           title: Text(accessPoints[index].getWifiName()!),
-                          leading: RssiWidget(accessPoints[index]),
+                          leading: rssiWidget(accessPoints[index]),
                           trailing: accessPoints[index].getSecurity() == 0
                               ? const Icon(Icons.lock_open)
                               : const Icon(Icons.lock),
@@ -445,7 +413,7 @@ class _AddHubPage2State extends ConsumerState<AddHubPage2> {
         }).then((val) {
       if (val != null) {
         selectedAp = val;
-        print("selectedAp : $val");
+        debugPrint("selectedAp : $val");
         inputWifiPasswordDialog(context);
       }
     });
@@ -483,15 +451,15 @@ class _AddHubPage2State extends ConsumerState<AddHubPage2> {
               ),
               actions: <Widget>[
                 TextButton(
-                  child: const Text("OK"),
-                  onPressed: () {
-                    Navigator.pop(context, controller.text);
-                  },
-                ),
-                TextButton(
                   child: const Text("Cancel"),
                   onPressed: () {
                     Navigator.pop(context);
+                  },
+                ),
+                TextButton(
+                  child: const Text("OK"),
+                  onPressed: () {
+                    Navigator.pop(context, controller.text);
                   },
                 ),
               ],

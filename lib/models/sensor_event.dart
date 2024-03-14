@@ -3,7 +3,7 @@ import 'dart:ffi';
 class SensorEvent {
   final int? id;
   final String? hubID;
-  final String? sensorID;
+  final String? deviceID;
   final String? deviceType;
   final String? event;
   final String? state;
@@ -18,8 +18,8 @@ class SensorEvent {
     return hubID;
   }
 
-  String? getSensorID() {
-    return sensorID;
+  String? getDeviceID() {
+    return deviceID;
   }
 
   String? getDeviceType() {
@@ -42,13 +42,13 @@ class SensorEvent {
     return createTime;
   }
 
-  SensorEvent({required this.id, required this.sensorID, required this.hubID, required this.deviceType,
+  SensorEvent({this.id, required this.deviceID, required this.hubID, required this.deviceType,
     required this.event, required this.state, required this.updateTime, required this.createTime});
 
   Map<String, dynamic> toMap() {
     return {
-      'id': id ?? 0,
-      'sensorID': sensorID ?? '',
+      // 'id': id ?? 0,  => Autoincrement 일때는 있으면 안된다.
+      'deviceID': deviceID ?? '',
       'hubID': hubID ?? '',
       'deviceType': deviceType ?? '',
       'event': event ?? '',
@@ -61,7 +61,7 @@ class SensorEvent {
   factory SensorEvent.fromJson(Map<String, dynamic> json) {
     return SensorEvent(
       id: json['id'],
-      sensorID: json['sensorID'],
+      deviceID: json['deviceID'],
       hubID: json['hubID'],
       deviceType: json['deviceType'],
       event: json['event'],
@@ -73,6 +73,6 @@ class SensorEvent {
 
   @override
   String toString() {
-    return 'SensorEvent {id: $id, sensorID: $sensorID, hubID: $hubID, deviceType: $deviceType, event: $event, state: $state, updateTime: $updateTime, createTime: $createTime}';
+    return 'SensorEvent {id: $id, sensorID: $deviceID, hubID: $hubID, deviceType: $deviceType, event: $event, state: $state, updateTime: $updateTime, createTime: $createTime}';
   }
 }

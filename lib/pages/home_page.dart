@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:argoscareseniorsafeguard/models/sensor_event.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -17,6 +18,8 @@ import 'package:argoscareseniorsafeguard/pages/add_hub_page1.dart';
 import 'package:argoscareseniorsafeguard/pages/add_sensor_page1.dart';
 import 'package:argoscareseniorsafeguard/Constants.dart';
 import 'package:argoscareseniorsafeguard/database/db.dart';
+import 'package:argoscareseniorsafeguard/components/door_card_widget.dart';
+import 'package:argoscareseniorsafeguard/components/card_widget.dart';
 
 class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key, required this.title});
@@ -29,10 +32,84 @@ class HomePage extends ConsumerStatefulWidget {
 
 class _HomePageState extends ConsumerState<HomePage> {
   late List<Device> _deviceList = [];
-  // late IMQTTController _manager;
   bool loadingDeviceList = false;
 
-  Future<void> getHubIdToPrefs() async {
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+  }
+
+  @override
+  void initState() {
+    getMyDeviceToken();
+    _checkPermissions();
+    mqttInit(ref, '14.42.209.174', 6002, 'ArgosCareSeniorSafeGuard', 'mings', 'Sct91234!');
+
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
+      RemoteNotification? notification = message.notification;
+
+      if (notification != null) {
+        FlutterLocalNotificationsPlugin().show(
+          notification.hashCode,
+          notification.title,
+          notification.body,
+          const NotificationDetails(
+            android: AndroidNotificationDetails(
+              'high_importance_channel',
+              'high_importance_notification',
+              importance: Importance.max,
+            ),
+          ),
+        );
+
+        setState(() {
+          logger.i("Foreground 메시지 수신: ${message.notification!.body!}");
+        });
+      }
+    });
+
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    mqttDisconnect();
+    super.dispose();
+  }
+
+  void _addDevice() {
+    if (_deviceList.isEmpty) {
+      Navigator.push(context, MaterialPageRoute(builder: (context) {
+        return const AddHubPage1();
+      }));
+    } else {
+      String? deviceID = _deviceList[0].getDeviceID();
+      Navigator.push(context, MaterialPageRoute(builder: (context) {
+        return AddSensorPage1(deviceID: deviceID!);
+      }));
+    }
+  }
+
+  Future<List<Device>> _getDeviceList() async {
+    DBHelper sd = DBHelper();
+    _deviceList = await sd.getDevices();
+    return _deviceList;
+  }
+
+  Future<bool> _checkPermissions() async {
+    Map<Permission, PermissionStatus> statuses = await [
+      Permission.notification,
+    ].request();
+
+    logger.i('location ${statuses[Permission.location]}');
+
+    if (statuses.values.every((element) => element.isGranted)) {
+      return true;
+    }
+    return false;
+  }
+
+  /*Future<void> getHubIdToPrefs() async {
     try {
       final SharedPreferences pref = await SharedPreferences.getInstance();
 
@@ -53,7 +130,7 @@ class _HomePageState extends ConsumerState<HomePage> {
     } catch (e) {
       logger.e(e);
     }
-  }
+  }*/
 
   void _mqttStartSubscribeTo() async {
     DBHelper sd = DBHelper();
@@ -67,29 +144,87 @@ class _HomePageState extends ConsumerState<HomePage> {
 
       ref.read(requestTopicProvider.notifier).state = 'request/${hub.getDeviceID()}';
       mqttAddSubscribeTo('request/${hub.getDeviceID()}');
-
-      // _manager.subScribeTo(ref.watch(resultTopicProvider));
-      // logger.i('subscribed to ${ref.watch(resultTopicProvider)}');
-      //
-      // _manager.subScribeTo(ref.watch(requestTopicProvider));
-      // logger.i('subscribed to ${ref.watch(requestTopicProvider)}');
     }
   }
 
-  Future<void> saveHub(String deviceID) async {
+  Future<void> _insertSensorEvent(String message) async {
     DBHelper sd = DBHelper();
-    int? count = await sd.getDeviceCount();
+    String hubID = '';
+    final mqttMsg = json.decode(message);
 
-    Device device = Device(
-      deviceID: deviceID,
-      deviceType: Constants.DEVICE_TYPE_HUB,
-      deviceName: 'hub1',
-      displaySunBun: count,
-      accountID: 'dn9318dn@naver.com',
-      state: " ",
+    SensorEvent sensorEvent = SensorEvent(
+      hubID: hubID,
+      deviceID: mqttMsg['deviceID'],
+      deviceType: mqttMsg['device_type'],
+      event: mqttMsg['event'],
+      state: mqttMsg['state'].toString(),
       updateTime: DateTime.now().toString(),
       createTime: DateTime.now().toString(),
     );
+
+    await sd.insertSensorEvent(sensorEvent).then((value) async {
+      List<Device> deviceList = await sd.findDeviceBySensor(mqttMsg['device_type']);
+      Device d = Device(
+        deviceID: deviceList[0].deviceID,
+        deviceType: deviceList[0].deviceType,
+        deviceName: deviceList[0].deviceName,
+        displaySunBun: deviceList[0].displaySunBun,
+        accountID: deviceList[0].accountID,
+        state: mqttMsg['state'].toString(),
+        updateTime: DateTime.now().toString(),
+        createTime: deviceList[0].createTime
+      );
+      await sd.updateDevice(d).then((value) {
+        final state = mqttMsg['state'];
+        if (mqttMsg['device_type'] == Constants.DEVICE_TYPE_DOOR) {
+          if (state['door_window'] == 0) {
+            ref.read(doorSensorStateProvider.notifier).state = "닫힘";
+          } else if (state['door_window'] == 1) {
+            ref.read(doorSensorStateProvider.notifier).state = "열림";
+          }
+          logger.i(ref.watch(doorSensorStateProvider.notifier).state);
+        }
+      });
+    });
+  }
+
+  Future<void> _saveDevice(String deviceID, String deviceType) async {
+    DBHelper sd = DBHelper();
+    int? count = await sd.getDeviceCountByType(deviceType);
+    count = count! + 1;
+    int? displaySunBun = await sd.getDeviceCount();
+    String deviceName = '';
+
+    if (deviceType == Constants.DEVICE_TYPE_HUB) {
+      deviceName = 'hub $count';
+    } else if (deviceType == Constants.DEVICE_TYPE_ILLUMINANCE) {
+      deviceName = 'illuminance $count';
+    } else if (deviceType == Constants.DEVICE_TYPE_TEMPERATURE_HUMIDITY) {
+      deviceName = 'temperature_humidity $count';
+    } else if (deviceType == Constants.DEVICE_TYPE_SMOKE) {
+      deviceName = 'smoke $count';
+    } else if (deviceType == Constants.DEVICE_TYPE_EMERGENCY) {
+      deviceName = 'emergency $count';
+    } else if (deviceType == Constants.DEVICE_TYPE_MOTION) {
+      deviceName = 'motion $count';
+    } else if (deviceType == Constants.DEVICE_TYPE_DOOR) {
+      deviceName = 'door $count';
+    }
+
+    Device device = Device(
+      deviceID: deviceID,
+      deviceType: deviceType,
+      deviceName: deviceName,
+      displaySunBun: displaySunBun,
+      accountID: Constants.ACCOUNT_ID,
+      state: "",
+      updateTime: DateTime.now().toString(),
+      createTime: DateTime.now().toString(),
+    );
+
+    if (deviceType == Constants.DEVICE_TYPE_HUB) {
+      _mqttStartSubscribeTo();
+    }
 
     await sd.insertDevice(device).then((value) {
       setState(() {
@@ -98,80 +233,58 @@ class _HomePageState extends ConsumerState<HomePage> {
     });
   }
 
-  /*
-  void _mqttGetMessageTimer() {
-    Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (_manager.currentState.getReceivedTopic != '' && _manager.currentState.getReceivedText != '') {
-
-        final mqttMsg = json.decode(_manager.currentState.getReceivedText);
-        //
-        logger.w(_manager.currentState.getReceivedTopic);
-        logger.w(mqttMsg);
-
-        if (_manager.currentState.getReceivedTopic == ref.watch(requestTopicProvider)) {
-          logger.w('request - $mqttMsg');
-          if (mqttMsg['order'] == 'device_add' || mqttMsg['order'] == 'pairingEnabled') {
-            // Navigator.popUntil(
-            //   context,
-            //       (route) {
-            //     return route.isFirst;
-            //   },
-            // );
-          }
-        } else if (_manager.currentState.getReceivedTopic == ref.watch(resultTopicProvider)) {
-          logger.i('result - $mqttMsg');
-          if (mqttMsg['event'] == 'gatewayADD') {
-            Navigator.popUntil(
-              context,
-                  (route) {
-                return route.isFirst;
-              },
-            );
-            if (mqttMsg['state'] == 'success') {
-              saveHub(mqttMsg['deviceID']);
-
-            } else if (mqttMsg['state'] == 'failure') {
-
-            }
-            //gatewayADD는 처음 hub를 찾으면 들어온다.
-            // Navigator.popUntil(context, (route) {
-            //     return route.isFirst;
-            //   },
-            // );
-
-          } else if (mqttMsg['event'] == 'device_add') {
-            if (mqttMsg['state'] == 'device add success') {
-
-            } else if (mqttMsg['state'] == 'device add failure') {
-
-            }
-          }
-        }
-        _manager.currentState.setReceivedText('');
-        _manager.currentState.setReceivedTopic('');
-
-        // setState(() {
-        //
-        // });
-      }
-    });
+  void _goHome() {
+    Navigator.popUntil(context, (route) {
+      return route.isFirst;
+    },
+    );
   }
-*/
+
+  void _analysisMqttMsg(String topic, String message) {
+    final mqttMsg = json.decode(message);
+    if (topic == ref.watch(requestTopicProvider)) {
+      if (mqttMsg['order'] == 'device_add' || mqttMsg['order'] == 'pairingEnabled') {
+
+      }
+
+      if (mqttMsg['event'] == 'device_detected') {
+        _insertSensorEvent(message);
+      }
+    } else if (topic == ref.watch(resultTopicProvider)) {
+      if (mqttMsg['event'] == 'gatewayADD') {
+        _goHome();
+
+        if (mqttMsg['state'] == 'success') {
+          _saveDevice(mqttMsg['deviceID'], Constants.DEVICE_TYPE_HUB);
+        } else if (mqttMsg['state'] == 'failure') {
+
+        }
+      } else if (mqttMsg['event'] == 'device_add') {
+        _goHome();
+
+        if (mqttMsg['state'] == 'device add success') {
+          _saveDevice(mqttMsg['deviceID'], mqttMsg['deviceType']);
+        } else if (mqttMsg['state'] == 'device add failure') {
+
+        }
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    ref.listen(mqttCurrentTopicProvider, (previous, next) {
-      logger.i('current topic: ${ref.watch(mqttCurrentTopicProvider)}');
-    });
-
-    ref.listen(mqttCurrentMessageProvier, (previous, next) {
-      logger.i('current msg: ${ref.watch(mqttCurrentMessageProvier)}');
+    ref.listen(mqttCurrentMessageProvider, (previous, next) {
+      _analysisMqttMsg(
+          ref.watch(mqttCurrentTopicProvider.notifier).state,
+          ref.watch(mqttCurrentMessageProvider.notifier).state
+      );
+      logger.i('current msg: ${ref.watch(mqttCurrentTopicProvider.notifier).state} / ${ref.watch(mqttCurrentMessageProvider.notifier).state}');
     });
 
     ref.listen(mqttCurrentStateProvider, (previous, next) {
       logger.i('current state: ${ref.watch(mqttCurrentStateProvider)}');
       if (ref.watch(mqttCurrentStateProvider) == MqttConnectionState.connected) {
         _mqttStartSubscribeTo();
-        //mqttAddSubscribeTo('request/00003494543ebb58');
       }
     });
 
@@ -207,7 +320,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                   tooltip: "Menu",
                   color: Colors.grey,
                   onPressed: () {
-                    print('icon press');
+                    debugPrint('icon press');
                   },
                 ),
               ]
@@ -238,59 +351,23 @@ class _HomePageState extends ConsumerState<HomePage> {
                     return ListView.builder(
                         itemCount: devices.length,
                         itemBuilder: (context, index) {
-                          final device = devices[index];
-                          return Padding(
-                            padding: const EdgeInsets.all(8),
-                            child: Card(
-                              color: Colors.white,
-                              surfaceTintColor: Colors.transparent,
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(16.0)),
-                              child: InkWell(
-                                borderRadius: BorderRadius.circular(16.0),
-                                onTap: () {
-                                  debugPrint('card press');
-                                },
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(16.0),
-                                    color: Colors.transparent,
-                                  ),
-                                  child: Padding(
-                                    padding: const EdgeInsets.fromLTRB(16, 8, 8, 8),
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Row(
-                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                            children: [
-                                              Text(device.getDeviceName()!,
-                                                  style: const TextStyle(
-                                                      fontSize: 20.0,
-                                                      fontWeight: FontWeight.w700,
-                                                      color: Colors.grey)),
-                                              IconButton(
-                                                icon: const Icon(Icons.more_horiz),
-                                                tooltip: "Menu",
-                                                color: Colors.grey,
-                                                onPressed: () {
-                                                  debugPrint('icon press');
-                                                },
-                                              ),
-                                            ]
-                                        ),
-                                        const Text(
-                                          "상태",
-                                          style:
-                                          TextStyle(fontSize: 12.0, color: Colors.grey),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          );
+                          if (devices[index].deviceType == Constants.DEVICE_TYPE_HUB) {
+                            return CardWidget(deviceName: devices[index].getDeviceName()!);
+                          } else if (devices[index].deviceType == Constants.DEVICE_TYPE_DOOR) {
+                            return DoorCardWidget(deviceName: devices[index].getDeviceName()!);
+                          } else if (devices[index].deviceType == Constants.DEVICE_TYPE_ILLUMINANCE) {
+                            return CardWidget(deviceName: devices[index].getDeviceName()!);
+                          } else if (devices[index].deviceType == Constants.DEVICE_TYPE_TEMPERATURE_HUMIDITY) {
+                            return CardWidget(deviceName: devices[index].getDeviceName()!);
+                          } else if (devices[index].deviceType == Constants.DEVICE_TYPE_SMOKE) {
+                            return CardWidget(deviceName: devices[index].getDeviceName()!);
+                          } else if (devices[index].deviceType == Constants.DEVICE_TYPE_EMERGENCY) {
+                            return CardWidget(deviceName: devices[index].getDeviceName()!);
+                          } else if (devices[index].deviceType == Constants.DEVICE_TYPE_MOTION) {
+                            return CardWidget(deviceName: devices[index].getDeviceName()!);
+                          } else {
+                            return null;
+                          }
                         },
                       );
 
@@ -338,87 +415,12 @@ class _HomePageState extends ConsumerState<HomePage> {
     return FloatingActionButton.extended(
       foregroundColor: Colors.white60,
       backgroundColor: Colors.lightBlue,
-      onPressed: () => addDevice(),
+      onPressed: () => _addDevice(),
       label: const Text("기기 등록"),
       isExtended: true, // ingEsp32 ? null : _findEsp32,
       icon: const Icon(Icons.add, size: 30),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
     );
-  }
-
-  void addDevice() {
-    if (_deviceList.isEmpty) {
-      Navigator.push(context, MaterialPageRoute(builder: (context) {
-        return const AddHubPage1();
-      }));
-    } else {
-      String? deviceID = _deviceList[0].getDeviceID();
-      Navigator.push(context, MaterialPageRoute(builder: (context) {
-        return AddSensorPage1(deviceID: deviceID!);
-      }));
-    }
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-  }
-
-  @override
-  void initState() {
-    getMyDeviceToken();
-    _checkPermissions();
-    mqttInit(ref, '14.42.209.174', 6002, 'ArgosCareSeniorSafeGuard', 'mings', 'Sct91234!');
-
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
-      RemoteNotification? notification = message.notification;
-
-      if (notification != null) {
-        FlutterLocalNotificationsPlugin().show(
-          notification.hashCode,
-          notification.title,
-          notification.body,
-          const NotificationDetails(
-            android: AndroidNotificationDetails(
-              'high_importance_channel',
-              'high_importance_notification',
-              importance: Importance.max,
-            ),
-          ),
-        );
-
-        setState(() {
-          logger.i("Foreground 메시지 수신: ${message.notification!.body!}");
-        });
-      }
-    });
-
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    mqttDisconnect();
-    super.dispose();
-  }
-
-  Future<List<Device>> _getDeviceList() async {
-    DBHelper sd = DBHelper();
-    _deviceList = await sd.getDevices();
-    return _deviceList;
-  }
-
-  Future<bool> _checkPermissions() async {
-    Map<Permission, PermissionStatus> statuses = await [
-      Permission.notification,
-    ].request();
-
-    logger.i('location ${statuses[Permission.location]}');
-
-    if (statuses.values.every((element) => element.isGranted)) {
-      return true;
-    }
-    return false;
   }
 
   Widget waitWidget() {

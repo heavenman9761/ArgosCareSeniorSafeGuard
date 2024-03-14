@@ -1,7 +1,7 @@
 import 'dart:ffi';
 
 class Device {
-  final String deviceID;
+  late final String deviceID;
   final String deviceType;
   final String deviceName;
   final int? displaySunBun;

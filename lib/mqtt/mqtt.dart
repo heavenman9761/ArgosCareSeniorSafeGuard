@@ -1,48 +1,75 @@
 import 'dart:io';
+import 'dart:convert';
 
+import 'package:intl/intl.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:argoscareseniorsafeguard/Constants.dart';
 
+import 'package:argoscareseniorsafeguard/Constants.dart';
 import 'package:argoscareseniorsafeguard/providers/Providers.dart';
 
-late MqttServerClient client;
+enum MqttCommand {mcSensorList, mcParing}
+
+late MqttServerClient mqttClient;
 late WidgetRef _ref;
 
+void mqttSendCommand(String topic, MqttCommand mc, String deviceID) {
+  var now = DateTime.now();
+  String formatDate = DateFormat('yyyyMMdd_HHmmss').format(now);
+
+  if (mc == MqttCommand.mcSensorList) {
+    //펌웨어 에서 기능 구현 안됨.
+    mqttPublish(
+        topic,
+        jsonEncode({
+          "order": "sensorList",
+          "deviceID": deviceID,
+          "time": formatDate
+        }));
+  } else if (mc == MqttCommand.mcParing) {
+    mqttPublish(
+        topic,
+        jsonEncode({
+          "order": "pairingEnabled",
+          "deviceID": deviceID,
+          "time": formatDate
+        }));
+  }
+}
+
 void mqttAddSubscribeTo(String topic) {
-  client.subscribe(topic, MqttQos.atMostOnce);
+  mqttClient.subscribe(topic, MqttQos.atMostOnce);
 }
 
 void mqttDeleteSubscribe(String topic) {
-  client.unsubscribe(topic);
+  mqttClient.unsubscribe(topic);
 }
 
 void mqttPublish(String topic, String msg) {
   final builder = MqttClientPayloadBuilder();
   builder.addString(msg);
 
-  client.subscribe(topic, MqttQos.exactlyOnce);
-  client.publishMessage(topic, MqttQos.exactlyOnce, builder.payload!);
+  mqttClient.subscribe(topic, MqttQos.exactlyOnce);
+  mqttClient.publishMessage(topic, MqttQos.exactlyOnce, builder.payload!);
 }
 
 void mqttDisconnect() {
-  client.disconnect();
+  mqttClient.disconnect();
 }
 
 void mqttInit(WidgetRef ref, String host, int port, String identifier, String id, String password) async {
   _ref = ref;
-  client = MqttServerClient(host, identifier);
+  mqttClient = MqttServerClient(host, identifier);
 
-  client.logging(on: false);
-  client.setProtocolV311();
-  client.port = port;
-  client.keepAlivePeriod = 20;
-  client.connectTimeoutPeriod = 2000; // milliseconds
-  client.onDisconnected = onDisconnected;
-  client.onConnected = onConnected;
-  client.onSubscribed = onSubscribed;
+  mqttClient.logging(on: false);
+  mqttClient.setProtocolV311();
+  mqttClient.port = port;
+  mqttClient.keepAlivePeriod = 20;
+  mqttClient.connectTimeoutPeriod = 2000; // milliseconds
+  mqttClient.onDisconnected = onDisconnected;
+  mqttClient.onConnected = onConnected;
+  mqttClient.onSubscribed = onSubscribed;
 
   final connMess = MqttConnectMessage()
       .withClientIdentifier(identifier)
@@ -52,35 +79,35 @@ void mqttInit(WidgetRef ref, String host, int port, String identifier, String id
       .authenticateAs(id, password)
       .withWillQos(MqttQos.atLeastOnce);
 
-  client.connectionMessage = connMess;
+  mqttClient.connectionMessage = connMess;
 
   try {
-    await client.connect();
+    await mqttClient.connect();
   } on NoConnectionException catch (e) {
     // Raised by the client when connection fails.
     logger.e('EXAMPLE::client exception - $e');
-    client.disconnect();
+    mqttClient.disconnect();
   } on SocketException catch (e) {
     // Raised by the socket layer
     logger.e('EXAMPLE::socket exception - $e');
-    client.disconnect();
+    mqttClient.disconnect();
   }
 
-  if (client.connectionStatus!.state == MqttConnectionState.connected) {
+  if (mqttClient.connectionStatus!.state == MqttConnectionState.connected) {
   } else {
-    logger.e('EXAMPLE::ERROR Mosquitto client connection failed - disconnecting, status is ${client.connectionStatus}');
-    client.disconnect();
+    logger.e('EXAMPLE::ERROR Mosquitto client connection failed - disconnecting, status is ${mqttClient.connectionStatus}');
+    mqttClient.disconnect();
   }
 
-  client.updates!.listen((List<MqttReceivedMessage<MqttMessage?>>? c) {
+  mqttClient.updates!.listen((List<MqttReceivedMessage<MqttMessage?>>? c) {
     final recMess = c![0].payload as MqttPublishMessage;
     final pt = MqttPublishPayload.bytesToStringAsString(recMess.payload.message);
 
     ref.read(mqttCurrentTopicProvider.notifier).state = c[0].topic;
-    ref.read(mqttCurrentMessageProvier.notifier).state = pt;
+    ref.read(mqttCurrentMessageProvider.notifier).state = pt;
   });
 
-  client.published!.listen((MqttPublishMessage message) {
+  mqttClient.published!.listen((MqttPublishMessage message) {
     // logger.i('EXAMPLE::Published notification:: topic is ${message.variableHeader!.topicName}, with Qos ${message.header!.qos}');
   });
 
@@ -108,7 +135,7 @@ void onSubscribed(String topic) {
 
 /// The unsolicited disconnect callback
 void onDisconnected() {
-  if (client.connectionStatus!.disconnectionOrigin == MqttDisconnectionOrigin.solicited) {
+  if (mqttClient.connectionStatus!.disconnectionOrigin == MqttDisconnectionOrigin.solicited) {
     print('EXAMPLE::OnDisconnected callback is solicited, this is correct');
   } else {
     print('EXAMPLE::OnDisconnected callback is unsolicited or none, this is incorrect - exiting');
