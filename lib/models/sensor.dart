@@ -1,5 +1,3 @@
-import 'dart:ffi';
-
 class Sensor {
   final String? sensorID;
   final String? hubID;

@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class CardWidget extends ConsumerWidget{
-  const CardWidget({super.key, required this.deviceName});
+import 'package:argoscareseniorsafeguard/providers/providers.dart';
+
+class MotionCardWidget extends ConsumerWidget {
+  const MotionCardWidget({super.key, required this.deviceName});
+
   final String deviceName;
 
   @override
@@ -26,6 +29,7 @@ class CardWidget extends ConsumerWidget{
               ),
               child: Consumer(
                 builder: (context, ref, widget) {
+                  final motionState = ref.watch(motionSensorStateProvider);
                   return Padding(
                     padding: const EdgeInsets.fromLTRB(16, 8, 8, 8),
                     child: Column(
@@ -49,7 +53,7 @@ class CardWidget extends ConsumerWidget{
                               ),
                             ]
                         ),
-                        const Text("상태", style: TextStyle(fontSize: 12.0, color: Colors.grey),)
+                        Text(motionState, style: const TextStyle(fontSize: 12.0, color: Colors.grey),)
                       ],
                     ),
                   );

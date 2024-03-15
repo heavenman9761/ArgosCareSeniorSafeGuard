@@ -1,5 +1,3 @@
-import 'dart:ffi';
-
 class Hub {
   final String? hubID;
   final String? deviceName;

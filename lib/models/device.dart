@@ -1,5 +1,3 @@
-import 'dart:ffi';
-
 class Device {
   late final String deviceID;
   final String deviceType;

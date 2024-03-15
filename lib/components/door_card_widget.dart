@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:argoscareseniorsafeguard/providers/Providers.dart';
+import 'package:argoscareseniorsafeguard/providers/providers.dart';
 
 class DoorCardWidget extends ConsumerWidget {
   const DoorCardWidget({super.key, required this.deviceName});

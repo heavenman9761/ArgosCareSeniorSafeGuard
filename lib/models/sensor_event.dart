@@ -1,5 +1,3 @@
-import 'dart:ffi';
-
 class SensorEvent {
   final int? id;
   final String? hubID;

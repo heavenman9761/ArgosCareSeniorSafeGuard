@@ -4,21 +4,13 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-// import 'package:shared_preferences/shared_preferences.dart';
 import 'package:permission_handler/permission_handler.dart';
-
-import 'package:argoscareseniorsafeguard/providers/Providers.dart';
-import 'package:argoscareseniorsafeguard/models/accesspoint.dart';
-// import 'package:argoscareseniorsafeguard/mqtt/IMQTTController.dart';
-// import 'package:argoscareseniorsafeguard/mqtt/MQTTAppState.dart';
-import 'package:argoscareseniorsafeguard/Constants.dart';
-
-import 'package:argoscareseniorsafeguard/database/db.dart';
-import 'package:argoscareseniorsafeguard/models/device.dart';
-import 'package:argoscareseniorsafeguard/mqtt/mqtt.dart';
-
 import 'package:mqtt_client/mqtt_client.dart';
-// import 'package:mqtt_client/mqtt_server_client.dart';
+
+import 'package:argoscareseniorsafeguard/providers/providers.dart';
+import 'package:argoscareseniorsafeguard/models/accesspoint.dart';
+import 'package:argoscareseniorsafeguard/constants.dart';
+import 'package:argoscareseniorsafeguard/mqtt/mqtt.dart';
 
 class AddHubPage2 extends ConsumerStatefulWidget {
   const AddHubPage2({super.key});
@@ -74,7 +66,7 @@ class _AddHubPage2State extends ConsumerState<AddHubPage2> {
 
   Future<void> _pairingHub(BuildContext context) async {
     await _checkPermissions().catchError((onError) {
-
+      return false;
     }).then((isGranted) {
       if (isGranted) {
         _findHub().catchError((onError){
@@ -147,6 +139,7 @@ class _AddHubPage2State extends ConsumerState<AddHubPage2> {
       return result.cast<String>().toList();
 
     } on PlatformException catch (e) {
+      logger.e(e);
       setState(() {
         configState = ConfigState.findingHubError;
       });
@@ -179,11 +172,12 @@ class _AddHubPage2State extends ConsumerState<AddHubPage2> {
 
       return result;
     } on PlatformException catch (e) {
-        debugPrint(e.message);
-      return '';
+      debugPrint(e.message);
       setState(() {
         configState = ConfigState.settingMqttError;
       });
+      return '';
+
     }
   }
 

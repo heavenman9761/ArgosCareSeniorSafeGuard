@@ -6,19 +6,24 @@ import 'package:flutter/material.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:mqtt_client/mqtt_client.dart';
-
+import 'package:intl/intl.dart';
 //import 'package:argoscareseniorsafeguard/mqtt/IMQTT/Controller.dart';
 import 'package:argoscareseniorsafeguard/mqtt/mqtt.dart';
-import 'package:argoscareseniorsafeguard/providers/Providers.dart';
+import 'package:argoscareseniorsafeguard/providers/providers.dart';
 import 'package:argoscareseniorsafeguard/models/device.dart';
 import 'package:argoscareseniorsafeguard/pages/add_hub_page1.dart';
 import 'package:argoscareseniorsafeguard/pages/add_sensor_page1.dart';
-import 'package:argoscareseniorsafeguard/Constants.dart';
+import 'package:argoscareseniorsafeguard/pages/alarms_view.dart';
+import 'package:argoscareseniorsafeguard/constants.dart';
 import 'package:argoscareseniorsafeguard/database/db.dart';
 import 'package:argoscareseniorsafeguard/components/door_card_widget.dart';
+import 'package:argoscareseniorsafeguard/components/motion_card_widget.dart';
+import 'package:argoscareseniorsafeguard/components/illuminance_card_widget.dart';
+import 'package:argoscareseniorsafeguard/components/humidity_card_widget.dart';
+import 'package:argoscareseniorsafeguard/components/smoke_card_widget.dart';
+import 'package:argoscareseniorsafeguard/components/emergency_card_widget.dart';
 import 'package:argoscareseniorsafeguard/components/card_widget.dart';
 
 class HomePage extends ConsumerStatefulWidget {
@@ -176,13 +181,34 @@ class _HomePageState extends ConsumerState<HomePage> {
       );
       await sd.updateDevice(d).then((value) {
         final state = mqttMsg['state'];
+        var now = DateTime.now();
+        String formatDate = DateFormat('dd일 - HH:mm:ss').format(now);
+
         if (mqttMsg['device_type'] == Constants.DEVICE_TYPE_DOOR) {
           if (state['door_window'] == 0) {
-            ref.read(doorSensorStateProvider.notifier).state = "닫힘";
+            ref.read(doorSensorStateProvider.notifier).state = "$formatDate 닫힘";
           } else if (state['door_window'] == 1) {
-            ref.read(doorSensorStateProvider.notifier).state = "열림";
+            ref.read(doorSensorStateProvider.notifier).state = "$formatDate 열림";
           }
-          logger.i(ref.watch(doorSensorStateProvider.notifier).state);
+
+        } else if (mqttMsg['device_type'] == Constants.DEVICE_TYPE_MOTION) {
+          if (state['motion'] == 0) {
+            ref.read(motionSensorStateProvider.notifier).state = "$formatDate 움직임 없음";
+          } else if (state['motion'] == 1) {
+            ref.read(motionSensorStateProvider.notifier).state = "$formatDate 감지";
+          }
+
+        } else if (mqttMsg['device_type'] == Constants.DEVICE_TYPE_ILLUMINANCE) {
+            ref.read(illuminanceSensorStateProvider.notifier).state = '$formatDate ${state['illuminance']}';
+
+        } else if (mqttMsg['device_type'] == Constants.DEVICE_TYPE_TEMPERATURE_HUMIDITY) {
+          ref.read(humiditySensorStateProvider.notifier).state = "$formatDate 온도: ${state['temp']} 습도${state['hum']}";
+
+        } else if (mqttMsg['device_type'] == Constants.DEVICE_TYPE_EMERGENCY) {
+          ref.read(emergencySensorStateProvider.notifier).state = "$formatDate Emergency";
+
+        } else if (mqttMsg['device_type'] == Constants.DEVICE_TYPE_SMOKE) {
+          ref.read(smokeSensorStateProvider.notifier).state = "$formatDate Fire";
         }
       });
     });
@@ -300,7 +326,9 @@ class _HomePageState extends ConsumerState<HomePage> {
             tooltip: "Menu",
             color: Colors.grey,
             onPressed: () {
-              // onPressed handler
+              Navigator.push(context, MaterialPageRoute(builder: (context) {
+                return const AlarmsView();
+              }));
             },
           ),
         ],
@@ -356,15 +384,15 @@ class _HomePageState extends ConsumerState<HomePage> {
                           } else if (devices[index].deviceType == Constants.DEVICE_TYPE_DOOR) {
                             return DoorCardWidget(deviceName: devices[index].getDeviceName()!);
                           } else if (devices[index].deviceType == Constants.DEVICE_TYPE_ILLUMINANCE) {
-                            return CardWidget(deviceName: devices[index].getDeviceName()!);
+                            return IlluminanceCardWidget(deviceName: devices[index].getDeviceName()!);
                           } else if (devices[index].deviceType == Constants.DEVICE_TYPE_TEMPERATURE_HUMIDITY) {
-                            return CardWidget(deviceName: devices[index].getDeviceName()!);
+                            return HumidityCardWidget(deviceName: devices[index].getDeviceName()!);
                           } else if (devices[index].deviceType == Constants.DEVICE_TYPE_SMOKE) {
-                            return CardWidget(deviceName: devices[index].getDeviceName()!);
+                            return SmokeCardWidget(deviceName: devices[index].getDeviceName()!);
                           } else if (devices[index].deviceType == Constants.DEVICE_TYPE_EMERGENCY) {
-                            return CardWidget(deviceName: devices[index].getDeviceName()!);
+                            return EmergencyCardWidget(deviceName: devices[index].getDeviceName()!);
                           } else if (devices[index].deviceType == Constants.DEVICE_TYPE_MOTION) {
-                            return CardWidget(deviceName: devices[index].getDeviceName()!);
+                            return MotionCardWidget(deviceName: devices[index].getDeviceName()!);
                           } else {
                             return null;
                           }

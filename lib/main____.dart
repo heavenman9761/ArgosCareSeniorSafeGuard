@@ -5,9 +5,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:mqtt_client/mqtt_client.dart';
 
-import 'package:argoscareseniorsafeguard/providers/Providers.dart';
+import 'package:argoscareseniorsafeguard/providers/providers.dart';
 import 'package:argoscareseniorsafeguard/mqtt/mqtt.dart';
-import 'package:argoscareseniorsafeguard/Constants.dart';
+import 'package:argoscareseniorsafeguard/constants.dart';
 
 void main() {
   runApp(

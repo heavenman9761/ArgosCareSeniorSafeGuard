@@ -1,13 +1,14 @@
 import 'dart:io';
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:argoscareseniorsafeguard/Constants.dart';
-import 'package:argoscareseniorsafeguard/providers/Providers.dart';
+import 'package:argoscareseniorsafeguard/constants.dart';
+import 'package:argoscareseniorsafeguard/providers/providers.dart';
 
 enum MqttCommand {mcSensorList, mcParing}
 
@@ -136,9 +137,9 @@ void onSubscribed(String topic) {
 /// The unsolicited disconnect callback
 void onDisconnected() {
   if (mqttClient.connectionStatus!.disconnectionOrigin == MqttDisconnectionOrigin.solicited) {
-    print('EXAMPLE::OnDisconnected callback is solicited, this is correct');
+    debugPrint('EXAMPLE::OnDisconnected callback is solicited, this is correct');
   } else {
-    print('EXAMPLE::OnDisconnected callback is unsolicited or none, this is incorrect - exiting');
+    debugPrint('EXAMPLE::OnDisconnected callback is unsolicited or none, this is incorrect - exiting');
   }
 
   _ref.read(mqttCurrentStateProvider.notifier).doChangeState(MqttConnectionState.disconnected);
@@ -146,11 +147,11 @@ void onDisconnected() {
 
 /// The successful connect callback
 void onConnected() {
-  print('EXAMPLE::OnConnected client callback - Client connection was successful');
+  debugPrint('EXAMPLE::OnConnected client callback - Client connection was successful');
   _ref.read(mqttCurrentStateProvider.notifier).doChangeState(MqttConnectionState.connected);
 }
 
 /// Pong callback
 void pong() {
-  print('EXAMPLE::Ping response client callback invoked');
+  debugPrint('EXAMPLE::Ping response client callback invoked');
 }

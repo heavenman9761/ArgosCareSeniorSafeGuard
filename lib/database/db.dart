@@ -6,7 +6,7 @@ import 'package:argoscareseniorsafeguard/models/device.dart';
 import 'package:argoscareseniorsafeguard/models/hub.dart';
 import 'package:argoscareseniorsafeguard/models/sensor.dart';
 import 'package:argoscareseniorsafeguard/models/sensor_event.dart';
-import 'package:argoscareseniorsafeguard/Constants.dart';
+import 'package:argoscareseniorsafeguard/constants.dart';
 
 const String databaseName = 'ArgosCareSeniorSafeGuard.db';
 const String tableNameDevices = 'devices';
@@ -111,6 +111,25 @@ class DBHelper {
     final db = await database;
 
     final List<Map<String, dynamic>> maps = await db.query(tableNameDevices, where: 'deviceType = ?', whereArgs: [Constants.DEVICE_TYPE_HUB]);
+
+    return List.generate(maps.length, (i) {
+      return Device(
+        deviceID: maps[i]['deviceID'],
+        deviceType: maps[i]['deviceType'],
+        deviceName: maps[i]['deviceName'],
+        displaySunBun: maps[i]['displaySunBun'],
+        accountID: maps[i]['accountID'],
+        state: maps[i]['state'],
+        updateTime: maps[i]['updateTime'],
+        createTime: maps[i]['createTime'],
+      );
+    });
+  }
+
+  Future<List<Device>> getDeviceExpectHubs() async {
+    final db = await database;
+
+    final List<Map<String, dynamic>> maps = await db.query(tableNameDevices, where: 'deviceType <> ?', whereArgs: [Constants.DEVICE_TYPE_HUB]);
 
     return List.generate(maps.length, (i) {
       return Device(
