@@ -3,6 +3,7 @@ import 'package:argoscareseniorsafeguard/components/my_button.dart';
 import 'package:argoscareseniorsafeguard/components/my_textfield.dart';
 import 'package:argoscareseniorsafeguard/components/square_tile.dart';
 import 'package:argoscareseniorsafeguard/pages/home_page.dart';
+import 'package:argoscareseniorsafeguard/constants.dart';
 
 class LoginPage extends StatelessWidget {
   LoginPage({super.key});
@@ -18,6 +19,11 @@ class LoginPage extends StatelessWidget {
         return const HomePage(title: 'SCT Senior Care');
       },
     ));
+  }
+
+  void _iostest() async{
+    final int result = await Constants.platform.invokeMethod('getBatteryLevel');
+    debugPrint('batteryLevel: $result');
   }
 
   @override
@@ -87,7 +93,7 @@ class LoginPage extends StatelessWidget {
 
               // sign in button
               MyButton(
-                onTap: () => signUserIn(context),
+                onTap: () => _iostest()//signUserIn(context),
               ),
 
               const SizedBox(height: 30),
