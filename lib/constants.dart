@@ -10,6 +10,9 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:argoscareseniorsafeguard/utils/firebase_options.dart';
 import 'package:geolocator/geolocator.dart';
 
+import 'package:dio/dio.dart';
+
+import 'package:argoscareseniorsafeguard/auth/auth_dio.dart';
 class Constants {
   static const platform = MethodChannel('est.co.kr/IoT_Hub');
   static const DEVICE_TYPE_HUB = 'hub';
@@ -21,6 +24,8 @@ class Constants {
   static const DEVICE_TYPE_DOOR = 'door_sensor';
   static const ACCOUNT_ID = 'dn9318dn@gmail.com';
 }
+
+late Dio dio;
 
 var logger = Logger(
   printer: PrettyPrinter(),

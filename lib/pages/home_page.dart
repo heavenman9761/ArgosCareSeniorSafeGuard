@@ -82,7 +82,7 @@ class _HomePageState extends ConsumerState<HomePage> {
     super.dispose();
   }
 
-  void _addDevice() {
+  void _addDevice() async {
     if (_deviceList.isEmpty) {
       Navigator.push(context, MaterialPageRoute(builder: (context) {
         return const AddHubPage1();

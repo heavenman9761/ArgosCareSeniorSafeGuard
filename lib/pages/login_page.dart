@@ -1,29 +1,87 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+
 import 'package:argoscareseniorsafeguard/components/my_button.dart';
 import 'package:argoscareseniorsafeguard/components/my_textfield.dart';
 import 'package:argoscareseniorsafeguard/components/square_tile.dart';
 import 'package:argoscareseniorsafeguard/pages/home_page.dart';
 import 'package:argoscareseniorsafeguard/constants.dart';
+import 'package:argoscareseniorsafeguard/auth/auth_dio.dart';
 
-class LoginPage extends StatelessWidget {
-  LoginPage({super.key});
+class LoginPage extends StatefulWidget {
+  const LoginPage({super.key});
 
-  // text editing controllers
-  final usernameController = TextEditingController();
-  final passwordController = TextEditingController();
+  @override
+  State<LoginPage> createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
+  final usernameController = TextEditingController(text: 'dn9318dn@gmail.com');
+  final passwordController = TextEditingController(text: '121212');
+
+  bool isLogging = false;
 
   // sign user in method
-  void signUserIn(BuildContext context) {
-    Navigator.pushReplacement(context, MaterialPageRoute(
-      builder: (context) {
-        return const HomePage(title: 'SCT Senior Care');
-      },
-    ));
+  Future<void> signUserIn(BuildContext context) async {
+    setState(() {
+      isLogging = true;
+    });
+
+    try {
+      dio = await authDio();
+      final response = await dio.post(
+          "/auth/signin",
+          data: jsonEncode({
+            "email": usernameController.text,
+            "password": passwordController.text
+          })
+      );
+
+      final token = response.data['token'];
+
+      const storage = FlutterSecureStorage();
+      await storage.write(key: 'ACCESS_TOKEN', value: token);
+
+      var loginResponse = await dio.get(
+          "/auth/me"
+      );
+      print(loginResponse.data['user']);
+      var email = loginResponse.data['user']['email'];
+      print(email);
+
+      Navigator.pushReplacement(context,
+          MaterialPageRoute(builder: (context) {
+            return const HomePage(title: 'Argos Care');
+          },
+        )
+      );
+
+    } catch (e) {
+      debugPrint(e.toString());
+
+      setState(() {
+        isLogging = false;
+      });
+    }
   }
 
-  void _iostest() async{
+  void _iostest() async {
     final int result = await Constants.platform.invokeMethod('getBatteryLevel');
     debugPrint('batteryLevel: $result');
+  }
+
+  Widget loginWidget(BuildContext context) {
+    if (isLogging) {
+      return const CircularProgressIndicator();
+    } else {
+      return MyButton(
+          onTap: () async {
+            signUserIn(context);
+          }
+      );
+    }
   }
 
   @override
@@ -92,9 +150,7 @@ class LoginPage extends StatelessWidget {
               const SizedBox(height: 25),
 
               // sign in button
-              MyButton(
-                onTap: () => _iostest()//signUserIn(context),
-              ),
+              loginWidget(context),
 
               const SizedBox(height: 30),
 

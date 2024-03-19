@@ -65,7 +65,7 @@ class MyApp extends StatelessWidget {
     } else if (snapshot.hasData) {
       return isLogin()
           ? const HomePage(title: 'SCT Senior Care')
-          : LoginPage();
+          : const LoginPage();
     } else {
       return const IntroScreen();
     }
