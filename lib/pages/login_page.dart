@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:argoscareseniorsafeguard/mqtt/mqtt.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
@@ -25,6 +26,7 @@ class _LoginPageState extends State<LoginPage> {
 
   // sign user in method
   Future<void> signUserIn(BuildContext context) async {
+
     setState(() {
       isLogging = true;
     });
@@ -47,9 +49,17 @@ class _LoginPageState extends State<LoginPage> {
       var loginResponse = await dio.get(
           "/auth/me"
       );
-      print(loginResponse.data['user']);
-      var email = loginResponse.data['user']['email'];
-      print(email);
+
+      await storage.write(key: 'ID', value: loginResponse.data['user']['id']);
+      await storage.write(key: 'EMAIL', value: loginResponse.data['user']['email']);
+      await storage.write(key: 'NAME', value: loginResponse.data['user']['name']);
+      await storage.write(key: 'ADDR_ZIP', value: loginResponse.data['user']['addr_zip']);
+      await storage.write(key: 'ADDR', value: loginResponse.data['user']['addr']);
+      await storage.write(key: 'MOBILE_PHONE', value: loginResponse.data['user']['mobilephone']);
+      await storage.write(key: 'TEL', value: loginResponse.data['user']['tel']);
+      await storage.write(key: 'SNS_ID', value: loginResponse.data['user']['snsId']);
+      await storage.write(key: 'PROVIDER', value: loginResponse.data['user']['provider']);
+      await storage.write(key: 'ADMiN', value: loginResponse.data['user']['admin'].toString());
 
       Navigator.pushReplacement(context,
           MaterialPageRoute(builder: (context) {

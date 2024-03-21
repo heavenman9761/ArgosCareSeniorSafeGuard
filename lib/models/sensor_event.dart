@@ -4,7 +4,7 @@ class SensorEvent {
   final String? deviceID;
   final String? deviceType;
   final String? event;
-  final String? state;
+  final String? status;
   final String? updateTime;
   final String? createTime;
 
@@ -28,8 +28,8 @@ class SensorEvent {
     return event;
   }
 
-  String? getState() {
-    return state;
+  String? getStatus() {
+    return status;
   }
 
   String? getUpdateTime() {
@@ -41,7 +41,7 @@ class SensorEvent {
   }
 
   SensorEvent({this.id, required this.deviceID, required this.hubID, required this.deviceType,
-    required this.event, required this.state, required this.updateTime, required this.createTime});
+    required this.event, required this.status, required this.updateTime, required this.createTime});
 
   Map<String, dynamic> toMap() {
     return {
@@ -50,7 +50,7 @@ class SensorEvent {
       'hubID': hubID ?? '',
       'deviceType': deviceType ?? '',
       'event': event ?? '',
-      'state': state ?? '',
+      'status': status ?? '',
       'updateTime': updateTime ?? '',
       'createTime': createTime ?? '',
     };
@@ -63,7 +63,7 @@ class SensorEvent {
       hubID: json['hubID'],
       deviceType: json['deviceType'],
       event: json['event'],
-      state: json['state'],
+      status: json['status'],
       updateTime: json['updateTime'],
       createTime: json['createTime'],
     );
@@ -71,6 +71,15 @@ class SensorEvent {
 
   @override
   String toString() {
-    return 'SensorEvent {id: $id, sensorID: $deviceID, hubID: $hubID, deviceType: $deviceType, event: $event, state: $state, updateTime: $updateTime, createTime: $createTime}';
+    return 'SensorEvent {'
+        'id: $id, '
+        'sensorID: $deviceID, '
+        'hubID: $hubID, '
+        'deviceType: $deviceType, '
+        'event: $event, '
+        'status: $status, '
+        'updateTime: $updateTime, '
+        'createTime: $createTime'
+    '}';
   }
 }

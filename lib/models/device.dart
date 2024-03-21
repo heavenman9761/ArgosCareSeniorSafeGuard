@@ -4,7 +4,7 @@ class Device {
   final String deviceName;
   final int? displaySunBun;
   final String accountID;
-  final String state;
+  final String status;
   final String updateTime;
   final String createTime;
 
@@ -28,8 +28,8 @@ class Device {
     return accountID;
   }
 
-  String? getState() {
-    return state;
+  String? getStatus() {
+    return status;
   }
 
   String? getUpdateTime() {
@@ -41,7 +41,7 @@ class Device {
   }
 
   Device({required this.deviceID, required this.deviceType, required this.deviceName, required this.displaySunBun, required this.accountID,
-    required this.state, required this.updateTime, required this.createTime});
+    required this.status, required this.updateTime, required this.createTime});
 
   Map<String, dynamic> toMap() {
     return {
@@ -50,7 +50,7 @@ class Device {
       'deviceName': deviceName,
       'displaySunBun': displaySunBun ?? '',
       'accountID': accountID,
-      'state': state ?? '',
+      'status': status ?? '',
       'updateTime' : updateTime,
       'createTime': createTime,
     };
@@ -58,6 +58,15 @@ class Device {
 
   @override
   String toString() {
-    return 'Device {deviceID: $deviceID, deviceType: $deviceType, deviceName: $deviceName, displaySunBun: $displaySunBun, accountID: $accountID, state: $state, updateTime: $updateTime, createTime: $createTime, }';
+    return 'Device {'
+        'deviceID: $deviceID, '
+        'deviceType: $deviceType, '
+        'deviceName: $deviceName, '
+        'displaySunBun: $displaySunBun, '
+        'accountID: $accountID, '
+        'status: $status, '
+        'updateTime: $updateTime, '
+        'createTime: $createTime, '
+      '}';
   }
 }

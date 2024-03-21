@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:argoscareseniorsafeguard/models/hub.dart';
 import 'package:argoscareseniorsafeguard/models/sensor_event.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -9,7 +10,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:intl/intl.dart';
-//import 'package:argoscareseniorsafeguard/mqtt/IMQTT/Controller.dart';
+
 import 'package:argoscareseniorsafeguard/mqtt/mqtt.dart';
 import 'package:argoscareseniorsafeguard/providers/providers.dart';
 import 'package:argoscareseniorsafeguard/models/device.dart';
@@ -162,7 +163,7 @@ class _HomePageState extends ConsumerState<HomePage> {
       deviceID: mqttMsg['deviceID'],
       deviceType: mqttMsg['device_type'],
       event: mqttMsg['event'],
-      state: mqttMsg['state'].toString(),
+      status: mqttMsg['status'].toString(),
       updateTime: DateTime.now().toString(),
       createTime: DateTime.now().toString(),
     );
@@ -175,7 +176,7 @@ class _HomePageState extends ConsumerState<HomePage> {
         deviceName: deviceList[0].deviceName,
         displaySunBun: deviceList[0].displaySunBun,
         accountID: deviceList[0].accountID,
-        state: mqttMsg['state'].toString(),
+        status: mqttMsg['status'].toString(),
         updateTime: DateTime.now().toString(),
         createTime: deviceList[0].createTime
       );
@@ -243,7 +244,7 @@ class _HomePageState extends ConsumerState<HomePage> {
       deviceName: deviceName,
       displaySunBun: displaySunBun,
       accountID: Constants.ACCOUNT_ID,
-      state: "",
+      status: "",
       updateTime: DateTime.now().toString(),
       createTime: DateTime.now().toString(),
     );
@@ -266,6 +267,40 @@ class _HomePageState extends ConsumerState<HomePage> {
     );
   }
 
+  Future<void> _downDeviceListFromServer(String hubID) async {
+    try {
+      final res = await dio.get(
+        "/devices/$hubID"
+      );
+      print(res.data);
+
+      Hub hub = Hub(
+        id: res.data['id'],
+        hubID: res.data['hubID'],
+        name: res.data['name'],
+        displaySunBun: res.data['displaySunBun'],
+        category: res.data['category'],
+        deviceType: res.data['deviceType'],
+        locationID: res.data['locationID'],
+        locationName: res.data['locationName'],
+        hasSubDevices: res.data['hasSubDevices'],
+        modelName: res.data['modelName'],
+        online: res.data['online'],
+        status: res.data['status'],
+        battery: res.data['battery'],
+        isUse: res.data['isUse'],
+        createdAt: res.data['createdAt'].toString(),
+        updatedAt: res.data['updatedAt'].toString(),
+      );
+
+      DBHelper sd = DBHelper();
+      await sd.insertHub(hub);
+
+    } catch(e) {
+      debugPrint(e.toString());
+    }
+  }
+
   void _analysisMqttMsg(String topic, String message) {
     final mqttMsg = json.decode(message);
     if (topic == ref.watch(requestTopicProvider)) {
@@ -278,21 +313,20 @@ class _HomePageState extends ConsumerState<HomePage> {
       }
     } else if (topic == ref.watch(resultTopicProvider)) {
       if (mqttMsg['event'] == 'gatewayADD') {
-        _goHome();
-
         if (mqttMsg['state'] == 'success') {
           _saveDevice(mqttMsg['deviceID'], Constants.DEVICE_TYPE_HUB);
+          _downDeviceListFromServer(mqttMsg['deviceID']);
         } else if (mqttMsg['state'] == 'failure') {
 
         }
-      } else if (mqttMsg['event'] == 'device_add') {
         _goHome();
-
+      } else if (mqttMsg['event'] == 'device_add') {
         if (mqttMsg['state'] == 'device add success') {
           _saveDevice(mqttMsg['deviceID'], mqttMsg['deviceType']);
         } else if (mqttMsg['state'] == 'device add failure') {
 
         }
+        _goHome();
       }
     }
   }

@@ -149,6 +149,14 @@ void onDisconnected() {
 void onConnected() {
   debugPrint('EXAMPLE::OnConnected client callback - Client connection was successful');
   _ref.read(mqttCurrentStateProvider.notifier).doChangeState(MqttConnectionState.connected);
+
+  mqttPublish('request/00003494543ebb58', jsonEncode({
+    "order": "device_add",
+    "deviceID": "aabbccdd11223344",
+    "accountID": "dn9318dn@gmail.com",
+    "device_type": "door_sensor",
+    "time": "20240321_175100"
+  }));
 }
 
 /// Pong callback

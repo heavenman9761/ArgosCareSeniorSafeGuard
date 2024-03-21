@@ -33,7 +33,7 @@ class DBHelper {
         "deviceName TEXT, "
         "displaySunBun INTEGER,"
         "accountID TEXT, "
-        "state TEXT, "
+        "status TEXT, "
         "updateTime TEXT, "
         "createTime TEXT"
       ")",
@@ -41,25 +41,43 @@ class DBHelper {
 
     await db.execute(
       "CREATE TABLE $tableNameHubs ("
-        "hubID TEXT PRIMARY KEY, "
-        "deviceName TEXT, "
-        "displaySunBun INTEGER,"
-        "state TEXT, "
-        "updateTime TEXT, "
-        "createTime TEXT"
+        "id TEXT PRIMARY KEY, "
+        "hubID TEXT, "
+        "name TEXT, "
+        "displaySunBun INTEGER, "
+        "category TEXT, "
+        "deviceType TEXT, "
+        "locationID TEXT, "
+        "locationName TEXT, "
+        "hasSubDevices BOOLEAN, "
+        "modelName TEXT, "
+        "online BOOLEAN, "
+        "status TEXT, "
+        "battery INTEGER, "
+        "isUse BOOLEAN, "
+        "createdAt TEXT, "
+        "updatedAt TEXT "
       ")",
     );
 
     await db.execute(
       "CREATE TABLE $tableNameSensors ("
-        "sensorID TEXT PRIMARY KEY, "
-        "hubID TEXT, "
+        "id TEXT PRIMARY KEY, "
+        "sensorID TEXT, "
+        "name TEXT, "
+        "displaySunBun INTEGER, "
+        "category TEXT,"
         "deviceType TEXT, "
-        "deviceName TEXT, "
-        "displaySunBun INTEGER,"
-        "state TEXT, "
-        "updateTime TEXT, "
-        "createTime TEXT"
+        "locationID TEXT, "
+        "locationName TEXT, "
+        "modelName TEXT, "
+        "online BOOLEAN, "
+        "status TEXT, "
+        "battery INTEGER, "
+        "isUse BOOLEAN, "
+        "createdAt TEXT, "
+        "updatedAt TEXT, "
+        "hubID TEXT"
       ")",
     );
 
@@ -70,7 +88,7 @@ class DBHelper {
         "deviceID TEXT, "
         "deviceType TEXT, "
         "event TEXT, "
-        "state TEXT, "
+        "status TEXT, "
         "updateTime TEXT, "
         "createTime TEXT"
       ")",
@@ -100,7 +118,7 @@ class DBHelper {
         deviceName: maps[i]['deviceName'],
         displaySunBun: maps[i]['displaySunBun'],
         accountID: maps[i]['accountID'],
-        state: maps[i]['state'],
+        status: maps[i]['status'],
         updateTime: maps[i]['updateTime'],
         createTime: maps[i]['createTime'],
       );
@@ -119,7 +137,7 @@ class DBHelper {
         deviceName: maps[i]['deviceName'],
         displaySunBun: maps[i]['displaySunBun'],
         accountID: maps[i]['accountID'],
-        state: maps[i]['state'],
+        status: maps[i]['status'],
         updateTime: maps[i]['updateTime'],
         createTime: maps[i]['createTime'],
       );
@@ -138,7 +156,7 @@ class DBHelper {
         deviceName: maps[i]['deviceName'],
         displaySunBun: maps[i]['displaySunBun'],
         accountID: maps[i]['accountID'],
-        state: maps[i]['state'],
+        status: maps[i]['status'],
         updateTime: maps[i]['updateTime'],
         createTime: maps[i]['createTime'],
       );
@@ -179,7 +197,7 @@ class DBHelper {
         deviceName: maps[i]['deviceName'],
         displaySunBun: maps[i]['displaySunBun'],
         accountID: maps[i]['accountID'],
-        state: maps[i]['state'],
+        status: maps[i]['status'],
         updateTime: maps[i]['updateTime'],
         createTime: maps[i]['createTime'],
       );
@@ -199,7 +217,7 @@ class DBHelper {
         deviceName: maps[i]['deviceName'],
         displaySunBun: maps[i]['displaySunBun'],
         accountID: maps[i]['accountID'],
-        state: maps[i]['state'],
+        status: maps[i]['status'],
         updateTime: maps[i]['updateTime'],
         createTime: maps[i]['createTime'],
       );
@@ -239,12 +257,23 @@ class DBHelper {
 
     return List.generate(maps.length, (i) {
       return Hub(
+        id: maps[i]['id'],
         hubID: maps[i]['hubID'],
-        deviceName: maps[i]['deviceName'],
+        name: maps[i]['name'],
         displaySunBun: maps[i]['displaySunBun'],
-        state: maps[i]['state'],
-        updateTime: maps[i]['updateTime'],
-        createTime: maps[i]['createTime'],
+        category: maps[i]['category'],
+        deviceType: maps[i]['deviceType'],
+        locationID: maps[i]['locationID'],
+        locationName: maps[i]['locationName'],
+        hasSubDevices: maps[i]['hasSubDevices'],
+        modelName: maps[i]['modelName'],
+        online: maps[i]['online'],
+        status: maps[i]['status'],
+        battery: maps[i]['battery'],
+        isUse: maps[i]['isUse'],
+        createdAt: maps[i]['createdAt'],
+        updatedAt: maps[i]['updatedAt'],
+
       );
     });
   }
@@ -255,7 +284,7 @@ class DBHelper {
     await db.update(
       tableNameHubs,
       hub.toMap(),
-      where: "deviceID = ?",
+      where: "hubID = ?",
       whereArgs: [hub.hubID],
     );
   }
@@ -265,7 +294,7 @@ class DBHelper {
 
     await db.delete(
       tableNameHubs,
-      where: "deviceID = ?",
+      where: "hubID = ?",
       whereArgs: [hubID],
     );
   }
@@ -278,12 +307,22 @@ class DBHelper {
 
     return List.generate(maps.length, (i) {
       return Hub(
+        id: maps[i]['id'],
         hubID: maps[i]['hubID'],
-        deviceName: maps[i]['deviceName'],
+        name: maps[i]['name'],
         displaySunBun: maps[i]['displaySunBun'],
-        state: maps[i]['state'],
-        updateTime: maps[i]['updateTime'],
-        createTime: maps[i]['createTime'],
+        category: maps[i]['category'],
+        deviceType: maps[i]['deviceType'],
+        locationID: maps[i]['locationID'],
+        locationName: maps[i]['locationName'],
+        hasSubDevices: maps[i]['hasSubDevices'],
+        modelName: maps[i]['modelName'],
+        online: maps[i]['online'],
+        status: maps[i]['status'],
+        battery: maps[i]['battery'],
+        isUse: maps[i]['isUse'],
+        createdAt: maps[i]['createdAt'],
+        updatedAt: maps[i]['updatedAt'],
       );
     });
   }
@@ -307,14 +346,22 @@ class DBHelper {
 
     return List.generate(maps.length, (i) {
       return Sensor(
+        id: maps[i]['id'],
         sensorID: maps[i]['sensorID'],
-        hubID: maps[i]['hubID'],
-        deviceType: maps[i]['deviceType'],
-        deviceName: maps[i]['deviceName'],
+        name: maps[i]['name'],
         displaySunBun: maps[i]['displaySunBun'],
-        state: maps[i]['state'],
-        updateTime: maps[i]['updateTime'],
-        createTime: maps[i]['createTime'],
+        category: maps[i]['category'],
+        deviceType: maps[i]['deviceType'],
+        locationID: maps[i]['locationID'],
+        locationName: maps[i]['locationName'],
+        modelName: maps[i]['modelName'],
+        online: maps[i]['online'],
+        status: maps[i]['status'],
+        battery: maps[i]['battery'],
+        isUse: maps[i]['isUse'],
+        createdAt: maps[i]['createdAt'],
+        updatedAt: maps[i]['updatedAt'],
+        hubID: maps[i]['hubID'],
       );
     });
   }
@@ -325,7 +372,7 @@ class DBHelper {
     await db.update(
       tableNameSensors,
       sensor.toMap(),
-      where: "deviceID = ?",
+      where: "sensorID = ?",
       whereArgs: [sensor.sensorID],
     );
   }
@@ -344,18 +391,26 @@ class DBHelper {
     final db = await database;
 
     final List<Map<String, dynamic>> maps =
-    await db.query(tableNameSensors, where: 'deviceID = ?', whereArgs: [sensorID]);
+    await db.query(tableNameSensors, where: 'sensorID = ?', whereArgs: [sensorID]);
 
     return List.generate(maps.length, (i) {
       return Sensor(
+        id: maps[i]['id'],
         sensorID: maps[i]['sensorID'],
-        hubID: maps[i]['hubID'],
-        deviceType: maps[i]['deviceType'],
-        deviceName: maps[i]['deviceName'],
+        name: maps[i]['name'],
         displaySunBun: maps[i]['displaySunBun'],
-        state: maps[i]['state'],
-        updateTime: maps[i]['updateTime'],
-        createTime: maps[i]['createTime'],
+        category: maps[i]['category'],
+        deviceType: maps[i]['deviceType'],
+        locationID: maps[i]['locationID'],
+        locationName: maps[i]['locationName'],
+        modelName: maps[i]['modelName'],
+        online: maps[i]['online'],
+        status: maps[i]['status'],
+        battery: maps[i]['battery'],
+        isUse: maps[i]['isUse'],
+        createdAt: maps[i]['createdAt'],
+        updatedAt: maps[i]['updatedAt'],
+        hubID: maps[i]['hubID'],
       );
     });
   }
@@ -384,7 +439,7 @@ class DBHelper {
         deviceID: maps[i]['deviceID'],
         deviceType: maps[i]['deviceType'],
         event: maps[i]['event'],
-        state: maps[i]['state'],
+        status: maps[i]['status'],
         updateTime: maps[i]['updateTime'],
         createTime: maps[i]['createTime'],
       );
@@ -425,7 +480,7 @@ class DBHelper {
         deviceID: maps[i]['deviceID'],
         deviceType: maps[i]['deviceType'],
         event: maps[i]['event'],
-        state: maps[i]['state'],
+        status: maps[i]['status'],
         updateTime: maps[i]['updateTime'],
         createTime: maps[i]['createTime'],
       );

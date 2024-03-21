@@ -77,18 +77,19 @@ class _AddHubPage2State extends ConsumerState<AddHubPage2> {
             _settingHub(devices[0]).catchError((onError){
               _hasError = true;
               return '';
-            }).then((hubID) {
+            }).then((hubID) async {
               if (hubID != '' && !_hasError) {
                 _hubID = hubID;
-                logger.i(_hubID);
                 if (!_hasError) {
-                  _wifiScan(context).catchError((onError) => _hasError = true).then((isAccessPoint) {
-                    if (isAccessPoint && !_hasError) {
-                      if (accessPoints.isNotEmpty) {
-                        showWifiDialog(context);
+                  if (tempRegiHubIdToServer(_hubID)) {
+                    _wifiScan(context).catchError((onError) => _hasError = true).then((isAccessPoint) {
+                      if (isAccessPoint && !_hasError) {
+                        if (accessPoints.isNotEmpty) {
+                          showWifiDialog(context);
+                        }
                       }
-                    }
-                  });
+                    });
+                  }
                 }
               }
             });
@@ -100,6 +101,17 @@ class _AddHubPage2State extends ConsumerState<AddHubPage2> {
         });
       }
     });
+  }
+
+  bool tempRegiHubIdToServer(String hubID) {
+    try {
+      mqttPublish('regHub', jsonEncode({
+        "hubID": hubID
+      }));
+      return true;
+    } catch(e) {
+      return false;
+    }
   }
 
   Future<bool> _checkPermissions() async {
