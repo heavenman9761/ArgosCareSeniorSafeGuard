@@ -1,18 +1,13 @@
+import 'dart:convert';
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
-
 import 'package:logger/logger.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:permission_handler/permission_handler.dart';
-
-import 'package:argoscareseniorsafeguard/utils/firebase_options.dart';
 import 'package:geolocator/geolocator.dart';
-
 import 'package:dio/dio.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
-import 'package:argoscareseniorsafeguard/auth/auth_dio.dart';
 class Constants {
   static const platform = MethodChannel('est.co.kr/IoT_Hub');
   static const DEVICE_TYPE_HUB = 'hub';
@@ -37,118 +32,34 @@ var loggerNoStack = Logger(
 
 enum ConfigState {
   none,
-  findingHub, findingHubError, findingHubPermissionError, findingHubDone,
+  findingHub, findingHubError, findingHubPermissionError, findingHubDone, findingHubEmpty,
   settingMqtt, settingMqttError, settingMqttDone,
   settingWifiScan, settingWifiScanError, settingWifiScanDone,
-  settingWifi, settingWifiError, settingWifiDone
-}
+  settingWifi, settingWifiError, settingWifiDone,
 
-Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  await setupFlutterNotifications();
-
-  debugPrint("백그라운드 메시지 처리.. ${message.notification!.body!}");
-
-  showFlutterNotification(message);
-}
-
-late AndroidNotificationChannel channel;
-
-bool isFlutterLocalNotificationsInitialized = false;
-
-Future<void> setupFlutterNotifications() async {
-  if (isFlutterLocalNotificationsInitialized) {
-    return;
-  }
-  channel = const AndroidNotificationChannel(
-    'high_importance_channel', // id
-    'High Importance Notifications', // title
-    description: 'This channel is used for important notifications.', // description
-    importance: Importance.high,
-  );
-
-  flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
-
-  /// Create an Android Notification Channel.
-  ///
-  /// We use this channel in the `AndroidManifest.xml` file to override the
-  /// default FCM channel to enable heads up notifications.
-  await flutterLocalNotificationsPlugin
-      .resolvePlatformSpecificImplementation<
-      AndroidFlutterLocalNotificationsPlugin>()
-      ?.createNotificationChannel(channel);
-
-  /// Update the iOS foreground notification presentation options to allow
-  /// heads up notifications.
-  await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(
-    alert: true,
-    badge: true,
-    sound: true,
-  );
-  isFlutterLocalNotificationsInitialized = true;
-}
-
-void showFlutterNotification(RemoteMessage message) {
-
-  RemoteNotification? notification = message.notification;
-
-  AndroidNotification? android = message.notification?.android;
-
-  if (notification != null && android != null && !kIsWeb) {
-
-    debugPrint('showFlutterNotification() - ${notification.hashCode} ${notification.title} ${notification.body}');
-
-    flutterLocalNotificationsPlugin.show(
-      notification.hashCode,
-      notification.title,
-      notification.body,
-      const NotificationDetails(
-        android: AndroidNotificationDetails(
-          'high_importance_channel',
-          'high_importance_notification',
-          importance: Importance.max,
-          // channel.id,
-          // channel.name,
-          // channelDescription: channel.description,
-          // TODO add a proper drawable resource to android, for now using
-          //      one that already exists in example app.
-          //icon: 'launch_background',
-        ),
-      ),
-    );
-  }
-}
-
-late FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
-
-void initializeNotification() async {
-  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-
-  final flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
-
-  await flutterLocalNotificationsPlugin
-      .resolvePlatformSpecificImplementation<
-      AndroidFlutterLocalNotificationsPlugin>()
-      ?.createNotificationChannel(const AndroidNotificationChannel(
-      'high_importance_channel',
-      'high_importance_notification',
-      importance: Importance.max
-  ));
-
-  await flutterLocalNotificationsPlugin.initialize(const InitializationSettings(
-    android: AndroidInitializationSettings("@mipmap/ic_launcher"),
-  ));
-
-  await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(
-    alert: true,
-    badge: true,
-    sound: true,
-  );
+  findingSensor, findingSensorError, findingSensorDone
 }
 
 void getMyDeviceToken() async {
   final token = await FirebaseMessaging.instance.getToken();
-  logger.i("FCM Device Token: $token");
+
+  const storage = FlutterSecureStorage();
+  final email = await storage.read(key: 'EMAIL');
+
+  try {
+    final response = await dio.post(
+        "/users/fcmtoken",
+        data: jsonEncode({
+          "email": email,
+          "token": token,
+          "platform": "android"
+        })
+    );
+  } catch(e) {
+    print(e);
+  }
+
+  logger.i("FCM Device Token: $token,   $email");
 }
 
 permission() async {

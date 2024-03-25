@@ -1,17 +1,16 @@
 import 'dart:async';
-
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-// import 'package:flutter/foundation.dart';
-// import 'package:flutter/services.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
 
-import 'package:argoscareseniorsafeguard/constants.dart';
 import 'package:argoscareseniorsafeguard/utils/firebase_options.dart';
 import 'package:argoscareseniorsafeguard/pages/login_page.dart';
 import 'package:argoscareseniorsafeguard/pages/Intro_page.dart';
 import 'package:argoscareseniorsafeguard/pages/home_page.dart';
+
+import 'package:argoscareseniorsafeguard/utils/fcm.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -30,8 +29,6 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // final controller = Get.put(Controller());
-
     return MaterialApp(
         title: 'Flutter Demo',
         debugShowCheckedModeBanner: false,
@@ -41,10 +38,12 @@ class MyApp extends StatelessWidget {
           brightness: Brightness.light,
           useMaterial3: true,
         ),
+        // home: const LoginPage()
         home: FutureBuilder(
           future: Future.delayed(
               const Duration(seconds: 3), () => "Intro Completed."),
           builder: (context, snapshot) {
+            const LoginPage();
             return AnimatedSwitcher(
               duration: const Duration(milliseconds: 2000),
               transitionBuilder: (Widget child, Animation<double> animation) {
@@ -72,6 +71,6 @@ class MyApp extends StatelessWidget {
   }
 
   bool isLogin() {
-    return false; //Get.find<Controller>().isLogin.value;
+    return false;
   }
 }

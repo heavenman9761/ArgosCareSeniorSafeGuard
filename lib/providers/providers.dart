@@ -1,8 +1,13 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mqtt_client/mqtt_client.dart';
+import 'package:argoscareseniorsafeguard/constants.dart';
 
 final mqttCurrentStateProvider = StateNotifierProvider<MqttConnectionStateNotifier, MqttConnectionState>((ref) {
   return MqttConnectionStateNotifier();
+});
+
+final findHubStateProvider = StateNotifierProvider<FindHubStateNotifier, ConfigState>((ref) {
+  return FindHubStateNotifier();
 });
 
 class MqttConnectionStateNotifier extends StateNotifier<MqttConnectionState> {
@@ -10,6 +15,14 @@ class MqttConnectionStateNotifier extends StateNotifier<MqttConnectionState> {
 
   void doChangeState(MqttConnectionState connectionState) {
     state = connectionState;
+  }
+}
+
+class FindHubStateNotifier extends StateNotifier<ConfigState> {
+  FindHubStateNotifier(): super(ConfigState.none);
+
+  void doChangeState(ConfigState findHubState) {
+    state = findHubState;
   }
 }
 

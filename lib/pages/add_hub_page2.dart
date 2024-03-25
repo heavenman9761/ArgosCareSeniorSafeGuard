@@ -11,6 +11,7 @@ import 'package:argoscareseniorsafeguard/providers/providers.dart';
 import 'package:argoscareseniorsafeguard/models/accesspoint.dart';
 import 'package:argoscareseniorsafeguard/constants.dart';
 import 'package:argoscareseniorsafeguard/mqtt/mqtt.dart';
+import 'package:argoscareseniorsafeguard/providers/providers.dart';
 
 class AddHubPage2 extends ConsumerStatefulWidget {
   const AddHubPage2({super.key});
@@ -20,7 +21,6 @@ class AddHubPage2 extends ConsumerStatefulWidget {
 }
 
 class _AddHubPage2State extends ConsumerState<AddHubPage2> {
-  ConfigState configState = ConfigState.none;
   String _hubID = "";
   List<AccessPoint> accessPoints = <AccessPoint>[];
   late AccessPoint selectedAp;
@@ -53,10 +53,8 @@ class _AddHubPage2State extends ConsumerState<AddHubPage2> {
   void initState() {
     super.initState();
 
-    setState(() {
-      configState = ConfigState.none;
-      _pairingHub(context);
-    });
+    ref.read(findHubStateProvider.notifier).doChangeState(ConfigState.none);
+    _pairingHub(context);
   }
 
   @override
@@ -93,12 +91,12 @@ class _AddHubPage2State extends ConsumerState<AddHubPage2> {
                 }
               }
             });
+          } else {
+            ref.read(findHubStateProvider.notifier).doChangeState(ConfigState.findingHubEmpty);
           }
         });
       } else {
-        setState(() {
-          configState = ConfigState.findingHubPermissionError;
-        });
+          ref.read(findHubStateProvider.notifier).doChangeState(ConfigState.findingHubPermissionError);
       }
     });
   }
@@ -138,23 +136,18 @@ class _AddHubPage2State extends ConsumerState<AddHubPage2> {
 
   Future<List<String>> _findHub() async {
     try {
-      setState(() {
-        configState = ConfigState.findingHub;
-      });
+      ref.read(findHubStateProvider.notifier).doChangeState(ConfigState.findingHub);
+
       final Iterable result =
           await Constants.platform.invokeMethod('findEsp32');
 
-      setState(() {
-        configState = ConfigState.findingHubDone;
-      });
+      ref.read(findHubStateProvider.notifier).doChangeState(ConfigState.findingHubDone);
 
       return result.cast<String>().toList();
 
     } on PlatformException catch (e) {
       logger.e(e);
-      setState(() {
-        configState = ConfigState.findingHubError;
-      });
+      ref.read(findHubStateProvider.notifier).doChangeState(ConfigState.findingHubError);
 
       return [];
     }
@@ -162,9 +155,7 @@ class _AddHubPage2State extends ConsumerState<AddHubPage2> {
 
   Future<String> _settingHub(String hubName) async {
     try {
-      setState(() {
-        configState = ConfigState.settingMqtt;
-      });
+      ref.read(findHubStateProvider.notifier).doChangeState(ConfigState.settingMqtt);
 
       final String result =
           await Constants.platform.invokeMethod('settingHub', <String, dynamic>{
@@ -178,16 +169,12 @@ class _AddHubPage2State extends ConsumerState<AddHubPage2> {
 
       debugPrint('received from java [hubID]: $result');
 
-      setState(() {
-        configState = ConfigState.settingMqttDone;
-      });
+      ref.read(findHubStateProvider.notifier).doChangeState(ConfigState.settingMqttDone);
 
       return result;
     } on PlatformException catch (e) {
       debugPrint(e.message);
-      setState(() {
-        configState = ConfigState.settingMqttError;
-      });
+      ref.read(findHubStateProvider.notifier).doChangeState(ConfigState.settingMqttError);
       return '';
 
     }
@@ -197,9 +184,7 @@ class _AddHubPage2State extends ConsumerState<AddHubPage2> {
     String strApList;
 
     try {
-      setState(() {
-        configState = ConfigState.settingWifiScan;
-      });
+      ref.read(findHubStateProvider.notifier).doChangeState(ConfigState.settingWifiScan);
 
       final result = await Constants.platform.invokeMethod('_wifiProvision');
       strApList = result.toString();
@@ -212,14 +197,12 @@ class _AddHubPage2State extends ConsumerState<AddHubPage2> {
         accessPoints.add(ap);
       }
 
-      setState(() {
-        configState = ConfigState.settingWifiScanDone;
-      });
+      ref.read(findHubStateProvider.notifier).doChangeState(ConfigState.settingWifiScanDone);
 
       return accessPoints.isNotEmpty ? true : false;
     } on PlatformException catch (e) {
       setState(() {
-        configState = ConfigState.settingWifiScanError;
+        ref.read(findHubStateProvider.notifier).doChangeState(ConfigState.settingWifiScanError);
       });
 
       logger.e(e.message);
@@ -230,9 +213,7 @@ class _AddHubPage2State extends ConsumerState<AddHubPage2> {
 
   Future<void> _setWifiConfig() async {
     try {
-      setState(() {
-        configState = ConfigState.settingWifi;
-      });
+      ref.read(findHubStateProvider.notifier).doChangeState(ConfigState.settingWifi);
 
       logger.i("_setWifiConfig() $wifiPassword ${selectedAp.toString()}");
 
@@ -244,28 +225,26 @@ class _AddHubPage2State extends ConsumerState<AddHubPage2> {
 
       logger.i('received from java: $result');
 
-      setState(() {
-        configState = ConfigState.settingWifiDone;
-        ref.read(resultTopicProvider.notifier).state = 'result/$_hubID';
-        ref.read(requestTopicProvider.notifier).state = 'request/$_hubID';
+      ref.read(findHubStateProvider.notifier).doChangeState(ConfigState.settingWifiDone);
+      ref.read(resultTopicProvider.notifier).state = 'result/$_hubID';
+      ref.read(requestTopicProvider.notifier).state = 'request/$_hubID';
 
-        if (ref.watch(mqttCurrentStateProvider) == MqttConnectionState.connected) {
-          mqttAddSubscribeTo(ref.watch(resultTopicProvider));
-          mqttAddSubscribeTo(ref.watch(requestTopicProvider));
-        }
-      });
+      if (ref.watch(mqttCurrentStateProvider) == MqttConnectionState.connected) {
+        mqttAddSubscribeTo(ref.watch(resultTopicProvider));
+        // mqttAddSubscribeTo(ref.watch(requestTopicProvider));
+      }
 
     } on PlatformException catch (e) {
       logger.e(e.message);
-
-      setState(() {
-        configState = ConfigState.settingWifiError;
-      });
+      ref.read(findHubStateProvider.notifier).doChangeState(ConfigState.settingWifiError);
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    ref.listen(findHubStateProvider, (previous, next) {
+      logger.i('current state: ${ref.watch(findHubStateProvider)}');
+    });
     return Scaffold(
         backgroundColor: Colors.grey[300],
         appBar: AppBar(
@@ -277,86 +256,69 @@ class _AddHubPage2State extends ConsumerState<AddHubPage2> {
   }
 
   Widget controlUI() {
-    if (configState == ConfigState.findingHub) {
-      return const Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          CircularProgressIndicator(),
-          SizedBox(height: 20,),
-          Text("허브를 찾고 있습니다.")
-        ],
-      );
+    if (ref.watch(findHubStateProvider) == ConfigState.findingHub) {
+      return processWidget("허브를 찾고 있습니다.");
+
+    } else if (ref.watch(findHubStateProvider) == ConfigState.findingHubEmpty) {
+      return retryWidget("허브를 찾을 수 없습니다.\n다시 시도해보시기 바랍니다.");
+
+    } else if (ref.watch(findHubStateProvider) == ConfigState.findingHubPermissionError) {
+      return retryWidget("사용 권한을 허용하시고\n다시 시도해보시기 바랍니다.");
+
+    } else if (ref.watch(findHubStateProvider) == ConfigState.findingHubError
+        || ref.watch(findHubStateProvider) == ConfigState.findingHubError
+        || ref.watch(findHubStateProvider) == ConfigState.settingMqttError
+        || ref.watch(findHubStateProvider) == ConfigState.settingWifiScanError
+        || ref.watch(findHubStateProvider) == ConfigState.settingWifiError) {
+      return retryWidget("오류가 발생 했습니다.\n다시 시도해보시기 바랍니다.");
+
+    } else if (ref.watch(findHubStateProvider) == ConfigState.findingHubDone) {
+      return processWidget('허브를 찾았습니다.');
+
+    } else if (ref.watch(findHubStateProvider) == ConfigState.settingMqtt) {
+      return processWidget('서버 셋팅을 하고 있습니다.');
+
+    } else if (ref.watch(findHubStateProvider) == ConfigState.settingMqttDone) {
+      return processWidget('서버 셋팅이 완료되었습니다.');
+
+    } else if (ref.watch(findHubStateProvider) == ConfigState.settingWifiScan) {
+      return processWidget('WIFI 설정 중입니다. 1/3');
+
+    } else if (ref.watch(findHubStateProvider) == ConfigState.settingWifiScanDone) {
+      return processWidget('WIFI 설정 중입니다.2/3');
+
+    } else if (ref.watch(findHubStateProvider) == ConfigState.settingWifi) {
+      return processWidget('WIFI 설정 중입니다.3/3');
+
+    } else if (ref.watch(findHubStateProvider) == ConfigState.settingWifiDone) {
+      return lastWidget();
+
     } else {
-      if (_hubID == '') {
-        if (configState == ConfigState.findingHubDone) {
-          return Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              ElevatedButton(onPressed:() async => _pairingHub(context), style: elevatedButtonStyle, child: const Text('다시 시도')),
-              const SizedBox(height: 20,),
-              const Text("허브를 찾을 수 없습니다.\n다시 시도해보시기 바랍니다.")
-          ]);
-        } else if (configState == ConfigState.findingHubError) {
-          return Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              ElevatedButton(onPressed:() async => _pairingHub(context), style: elevatedButtonStyle, child: const Text('다시 시도')),
-              const SizedBox(height: 20,),
-              const Text("오류가 발생 했습니다.\n다시 시도해보시기 바랍니다.")
-          ]);
-        } else if (configState == ConfigState.findingHubPermissionError) {
-          return Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                ElevatedButton(onPressed:() async => _pairingHub(context), style: elevatedButtonStyle, child: const Text('다시 시도')),
-                const SizedBox(height: 20,),
-                const Text("사용 권한을 부여해주시고\n다시 시도해보시기 바랍니다.")
-              ]);
-        } else {
-          return const Text('');
-        }
-      } else {
-        if (configState == ConfigState.findingHubError
-            || configState == ConfigState.settingMqttError
-            || configState == ConfigState.settingWifiScanError
-            || configState == ConfigState.settingWifiError) {
-          return Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              ElevatedButton(onPressed:() async => _pairingHub(context), style: elevatedButtonStyle, child: const Text('다시 시도')),
-              const SizedBox(height: 20,),
-              const Text("오류가 발생 했습니다.\n다시 시도해보시기 바랍니다.")
-          ]);
-        } else if (configState == ConfigState.findingHubDone) {
-          return const Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              CircularProgressIndicator(),
-              SizedBox(height: 20,),
-              Text('설정 중 입니다.')
-            ],
-          );
-        } else if (configState == ConfigState.settingMqtt
-            || configState == ConfigState.settingMqttDone
-            || configState == ConfigState.settingWifiScan
-            || configState == ConfigState.settingWifiScanDone
-            || configState == ConfigState.settingWifi) {
-          return const Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              CircularProgressIndicator(),
-              SizedBox(height: 20,),
-              Text('설정 중 입니다.')
-            ],
-          );
-        } else if (configState == ConfigState.settingWifiDone) {
-          return lastWidget();
-        } else {
-          return const Text('');
-        }
-      }
-      //
+      debugPrint("===========================================");
+      return const Text('');
     }
+  }
+
+  Widget retryWidget(String msg) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        ElevatedButton(onPressed: () async => _pairingHub(context), style: elevatedButtonStyle, child: const Text('다시 시도')),
+        const SizedBox(height: 20,),
+        Text(msg)
+      ]);
+  }
+
+  Widget processWidget(String msg)
+  {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        const CircularProgressIndicator(),
+        const SizedBox(height: 20,),
+        Text(msg)
+      ],
+    );
   }
 
   Widget lastWidget()
@@ -390,20 +352,24 @@ class _AddHubPage2State extends ConsumerState<AddHubPage2> {
               builder: (BuildContext context, StateSetter setDialogState) {
                 return AlertDialog(
                   title: const Text("Select WIFI"),
-                  content: ListView.builder(
-                      itemCount: accessPoints.length,
-                      itemBuilder: (ctx, index) {
-                        return ListTile(
-                          title: Text(accessPoints[index].getWifiName()!),
-                          leading: rssiWidget(accessPoints[index]),
-                          trailing: accessPoints[index].getSecurity() == 0
-                              ? const Icon(Icons.lock_open)
-                              : const Icon(Icons.lock),
-                          onTap: () {
-                            Navigator.pop(context, accessPoints[index]);
-                          },
-                        );
-                      }
+                  content: SizedBox(
+                    height: 300.0,
+                    width: 300.0,
+                    child: ListView.builder(
+                        itemCount: accessPoints.length,
+                        itemBuilder: (ctx, index) {
+                          return ListTile(
+                            title: Text(accessPoints[index].getWifiName()!),
+                            leading: rssiWidget(accessPoints[index]),
+                            trailing: accessPoints[index].getSecurity() == 0
+                                ? const Icon(Icons.lock_open)
+                                : const Icon(Icons.lock),
+                            onTap: () {
+                              Navigator.pop(context, accessPoints[index]);
+                            },
+                          );
+                        }
+                    ),
                   ),
                   actions: <Widget>[
                     ElevatedButton(

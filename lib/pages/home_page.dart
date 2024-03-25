@@ -10,6 +10,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import 'package:argoscareseniorsafeguard/mqtt/mqtt.dart';
 import 'package:argoscareseniorsafeguard/providers/providers.dart';
@@ -48,17 +49,21 @@ class _HomePageState extends ConsumerState<HomePage> {
   @override
   void initState() {
     getMyDeviceToken();
+
     _checkPermissions();
+
+    _downDeviceListFromServer();
+
     mqttInit(ref, '14.42.209.174', 6002, 'ArgosCareSeniorSafeGuard', 'mings', 'Sct91234!');
 
     FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
       RemoteNotification? notification = message.notification;
 
-      if (notification != null) {
+      // if (notification != null) {
         FlutterLocalNotificationsPlugin().show(
           notification.hashCode,
-          notification.title,
-          notification.body,
+          message.data['title'],
+          message.data['body'],
           const NotificationDetails(
             android: AndroidNotificationDetails(
               'high_importance_channel',
@@ -68,10 +73,8 @@ class _HomePageState extends ConsumerState<HomePage> {
           ),
         );
 
-        setState(() {
-          logger.i("Foreground 메시지 수신: ${message.notification!.body!}");
-        });
-      }
+        //logger.i("Foreground 메시지 수신: ${message.notification!.body!}");
+      // }
     });
 
     super.initState();
@@ -85,11 +88,13 @@ class _HomePageState extends ConsumerState<HomePage> {
 
   void _addDevice() async {
     if (_deviceList.isEmpty) {
+      ref.read(findHubStateProvider.notifier).doChangeState(ConfigState.none);
       Navigator.push(context, MaterialPageRoute(builder: (context) {
         return const AddHubPage1();
       }));
     } else {
       String? deviceID = _deviceList[0].getDeviceID();
+      ref.read(findHubStateProvider.notifier).doChangeState(ConfigState.none);
       Navigator.push(context, MaterialPageRoute(builder: (context) {
         return AddSensorPage1(deviceID: deviceID!);
       }));
@@ -107,7 +112,7 @@ class _HomePageState extends ConsumerState<HomePage> {
       Permission.notification,
     ].request();
 
-    logger.i('location ${statuses[Permission.location]}');
+    // logger.i('location ${statuses[Permission.location]}');
 
     if (statuses.values.every((element) => element.isGranted)) {
       return true;
@@ -142,14 +147,14 @@ class _HomePageState extends ConsumerState<HomePage> {
     DBHelper sd = DBHelper();
     List<Device> hubList = await sd.getDeviceOfHubs();
     for (var hub in hubList) {
-      ref.read(resultTopicProvider.notifier).state = 'result/${hub.getDeviceID()}';
-      mqttAddSubscribeTo('result/${hub.getDeviceID()}');
-
       ref.read(commandTopicProvider.notifier).state = 'command/${hub.getDeviceID()}';
-      mqttAddSubscribeTo('command/${hub.getDeviceID()}');
+      // mqttAddSubscribeTo('command/${hub.getDeviceID()}');
 
       ref.read(requestTopicProvider.notifier).state = 'request/${hub.getDeviceID()}';
-      mqttAddSubscribeTo('request/${hub.getDeviceID()}');
+      // mqttAddSubscribeTo('request/${hub.getDeviceID()}');
+
+      ref.read(resultTopicProvider.notifier).state = 'result/${hub.getDeviceID()}';
+      mqttAddSubscribeTo('result/${hub.getDeviceID()}');
     }
   }
 
@@ -158,12 +163,17 @@ class _HomePageState extends ConsumerState<HomePage> {
     String hubID = '';
     final mqttMsg = json.decode(message);
 
+    List<Device> deviceList = await sd.findDeviceBySensor(mqttMsg['device_type']);
+    if (deviceList.isEmpty) {
+      return;
+    }
+
     SensorEvent sensorEvent = SensorEvent(
       hubID: hubID,
       deviceID: mqttMsg['deviceID'],
       deviceType: mqttMsg['device_type'],
       event: mqttMsg['event'],
-      status: mqttMsg['status'].toString(),
+      status: mqttMsg['sensorState'].toString(),
       updateTime: DateTime.now().toString(),
       createTime: DateTime.now().toString(),
     );
@@ -176,12 +186,12 @@ class _HomePageState extends ConsumerState<HomePage> {
         deviceName: deviceList[0].deviceName,
         displaySunBun: deviceList[0].displaySunBun,
         accountID: deviceList[0].accountID,
-        status: mqttMsg['status'].toString(),
+        status: mqttMsg['sensorState'].toString(),
         updateTime: DateTime.now().toString(),
         createTime: deviceList[0].createTime
       );
       await sd.updateDevice(d).then((value) {
-        final state = mqttMsg['state'];
+        final state = mqttMsg['sensorState'];
         var now = DateTime.now();
         String formatDate = DateFormat('dd일 - HH:mm:ss').format(now);
 
@@ -200,7 +210,9 @@ class _HomePageState extends ConsumerState<HomePage> {
           }
 
         } else if (mqttMsg['device_type'] == Constants.DEVICE_TYPE_ILLUMINANCE) {
-            ref.read(illuminanceSensorStateProvider.notifier).state = '$formatDate ${state['illuminance']}';
+          int illuminance = state['illuminance'];
+          String _illuminance = illuminance.toString();
+            ref.read(illuminanceSensorStateProvider.notifier).state = '$formatDate $_illuminance';
 
         } else if (mqttMsg['device_type'] == Constants.DEVICE_TYPE_TEMPERATURE_HUMIDITY) {
           ref.read(humiditySensorStateProvider.notifier).state = "$formatDate 온도: ${state['temp']} 습도${state['hum']}";
@@ -267,10 +279,13 @@ class _HomePageState extends ConsumerState<HomePage> {
     );
   }
 
-  Future<void> _downDeviceListFromServer(String hubID) async {
+  Future<void> _downDeviceListFromServer() async {
     try {
+      const storage = FlutterSecureStorage();
+      final userID = await storage.read(key: 'ID');
+      print(userID);
       final res = await dio.get(
-        "/devices/$hubID"
+        "/devices/$userID"
       );
       print(res.data);
 
@@ -307,26 +322,26 @@ class _HomePageState extends ConsumerState<HomePage> {
       if (mqttMsg['order'] == 'device_add' || mqttMsg['order'] == 'pairingEnabled') {
 
       }
-
-      if (mqttMsg['event'] == 'device_detected') {
-        _insertSensorEvent(message);
-      }
     } else if (topic == ref.watch(resultTopicProvider)) {
       if (mqttMsg['event'] == 'gatewayADD') {
         if (mqttMsg['state'] == 'success') {
           _saveDevice(mqttMsg['deviceID'], Constants.DEVICE_TYPE_HUB);
-          _downDeviceListFromServer(mqttMsg['deviceID']);
+
         } else if (mqttMsg['state'] == 'failure') {
 
         }
         _goHome();
       } else if (mqttMsg['event'] == 'device_add') {
         if (mqttMsg['state'] == 'device add success') {
-          _saveDevice(mqttMsg['deviceID'], mqttMsg['deviceType']);
+          _saveDevice(mqttMsg['deviceID'], mqttMsg['device_type']);
         } else if (mqttMsg['state'] == 'device add failure') {
 
         }
         _goHome();
+      }
+
+      if (mqttMsg['event'] == 'device_detected' && mqttMsg['state'] == 'device data success') {
+        _insertSensorEvent(message);
       }
     }
   }

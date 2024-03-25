@@ -78,7 +78,7 @@ void mqttInit(WidgetRef ref, String host, int port, String identifier, String id
       .withWillMessage('My Will message')
       .startClean() // Non persistent session for testing
       .authenticateAs(id, password)
-      .withWillQos(MqttQos.atLeastOnce);
+      .withWillQos(MqttQos.exactlyOnce);
 
   mqttClient.connectionMessage = connMess;
 
@@ -103,6 +103,8 @@ void mqttInit(WidgetRef ref, String host, int port, String identifier, String id
   mqttClient.updates!.listen((List<MqttReceivedMessage<MqttMessage?>>? c) {
     final recMess = c![0].payload as MqttPublishMessage;
     final pt = MqttPublishPayload.bytesToStringAsString(recMess.payload.message);
+
+    // print('${c[0].topic} / $pt');
 
     ref.read(mqttCurrentTopicProvider.notifier).state = c[0].topic;
     ref.read(mqttCurrentMessageProvider.notifier).state = pt;
@@ -132,6 +134,7 @@ void mqttInit(WidgetRef ref, String host, int port, String identifier, String id
 }
 
 void onSubscribed(String topic) {
+  debugPrint("onSubscribed() - $topic");
 }
 
 /// The unsolicited disconnect callback
@@ -150,13 +153,13 @@ void onConnected() {
   debugPrint('EXAMPLE::OnConnected client callback - Client connection was successful');
   _ref.read(mqttCurrentStateProvider.notifier).doChangeState(MqttConnectionState.connected);
 
-  mqttPublish('request/00003494543ebb58', jsonEncode({
-    "order": "device_add",
-    "deviceID": "aabbccdd11223344",
-    "accountID": "dn9318dn@gmail.com",
-    "device_type": "door_sensor",
-    "time": "20240321_175100"
-  }));
+  // mqttPublish('request/00003494543ebb58', jsonEncode({
+  //   "order": "device_add",
+  //   "deviceID": "aabbccdd11223344",
+  //   "accountID": "dn9318dn@gmail.com",
+  //   "device_type": "door_sensor",
+  //   "time": "20240321_175100"
+  // }));
 }
 
 /// Pong callback
