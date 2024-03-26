@@ -50,6 +50,8 @@ class _LoginPageState extends State<LoginPage> {
           "/auth/me"
       );
 
+      final String userName = loginResponse.data['user']['name'];
+
       await storage.write(key: 'ID', value: loginResponse.data['user']['id']);
       await storage.write(key: 'EMAIL', value: loginResponse.data['user']['email']);
       await storage.write(key: 'NAME', value: loginResponse.data['user']['name']);
@@ -63,7 +65,7 @@ class _LoginPageState extends State<LoginPage> {
 
       Navigator.pushReplacement(context,
           MaterialPageRoute(builder: (context) {
-            return const HomePage(title: 'Argos Care');
+            return HomePage(title: 'Argos Care', userName: userName);
           },
         )
       );

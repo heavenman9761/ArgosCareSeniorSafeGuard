@@ -63,7 +63,7 @@ class MyApp extends StatelessWidget {
       return const Text("Error!!");
     } else if (snapshot.hasData) {
       return isLogin()
-          ? const HomePage(title: 'SCT Senior Care')
+          ? const HomePage(title: 'SCT Senior Care', userName: "게스트")
           : const LoginPage();
     } else {
       return const IntroScreen();

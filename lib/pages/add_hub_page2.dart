@@ -122,12 +122,6 @@ class _AddHubPage2State extends ConsumerState<AddHubPage2> {
 
     ].request();
 
-    logger.i('location ${statuses[Permission.location]}');
-    logger.i('bluetooth ${statuses[Permission.bluetooth]}');
-    logger.i('bluetoothAdvertise ${statuses[Permission.bluetoothAdvertise]}');
-    logger.i('bluetoothConnect ${statuses[Permission.bluetoothConnect]}');
-    logger.i('bluetoothScan ${statuses[Permission.bluetoothScan]}');
-
     if (statuses.values.every((element) => element.isGranted)) {
       return true;
     }
@@ -281,20 +275,15 @@ class _AddHubPage2State extends ConsumerState<AddHubPage2> {
     } else if (ref.watch(findHubStateProvider) == ConfigState.settingMqttDone) {
       return processWidget('서버 셋팅이 완료되었습니다.');
 
-    } else if (ref.watch(findHubStateProvider) == ConfigState.settingWifiScan) {
-      return processWidget('WIFI 설정 중입니다. 1/3');
-
-    } else if (ref.watch(findHubStateProvider) == ConfigState.settingWifiScanDone) {
-      return processWidget('WIFI 설정 중입니다.2/3');
-
-    } else if (ref.watch(findHubStateProvider) == ConfigState.settingWifi) {
-      return processWidget('WIFI 설정 중입니다.3/3');
+    } else if (ref.watch(findHubStateProvider) == ConfigState.settingWifiScan
+              || ref.watch(findHubStateProvider) == ConfigState.settingWifiScanDone
+              || ref.watch(findHubStateProvider) == ConfigState.settingWifi) {
+      return processWidget('WIFI 설정 중입니다.');
 
     } else if (ref.watch(findHubStateProvider) == ConfigState.settingWifiDone) {
       return lastWidget();
 
     } else {
-      debugPrint("===========================================");
       return const Text('');
     }
   }

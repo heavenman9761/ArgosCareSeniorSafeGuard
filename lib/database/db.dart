@@ -224,6 +224,15 @@ class DBHelper {
     });
   }
 
+  Future<List<Map<String, dynamic>>> getDeviceByGroup() async {
+    final db = await database;
+
+    final List<Map<String, dynamic>> maps =
+    await db.query(tableNameDevices, columns: ['deviceType'], groupBy: 'deviceType', orderBy: 'createTime ASC');
+
+    return maps;
+  }
+
   Future<int?> getDeviceCountByType(String deviceType) async {
     final db = await database;
     var x = await db.rawQuery("SELECT COUNT (*) from $tableNameDevices WHERE deviceType = '$deviceType'");

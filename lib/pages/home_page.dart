@@ -20,26 +20,23 @@ import 'package:argoscareseniorsafeguard/pages/add_sensor_page1.dart';
 import 'package:argoscareseniorsafeguard/pages/alarms_view.dart';
 import 'package:argoscareseniorsafeguard/constants.dart';
 import 'package:argoscareseniorsafeguard/database/db.dart';
-import 'package:argoscareseniorsafeguard/components/door_card_widget.dart';
-import 'package:argoscareseniorsafeguard/components/motion_card_widget.dart';
-import 'package:argoscareseniorsafeguard/components/illuminance_card_widget.dart';
-import 'package:argoscareseniorsafeguard/components/humidity_card_widget.dart';
-import 'package:argoscareseniorsafeguard/components/smoke_card_widget.dart';
-import 'package:argoscareseniorsafeguard/components/emergency_card_widget.dart';
-import 'package:argoscareseniorsafeguard/components/card_widget.dart';
+import 'package:argoscareseniorsafeguard/components/home_widget.dart';
+import 'package:argoscareseniorsafeguard/components/mydevice_widget.dart';
+import 'package:argoscareseniorsafeguard/components/profile_widget.dart';
 
 class HomePage extends ConsumerStatefulWidget {
-  const HomePage({super.key, required this.title});
+  const HomePage({super.key, required this.title, required this.userName});
 
   final String title;
+  final String userName;
 
   @override
   ConsumerState<HomePage> createState() => _HomePageState();
 }
 
 class _HomePageState extends ConsumerState<HomePage> {
-  late List<Device> _deviceList = [];
-  bool loadingDeviceList = false;
+  late final List<Device> _deviceList = [];
+  int _selectedIndex = 0;
 
   @override
   void didChangeDependencies() {
@@ -52,30 +49,11 @@ class _HomePageState extends ConsumerState<HomePage> {
 
     _checkPermissions();
 
-    _downDeviceListFromServer();
+    // _downDeviceListFromServer();
 
     mqttInit(ref, '14.42.209.174', 6002, 'ArgosCareSeniorSafeGuard', 'mings', 'Sct91234!');
 
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
-      RemoteNotification? notification = message.notification;
-
-      // if (notification != null) {
-        FlutterLocalNotificationsPlugin().show(
-          notification.hashCode,
-          message.data['title'],
-          message.data['body'],
-          const NotificationDetails(
-            android: AndroidNotificationDetails(
-              'high_importance_channel',
-              'high_importance_notification',
-              importance: Importance.max,
-            ),
-          ),
-        );
-
-        //logger.i("Foreground 메시지 수신: ${message.notification!.body!}");
-      // }
-    });
+    _fcmSetListener();
 
     super.initState();
   }
@@ -84,6 +62,29 @@ class _HomePageState extends ConsumerState<HomePage> {
   void dispose() {
     mqttDisconnect();
     super.dispose();
+  }
+
+  void _fcmSetListener() {
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
+      RemoteNotification? notification = message.notification;
+
+      // if (notification != null) {
+      FlutterLocalNotificationsPlugin().show(
+        notification.hashCode,
+        message.data['title'],
+        message.data['body'],
+        const NotificationDetails(
+          android: AndroidNotificationDetails(
+            'high_importance_channel',
+            'high_importance_notification',
+            importance: Importance.max,
+          ),
+        ),
+      );
+
+      //logger.i("Foreground 메시지 수신: ${message.notification!.body!}");
+      // }
+    });
   }
 
   void _addDevice() async {
@@ -99,12 +100,6 @@ class _HomePageState extends ConsumerState<HomePage> {
         return AddSensorPage1(deviceID: deviceID!);
       }));
     }
-  }
-
-  Future<List<Device>> _getDeviceList() async {
-    DBHelper sd = DBHelper();
-    _deviceList = await sd.getDevices();
-    return _deviceList;
   }
 
   Future<bool> _checkPermissions() async {
@@ -147,13 +142,19 @@ class _HomePageState extends ConsumerState<HomePage> {
     DBHelper sd = DBHelper();
     List<Device> hubList = await sd.getDeviceOfHubs();
     for (var hub in hubList) {
-      ref.read(commandTopicProvider.notifier).state = 'command/${hub.getDeviceID()}';
+      ref
+          .read(commandTopicProvider.notifier)
+          .state = 'command/${hub.getDeviceID()}';
       // mqttAddSubscribeTo('command/${hub.getDeviceID()}');
 
-      ref.read(requestTopicProvider.notifier).state = 'request/${hub.getDeviceID()}';
+      ref
+          .read(requestTopicProvider.notifier)
+          .state = 'request/${hub.getDeviceID()}';
       // mqttAddSubscribeTo('request/${hub.getDeviceID()}');
 
-      ref.read(resultTopicProvider.notifier).state = 'result/${hub.getDeviceID()}';
+      ref
+          .read(resultTopicProvider.notifier)
+          .state = 'result/${hub.getDeviceID()}';
       mqttAddSubscribeTo('result/${hub.getDeviceID()}');
     }
   }
@@ -181,14 +182,14 @@ class _HomePageState extends ConsumerState<HomePage> {
     await sd.insertSensorEvent(sensorEvent).then((value) async {
       List<Device> deviceList = await sd.findDeviceBySensor(mqttMsg['device_type']);
       Device d = Device(
-        deviceID: deviceList[0].deviceID,
-        deviceType: deviceList[0].deviceType,
-        deviceName: deviceList[0].deviceName,
-        displaySunBun: deviceList[0].displaySunBun,
-        accountID: deviceList[0].accountID,
-        status: mqttMsg['sensorState'].toString(),
-        updateTime: DateTime.now().toString(),
-        createTime: deviceList[0].createTime
+          deviceID: deviceList[0].deviceID,
+          deviceType: deviceList[0].deviceType,
+          deviceName: deviceList[0].deviceName,
+          displaySunBun: deviceList[0].displaySunBun,
+          accountID: deviceList[0].accountID,
+          status: mqttMsg['sensorState'].toString(),
+          updateTime: DateTime.now().toString(),
+          createTime: deviceList[0].createTime
       );
       await sd.updateDevice(d).then((value) {
         final state = mqttMsg['sensorState'];
@@ -197,31 +198,42 @@ class _HomePageState extends ConsumerState<HomePage> {
 
         if (mqttMsg['device_type'] == Constants.DEVICE_TYPE_DOOR) {
           if (state['door_window'] == 0) {
-            ref.read(doorSensorStateProvider.notifier).state = "$formatDate 닫힘";
+            ref
+                .read(doorSensorStateProvider.notifier)
+                .state = "$formatDate 닫힘";
           } else if (state['door_window'] == 1) {
-            ref.read(doorSensorStateProvider.notifier).state = "$formatDate 열림";
+            ref
+                .read(doorSensorStateProvider.notifier)
+                .state = "$formatDate 열림";
           }
-
         } else if (mqttMsg['device_type'] == Constants.DEVICE_TYPE_MOTION) {
           if (state['motion'] == 0) {
-            ref.read(motionSensorStateProvider.notifier).state = "$formatDate 움직임 없음";
+            ref
+                .read(motionSensorStateProvider.notifier)
+                .state = "$formatDate 움직임 없음";
           } else if (state['motion'] == 1) {
-            ref.read(motionSensorStateProvider.notifier).state = "$formatDate 감지";
+            ref
+                .read(motionSensorStateProvider.notifier)
+                .state = "$formatDate 감지";
           }
-
         } else if (mqttMsg['device_type'] == Constants.DEVICE_TYPE_ILLUMINANCE) {
-          int illuminance = state['illuminance'];
-          String _illuminance = illuminance.toString();
-            ref.read(illuminanceSensorStateProvider.notifier).state = '$formatDate $_illuminance';
-
+          final int illuminance = state['illuminance'];
+          final String value = illuminance.toString();
+          ref
+              .read(illuminanceSensorStateProvider.notifier)
+              .state = '$formatDate $value';
         } else if (mqttMsg['device_type'] == Constants.DEVICE_TYPE_TEMPERATURE_HUMIDITY) {
-          ref.read(humiditySensorStateProvider.notifier).state = "$formatDate 온도: ${state['temp']} 습도${state['hum']}";
-
+          ref
+              .read(humiditySensorStateProvider.notifier)
+              .state = "$formatDate 온도: ${state['temp']} 습도${state['hum']}";
         } else if (mqttMsg['device_type'] == Constants.DEVICE_TYPE_EMERGENCY) {
-          ref.read(emergencySensorStateProvider.notifier).state = "$formatDate Emergency";
-
+          ref
+              .read(emergencySensorStateProvider.notifier)
+              .state = "$formatDate Emergency";
         } else if (mqttMsg['device_type'] == Constants.DEVICE_TYPE_SMOKE) {
-          ref.read(smokeSensorStateProvider.notifier).state = "$formatDate Fire";
+          ref
+              .read(smokeSensorStateProvider.notifier)
+              .state = "$formatDate Fire";
         }
       });
     });
@@ -279,13 +291,13 @@ class _HomePageState extends ConsumerState<HomePage> {
     );
   }
 
-  Future<void> _downDeviceListFromServer() async {
+  /*Future<void> _downDeviceListFromServer() async {
+    //오류있음 필요하면 나중에 고칠것
     try {
       const storage = FlutterSecureStorage();
       final userID = await storage.read(key: 'ID');
-      print(userID);
       final res = await dio.get(
-        "/devices/$userID"
+          "/devices/$userID"
       );
       print(res.data);
 
@@ -310,11 +322,10 @@ class _HomePageState extends ConsumerState<HomePage> {
 
       DBHelper sd = DBHelper();
       await sd.insertHub(hub);
-
-    } catch(e) {
+    } catch (e) {
       debugPrint(e.toString());
     }
-  }
+  }*/
 
   void _analysisMqttMsg(String topic, String message) {
     final mqttMsg = json.decode(message);
@@ -326,7 +337,6 @@ class _HomePageState extends ConsumerState<HomePage> {
       if (mqttMsg['event'] == 'gatewayADD') {
         if (mqttMsg['state'] == 'success') {
           _saveDevice(mqttMsg['deviceID'], Constants.DEVICE_TYPE_HUB);
-
         } else if (mqttMsg['state'] == 'failure') {
 
         }
@@ -350,10 +360,18 @@ class _HomePageState extends ConsumerState<HomePage> {
   Widget build(BuildContext context) {
     ref.listen(mqttCurrentMessageProvider, (previous, next) {
       _analysisMqttMsg(
-          ref.watch(mqttCurrentTopicProvider.notifier).state,
-          ref.watch(mqttCurrentMessageProvider.notifier).state
+          ref
+              .watch(mqttCurrentTopicProvider.notifier)
+              .state,
+          ref
+              .watch(mqttCurrentMessageProvider.notifier)
+              .state
       );
-      logger.i('current msg: ${ref.watch(mqttCurrentTopicProvider.notifier).state} / ${ref.watch(mqttCurrentMessageProvider.notifier).state}');
+      logger.i('current msg: ${ref
+          .watch(mqttCurrentTopicProvider.notifier)
+          .state} / ${ref
+          .watch(mqttCurrentMessageProvider.notifier)
+          .state}');
     });
 
     ref.listen(mqttCurrentStateProvider, (previous, next) {
@@ -382,110 +400,38 @@ class _HomePageState extends ConsumerState<HomePage> {
           ),
         ],
       ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 8, 8),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text("안녕하세요 홍 보호님,\n"
-                    "홍길동님은 현재 외출중입니다.",
-                style: TextStyle(fontSize: 16.0),),
-                IconButton(
-                  icon: const Icon(Icons.account_circle, size: 48.0),
-                  tooltip: "Menu",
-                  color: Colors.grey,
-                  onPressed: () {
-                    debugPrint('icon press');
-                  },
-                ),
-              ]
-            )
-          ),
-          Expanded(
-            child: FutureBuilder<List<Device>>(
-              future: _getDeviceList(),
-              builder: (context, snapshot) {
-                final List<Device>? devices = snapshot.data;
-                if (snapshot.connectionState != ConnectionState.done) {
-                  return Center(
-                    child: waitWidget(),
-                  );
-                }
-                if (snapshot.hasError) {
-                  return Center(
-                    child: Text(snapshot.error.toString()),
-                  );
-                }
-                if (snapshot.hasData) {
-                  if (devices != null) {
-                    if (devices.isEmpty) {
-                      return Center(
-                        child: waitWidget(),
-                      );
-                    }
-                    return ListView.builder(
-                        itemCount: devices.length,
-                        itemBuilder: (context, index) {
-                          if (devices[index].deviceType == Constants.DEVICE_TYPE_HUB) {
-                            return CardWidget(deviceName: devices[index].getDeviceName()!);
-                          } else if (devices[index].deviceType == Constants.DEVICE_TYPE_DOOR) {
-                            return DoorCardWidget(deviceName: devices[index].getDeviceName()!);
-                          } else if (devices[index].deviceType == Constants.DEVICE_TYPE_ILLUMINANCE) {
-                            return IlluminanceCardWidget(deviceName: devices[index].getDeviceName()!);
-                          } else if (devices[index].deviceType == Constants.DEVICE_TYPE_TEMPERATURE_HUMIDITY) {
-                            return HumidityCardWidget(deviceName: devices[index].getDeviceName()!);
-                          } else if (devices[index].deviceType == Constants.DEVICE_TYPE_SMOKE) {
-                            return SmokeCardWidget(deviceName: devices[index].getDeviceName()!);
-                          } else if (devices[index].deviceType == Constants.DEVICE_TYPE_EMERGENCY) {
-                            return EmergencyCardWidget(deviceName: devices[index].getDeviceName()!);
-                          } else if (devices[index].deviceType == Constants.DEVICE_TYPE_MOTION) {
-                            return MotionCardWidget(deviceName: devices[index].getDeviceName()!);
-                          } else {
-                            return null;
-                          }
-                        },
-                      );
-
-                  } else {
-                    return Center(
-                      child: waitWidget(),
-                    );
-                  }
-                } else {
-                  return Center(
-                    child: waitWidget(),
-                  );
-                }
-              },
-            ),
-          )
-        ],
-      ),
-      floatingActionButton: SizedBox(
-        height: 50,
-        width: 120,
-        child: extendButton(),
-      ),
+      body: selectWidget(),
+      // floatingActionButton: SizedBox(
+      //   height: 50,
+      //   width: 120,
+      //   child: extendButton(),
+      // ),
       bottomNavigationBar: BottomNavigationBar(
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: '홈',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.sensors),
-            label: '내 기기',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.account_circle),
-            label: '프로필',
-          ),
-        ],
-        selectedItemColor: Colors.lightBlue,
+          items: const <BottomNavigationBarItem>[
+            BottomNavigationBarItem(
+              icon: Icon(Icons.home),
+              label: '홈',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.sensors),
+              label: '내 기기',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.account_circle),
+              label: '프로필',
+            ),
+          ],
+          selectedItemColor: Colors.lightBlue,
+          currentIndex: _selectedIndex,
+          onTap: _onItemTapped
       ),
     );
+  }
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
   }
 
   FloatingActionButton extendButton() {
@@ -494,15 +440,23 @@ class _HomePageState extends ConsumerState<HomePage> {
       backgroundColor: Colors.lightBlue,
       onPressed: () => _addDevice(),
       label: const Text("기기 등록"),
-      isExtended: true, // ingEsp32 ? null : _findEsp32,
+      isExtended: true,
+      // ingEsp32 ? null : _findEsp32,
       icon: const Icon(Icons.add, size: 30),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
     );
   }
 
-  Widget waitWidget() {
-    return loadingDeviceList
-        ? const CircularProgressIndicator(backgroundColor: Colors.blue)
-        : const Text("");
+  Widget selectWidget() {
+    if (_selectedIndex == 0) {
+      return HomeWidget(userName: widget.userName);
+    } else if (_selectedIndex == 1) {
+      return MyDeviceWidget();
+    } else if (_selectedIndex == 2) {
+      return const ProfileWidget();
+    } else {
+      return HomeWidget(userName: widget.userName);
+    }
   }
+
 }
