@@ -2,17 +2,22 @@ import 'dart:ffi';
 
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
+import 'package:argoscareseniorsafeguard/constants.dart';
+
 import 'package:argoscareseniorsafeguard/models/device.dart';
 import 'package:argoscareseniorsafeguard/models/hub.dart';
 import 'package:argoscareseniorsafeguard/models/sensor.dart';
 import 'package:argoscareseniorsafeguard/models/sensor_event.dart';
-import 'package:argoscareseniorsafeguard/constants.dart';
+import 'package:argoscareseniorsafeguard/models/location.dart';
+import 'package:argoscareseniorsafeguard/models/room.dart';
 
 const String databaseName = 'ArgosCareSeniorSafeGuard.db';
 const String tableNameDevices = 'devices';
 const String tableNameHubs = 'hubs';
 const String tableNameSensors = 'sensors';
 const String tableNameSensorEvents = 'sensorEvents';
+const String tableNameLocations = 'locations';
+const String tableNameRooms = 'rooms';
 
 class DBHelper {
   var _db;
@@ -34,8 +39,8 @@ class DBHelper {
         "displaySunBun INTEGER,"
         "accountID TEXT, "
         "status TEXT, "
-        "updateTime TEXT, "
-        "createTime TEXT"
+        "createdAt TEXT, "
+        "updatedAt TEXT"
       ")",
     );
 
@@ -47,8 +52,6 @@ class DBHelper {
         "displaySunBun INTEGER, "
         "category TEXT, "
         "deviceType TEXT, "
-        "locationID TEXT, "
-        "locationName TEXT, "
         "hasSubDevices BOOLEAN, "
         "modelName TEXT, "
         "online BOOLEAN, "
@@ -68,8 +71,6 @@ class DBHelper {
         "displaySunBun INTEGER, "
         "category TEXT,"
         "deviceType TEXT, "
-        "locationID TEXT, "
-        "locationName TEXT, "
         "modelName TEXT, "
         "online BOOLEAN, "
         "status TEXT, "
@@ -83,15 +84,35 @@ class DBHelper {
 
     await db.execute(
       "CREATE TABLE $tableNameSensorEvents ("
-        "id INTEGER PRIMARY KEY AUTOINCREMENT, "
+        "id TEXT PRIMARY KEY, "
         "hubID TEXT, "
         "deviceID TEXT, "
         "deviceType TEXT, "
         "event TEXT, "
         "status TEXT, "
-        "updateTime TEXT, "
-        "createTime TEXT"
+        "createdAt TEXT, "
+        "updatedAt TEXT"
       ")",
+    );
+
+    await db.execute(
+      "CREATE TABLE $tableNameLocations ("
+          "id TEXT PRIMARY KEY, "
+          "name TEXT, "
+          "sensorID TEXT, "
+          "createdAt TEXT, "
+          "updatedAt TEXT"
+          ")",
+    );
+
+    await db.execute(
+      "CREATE TABLE $tableNameRooms ("
+          "id TEXT PRIMARY KEY, "
+          "name TEXT, "
+          "locationID TEXT, "
+          "createdAt TEXT, "
+          "updatedAt TEXT"
+          ")",
     );
   }
 
@@ -119,8 +140,8 @@ class DBHelper {
         displaySunBun: maps[i]['displaySunBun'],
         accountID: maps[i]['accountID'],
         status: maps[i]['status'],
-        updateTime: maps[i]['updateTime'],
-        createTime: maps[i]['createTime'],
+        updatedAt: maps[i]['updatedAt'],
+        createdAt: maps[i]['createdAt'],
       );
     });
   }
@@ -138,8 +159,8 @@ class DBHelper {
         displaySunBun: maps[i]['displaySunBun'],
         accountID: maps[i]['accountID'],
         status: maps[i]['status'],
-        updateTime: maps[i]['updateTime'],
-        createTime: maps[i]['createTime'],
+        updatedAt: maps[i]['updatedAt'],
+        createdAt: maps[i]['createdAt'],
       );
     });
   }
@@ -157,8 +178,8 @@ class DBHelper {
         displaySunBun: maps[i]['displaySunBun'],
         accountID: maps[i]['accountID'],
         status: maps[i]['status'],
-        updateTime: maps[i]['updateTime'],
-        createTime: maps[i]['createTime'],
+        updatedAt: maps[i]['updatedAt'],
+        createdAt: maps[i]['createdAt'],
       );
     });
   }
@@ -198,8 +219,8 @@ class DBHelper {
         displaySunBun: maps[i]['displaySunBun'],
         accountID: maps[i]['accountID'],
         status: maps[i]['status'],
-        updateTime: maps[i]['updateTime'],
-        createTime: maps[i]['createTime'],
+        updatedAt: maps[i]['updatedAt'],
+        createdAt: maps[i]['createdAt'],
       );
     });
   }
@@ -218,8 +239,8 @@ class DBHelper {
         displaySunBun: maps[i]['displaySunBun'],
         accountID: maps[i]['accountID'],
         status: maps[i]['status'],
-        updateTime: maps[i]['updateTime'],
-        createTime: maps[i]['createTime'],
+        updatedAt: maps[i]['updatedAt'],
+        createdAt: maps[i]['createdAt'],
       );
     });
   }
@@ -228,7 +249,7 @@ class DBHelper {
     final db = await database;
 
     final List<Map<String, dynamic>> maps =
-    await db.query(tableNameDevices, columns: ['deviceType'], groupBy: 'deviceType', orderBy: 'createTime ASC');
+    await db.query(tableNameDevices, columns: ['deviceType'], groupBy: 'deviceType', orderBy: 'createdAt ASC');
 
     return maps;
   }
@@ -272,8 +293,6 @@ class DBHelper {
         displaySunBun: maps[i]['displaySunBun'],
         category: maps[i]['category'],
         deviceType: maps[i]['deviceType'],
-        locationID: maps[i]['locationID'],
-        locationName: maps[i]['locationName'],
         hasSubDevices: maps[i]['hasSubDevices'],
         modelName: maps[i]['modelName'],
         online: maps[i]['online'],
@@ -322,8 +341,6 @@ class DBHelper {
         displaySunBun: maps[i]['displaySunBun'],
         category: maps[i]['category'],
         deviceType: maps[i]['deviceType'],
-        locationID: maps[i]['locationID'],
-        locationName: maps[i]['locationName'],
         hasSubDevices: maps[i]['hasSubDevices'],
         modelName: maps[i]['modelName'],
         online: maps[i]['online'],
@@ -361,8 +378,6 @@ class DBHelper {
         displaySunBun: maps[i]['displaySunBun'],
         category: maps[i]['category'],
         deviceType: maps[i]['deviceType'],
-        locationID: maps[i]['locationID'],
-        locationName: maps[i]['locationName'],
         modelName: maps[i]['modelName'],
         online: maps[i]['online'],
         status: maps[i]['status'],
@@ -410,8 +425,6 @@ class DBHelper {
         displaySunBun: maps[i]['displaySunBun'],
         category: maps[i]['category'],
         deviceType: maps[i]['deviceType'],
-        locationID: maps[i]['locationID'],
-        locationName: maps[i]['locationName'],
         modelName: maps[i]['modelName'],
         online: maps[i]['online'],
         status: maps[i]['status'],
@@ -449,8 +462,31 @@ class DBHelper {
         deviceType: maps[i]['deviceType'],
         event: maps[i]['event'],
         status: maps[i]['status'],
-        updateTime: maps[i]['updateTime'],
-        createTime: maps[i]['createTime'],
+        updatedAt: maps[i]['updatedAt'],
+        createdAt: maps[i]['createdAt'],
+      );
+    });
+  }
+
+  Future<List<SensorEvent>> getSensorEventsByDeviceType(String deviceType, String date) async {
+    final db = await database;
+
+    String start = '$date 00:00:00.000000';
+    String end = '$date 23:59:59.999999';
+
+    final List<Map<String, dynamic>> maps =
+    await db.query(tableNameSensorEvents, where: 'deviceType = ? AND createdAt >= ? AND createdAt <= ?', whereArgs: [deviceType, start, end], orderBy: 'createdAt DESC');
+
+    return List.generate(maps.length, (i) {
+      return SensorEvent(
+        id: maps[i]['id'],
+        hubID: maps[i]['hubID'],
+        deviceID: maps[i]['deviceID'],
+        deviceType: maps[i]['deviceType'],
+        event: maps[i]['event'],
+        status: maps[i]['status'],
+        updatedAt: maps[i]['updatedAt'],
+        createdAt: maps[i]['createdAt'],
       );
     });
   }
@@ -490,8 +526,140 @@ class DBHelper {
         deviceType: maps[i]['deviceType'],
         event: maps[i]['event'],
         status: maps[i]['status'],
-        updateTime: maps[i]['updateTime'],
-        createTime: maps[i]['createTime'],
+        updatedAt: maps[i]['updatedAt'],
+        createdAt: maps[i]['createdAt'],
+      );
+    });
+  }
+
+  //--------> locations table handling
+
+  Future<void> insertLocation(Location location) async {
+    final db = await database;
+
+    await db.insert(
+      tableNameLocations,
+      location.toMap(),
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  Future<List<Location>> getLocations() async {
+    final db = await database;
+
+    final List<Map<String, dynamic>> maps = await db.query(tableNameLocations);
+
+    return List.generate(maps.length, (i) {
+      return Location(
+        id: maps[i]['id'],
+        name: maps[i]['name'],
+        sensorID: maps[i]['sensorID'],
+        updatedAt: maps[i]['updatedAt'],
+        createdAt: maps[i]['createdAt'],
+      );
+    });
+  }
+
+  Future<void> updateLocation(Location location) async {
+    final db = await database;
+
+    await db.update(
+      tableNameLocations,
+      location.toMap(),
+      where: "id = ?",
+      whereArgs: [location.id],
+    );
+  }
+
+  Future<void> deleteLocation(Int id) async {
+    final db = await database;
+
+    await db.delete(
+      tableNameLocations,
+      where: "id = ?",
+      whereArgs: [id],
+    );
+  }
+
+  Future<List<Location>> findLocation(Int id) async {
+    final db = await database;
+
+    final List<Map<String, dynamic>> maps =
+    await db.query(tableNameLocations, where: 'id = ?', whereArgs: [id]);
+
+    return List.generate(maps.length, (i) {
+      return Location(
+          id: maps[i]['id'],
+          name: maps[i]['name'],
+          sensorID: maps[i]['sensorID'],
+          createdAt: maps[i]['createdAt'],
+          updatedAt: maps[i]['updatedAt']
+      );
+    });
+  }
+
+  //--------> Room table handling
+
+  Future<void> insertRoom(Room room) async {
+    final db = await database;
+
+    await db.insert(
+      tableNameRooms,
+      room.toMap(),
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  Future<List<Room>> getRoom() async {
+    final db = await database;
+
+    final List<Map<String, dynamic>> maps = await db.query(tableNameRooms);
+
+    return List.generate(maps.length, (i) {
+      return Room(
+        id: maps[i]['id'],
+        name: maps[i]['name'],
+        locationID: maps[i]['locationID'],
+        updatedAt: maps[i]['updatedAt'],
+        createdAt: maps[i]['createdAt'],
+      );
+    });
+  }
+
+  Future<void> updateRoom(Room room) async {
+    final db = await database;
+
+    await db.update(
+      tableNameRooms,
+      room.toMap(),
+      where: "id = ?",
+      whereArgs: [room.id],
+    );
+  }
+
+  Future<void> deleteRoom(Int id) async {
+    final db = await database;
+
+    await db.delete(
+      tableNameRooms,
+      where: "id = ?",
+      whereArgs: [id],
+    );
+  }
+
+  Future<List<Room>> findRoom(Int id) async {
+    final db = await database;
+
+    final List<Map<String, dynamic>> maps =
+    await db.query(tableNameRooms, where: 'id = ?', whereArgs: [id]);
+
+    return List.generate(maps.length, (i) {
+      return Room(
+          id: maps[i]['id'],
+          name: maps[i]['name'],
+          locationID: maps[i]['locationID'],
+          createdAt: maps[i]['createdAt'],
+          updatedAt: maps[i]['updatedAt']
       );
     });
   }

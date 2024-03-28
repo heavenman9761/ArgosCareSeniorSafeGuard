@@ -11,10 +11,13 @@ class AddSensorPage1 extends ConsumerStatefulWidget {
   final String deviceID;
 
   @override
-  ConsumerState<AddSensorPage1> createState() => _AddSensorPage1State();
+  ConsumerState<AddSensorPage1> createState() => _AddSensorPage1State(deviceID: deviceID);
 }
 
 class _AddSensorPage1State extends ConsumerState<AddSensorPage1> {
+  _AddSensorPage1State({required this.deviceID});
+
+  final String deviceID;
   bool _isRunning = false;
   Timer? _timer;
 
@@ -36,6 +39,7 @@ class _AddSensorPage1State extends ConsumerState<AddSensorPage1> {
 
   @override
   void initState() {
+    print('add_sensor_page1() $deviceID');
     super.initState();
   }
 
@@ -124,7 +128,7 @@ class _AddSensorPage1State extends ConsumerState<AddSensorPage1> {
           onPressed: () {
             ref.read(findHubStateProvider.notifier).doChangeState(ConfigState.findingSensor);
             final topic = ref.watch(commandTopicProvider);
-            mqttSendCommand(topic, MqttCommand.mcParing, widget.deviceID);
+            mqttSendCommand(topic, MqttCommand.mcParing, deviceID);
           }, //findHub,
           child: const Text('검색')
       );

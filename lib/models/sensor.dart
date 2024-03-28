@@ -7,13 +7,11 @@ class Sensor {
   final int? displaySunBun;
   final String? category;
   final String? deviceType;
-  final String? locationID;
-  final String? locationName;
   final String? modelName;
-  final bool? online;
+  final int? online;
   final String? status;
   final int? battery;
-  final bool? isUse;
+  final int? isUse;
   final String? createdAt;
   final String? updatedAt;
   final String? hubID;
@@ -42,19 +40,11 @@ class Sensor {
     return deviceType;
   }
 
-  String? getLocationID() {
-    return locationID;
-  }
-
-  String? getLocationName() {
-    return locationName;
-  }
-
   String? getModelName() {
     return modelName;
   }
 
-  bool? getOnline() {
+  int? getOnline() {
     return online;
   }
 
@@ -66,7 +56,7 @@ class Sensor {
     return getBattery();
   }
 
-  bool? getIsUse() {
+  int? getIsUse() {
     return isUse;
   }
 
@@ -83,11 +73,11 @@ class Sensor {
   }
 
   Sensor({
-    required this.id, required this.sensorID, required this.name,
+    this.id, required this.sensorID, required this.name,
     required this.displaySunBun, required this.category, required this.deviceType,
-    required this.locationID, required this.locationName, required this.modelName,
+    required this.modelName,
     required this.online, required this.status, required this.battery,
-    required this.isUse, required this.createdAt, required this.updatedAt,
+    required this.isUse, this.createdAt, required this.updatedAt,
     required this.hubID
   });
 
@@ -99,8 +89,6 @@ class Sensor {
       'displaySunBun': displaySunBun ?? '',
       'category': category ?? '',
       'deviceType': deviceType ?? '',
-      'locationID': locationID ?? '',
-      'locationName': locationName ?? '',
       'modelName': modelName ?? '',
       'online': online ?? '',
       'status': status ?? '',
@@ -121,8 +109,6 @@ class Sensor {
       displaySunBun: json['displaySunBun'],
       category: json['category'],
       deviceType: json['deviceType'],
-      locationID: json['locationID'],
-      locationName: json['locationName'],
       modelName: json['modelName'],
       online: json['online'],
       status: json['status'],
@@ -143,8 +129,6 @@ class Sensor {
         'displaySunBun: $displaySunBun, '
         'category: $category, '
         'deviceType: $deviceType, '
-        'locationID: $locationID, '
-        'locationName: $locationName, '
         'modelName: $modelName, '
         'online: $online, '
         'status: $status, '

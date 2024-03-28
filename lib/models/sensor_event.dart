@@ -1,14 +1,14 @@
 class SensorEvent {
-  final int? id;
+  final String? id;
   final String? hubID;
   final String? deviceID;
   final String? deviceType;
   final String? event;
   final String? status;
-  final String? updateTime;
-  final String? createTime;
+  final String? updatedAt;
+  final String? createdAt;
 
-  int? getID() {
+  String? getID() {
     return id;
   }
 
@@ -32,27 +32,27 @@ class SensorEvent {
     return status;
   }
 
-  String? getUpdateTime() {
-    return updateTime;
+  String? getUpdateAt() {
+    return updatedAt;
   }
 
-  String? getCreateTime() {
-    return createTime;
+  String? getCreatedAt() {
+    return createdAt;
   }
 
   SensorEvent({this.id, required this.deviceID, required this.hubID, required this.deviceType,
-    required this.event, required this.status, required this.updateTime, required this.createTime});
+    required this.event, required this.status, required this.updatedAt, required this.createdAt});
 
   Map<String, dynamic> toMap() {
     return {
-      // 'id': id ?? 0,  => Autoincrement 일때는 있으면 안된다.
+      'id': id ?? '',
       'deviceID': deviceID ?? '',
       'hubID': hubID ?? '',
       'deviceType': deviceType ?? '',
       'event': event ?? '',
       'status': status ?? '',
-      'updateTime': updateTime ?? '',
-      'createTime': createTime ?? '',
+      'updatedAt': updatedAt ?? '',
+      'createdAt': createdAt ?? '',
     };
   }
 
@@ -64,8 +64,8 @@ class SensorEvent {
       deviceType: json['deviceType'],
       event: json['event'],
       status: json['status'],
-      updateTime: json['updateTime'],
-      createTime: json['createTime'],
+      updatedAt: json['updatedAt'],
+      createdAt: json['createdAt'],
     );
   }
 
@@ -78,8 +78,8 @@ class SensorEvent {
         'deviceType: $deviceType, '
         'event: $event, '
         'status: $status, '
-        'updateTime: $updateTime, '
-        'createTime: $createTime'
+        'updatedAt: $updatedAt, '
+        'createdAt: $createdAt'
     '}';
   }
 }

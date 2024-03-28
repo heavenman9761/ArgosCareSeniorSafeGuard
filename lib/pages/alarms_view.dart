@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:argoscareseniorsafeguard/database/db.dart';
 import 'package:argoscareseniorsafeguard/models/device.dart';
+import 'package:argoscareseniorsafeguard/models/hub.dart';
+import 'package:argoscareseniorsafeguard/models/sensor.dart';
 import 'package:argoscareseniorsafeguard/constants.dart';
 import 'package:argoscareseniorsafeguard/pages/alarms_detail_view.dart';
+import 'package:argoscareseniorsafeguard/constants.dart';
+import 'package:intl/intl.dart';
 
 class AlarmsView extends StatefulWidget {
   const AlarmsView({super.key});
@@ -16,8 +20,40 @@ class _NotisViewState extends State<AlarmsView> {
 
   Future<List<Device>> _getDeviceList() async {
     DBHelper sd = DBHelper();
-    _deviceList = await sd.getDeviceExpectHubs();
-    return _deviceList;
+
+    List<Hub> hubList = await sd.getHubs();
+    List<Sensor> sensorList = await sd.getSensors();
+    List<Device> deviceList = [];
+
+    for (Hub hub in hubList) {
+      Device device = Device(
+          deviceID: hub.getHubID(),
+          deviceType: hub.getDeviceType(),
+          deviceName: hub.getName(),
+          displaySunBun: hub.getDisplaySunBun(),
+          accountID: "",
+          status: "",
+          updatedAt: "",
+          createdAt: ""
+      );
+      deviceList.add(device);
+    }
+
+    for (Sensor sensor in sensorList) {
+      Device device = Device(
+          deviceID: sensor.getSensorID(),
+          deviceType: sensor.getDeviceType(),
+          deviceName: sensor.getName(),
+          displaySunBun: sensor.getDisplaySunBun(),
+          accountID: "",
+          status: "",
+          updatedAt: "",
+          createdAt: ""
+      );
+      deviceList.add(device);
+    }
+
+    return deviceList;
   }
 
   Widget _getDeviceIcon(Device device) {
@@ -39,8 +75,12 @@ class _NotisViewState extends State<AlarmsView> {
   }
 
   void _goDetailView(Device device) {
+    var now = DateTime.now();
+    var formatter = DateFormat('yyyy-MM-dd');
+    String formattedDate = formatter.format(now);
+
     Navigator.push(context, MaterialPageRoute(builder: (context) {
-      return AlarmDetailView(device: device);
+      return AlarmDetailView(device: device, date: formattedDate);
     }));
   }
 

@@ -7,14 +7,12 @@ class Hub {
   final int? displaySunBun;
   final String? category;
   final String? deviceType;
-  final String? locationID;
-  final String? locationName;
-  final bool? hasSubDevices;
+  final int? hasSubDevices;
   final String? modelName;
-  final bool? online;
+  final int? online;
   final String? status;
   final int? battery;
-  final bool? isUse;
+  final int? isUse;
   final String? createdAt;
   final String? updatedAt;
 
@@ -24,6 +22,10 @@ class Hub {
 
   String? getHubID() {
     return hubID;
+  }
+
+  String? getName() {
+    return name;
   }
 
   int? getDisplaySunBun() {
@@ -38,15 +40,7 @@ class Hub {
     return deviceType;
   }
 
-  String? getLocationID() {
-    return locationID;
-  }
-
-  String? getLocationName() {
-    return locationName;
-  }
-
-  bool? getHasSubDevices() {
+  int? getHasSubDevices() {
     return hasSubDevices;
   }
 
@@ -54,7 +48,7 @@ class Hub {
     return modelName;
   }
 
-  bool? getOnLine() {
+  int? getOnLine() {
     return online;
   }
 
@@ -66,7 +60,7 @@ class Hub {
     return battery;
   }
 
-  bool? getIsUse() {
+  int? getIsUse() {
     return isUse;
   }
 
@@ -78,26 +72,22 @@ class Hub {
     return updatedAt;
   }
 
-
-
-  Hub({required this.id, required this.hubID, required this.name,
+  Hub({this.id, this.hubID, required this.name,
     required this.displaySunBun, required this.category, required this.deviceType,
-    required this.locationID, required this.locationName, required this.hasSubDevices,
+    required this.hasSubDevices,
     required this.modelName, required this.online, required this.status,
     required this.battery, required this.isUse,
-    required this.createdAt, required this.updatedAt
+    this.createdAt, required this.updatedAt
   });
 
   Map<String, dynamic> toMap() {
     return {
       'id': id ?? '',
       'hubID': hubID ?? '',
-      'name': name ?? 0,
+      'name': name ?? '',
       'displaySunBun': displaySunBun ?? '',
       'category': category ?? '',
       'deviceType': deviceType ?? '',
-      'locationID': locationID ?? '',
-      'locationName': locationName ?? '',
       'hasSubDevices': hasSubDevices ?? '',
       'modelName': modelName ?? '',
       'online': online ?? '',
@@ -117,8 +107,6 @@ class Hub {
       displaySunBun: json['displaySunBun'],
       category: json['category'],
       deviceType: json['deviceType'],
-      locationID: json['locationID'],
-      locationName: json['locationName'],
       hasSubDevices: json['hasSubDevices'],
       modelName: json['modelName'],
       online: json['online'],
@@ -139,8 +127,6 @@ class Hub {
         'displaySunBun: $displaySunBun, '
         'category: $category, '
         'deviceType: $deviceType'
-        'locationID: $locationID'
-        'locationName: $locationName'
         'hasSubDevices: $hasSubDevices'
         'modelName: $modelName'
         'online: $online'

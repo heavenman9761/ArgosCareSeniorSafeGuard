@@ -18,7 +18,6 @@ class Constants {
   static const DEVICE_TYPE_EMERGENCY = 'emergency_button';
   static const DEVICE_TYPE_MOTION = 'motion_sensor';
   static const DEVICE_TYPE_DOOR = 'door_sensor';
-  static const ACCOUNT_ID = 'dn9318dn@gmail.com';
 }
 
 late Dio dio;

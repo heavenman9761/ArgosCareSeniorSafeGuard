@@ -1,12 +1,12 @@
 class Device {
-  late final String deviceID;
-  final String deviceType;
-  final String deviceName;
+  final String? deviceID;
+  final String? deviceType;
+  final String? deviceName;
   final int? displaySunBun;
-  final String accountID;
-  final String status;
-  final String updateTime;
-  final String createTime;
+  final String? accountID;
+  final String? status;
+  final String? updatedAt;
+  final String? createdAt;
 
   String? getDeviceID() {
     return deviceID;
@@ -32,16 +32,16 @@ class Device {
     return status;
   }
 
-  String? getUpdateTime() {
-    return updateTime;
+  String? getUpdatedAt() {
+    return updatedAt;
   }
 
-  String? getCreateTime() {
-    return createTime;
+  String? getCreateAt() {
+    return createdAt;
   }
 
   Device({required this.deviceID, required this.deviceType, required this.deviceName, required this.displaySunBun, required this.accountID,
-    required this.status, required this.updateTime, required this.createTime});
+    required this.status, required this.updatedAt, required this.createdAt});
 
   Map<String, dynamic> toMap() {
     return {
@@ -51,8 +51,8 @@ class Device {
       'displaySunBun': displaySunBun ?? '',
       'accountID': accountID,
       'status': status ?? '',
-      'updateTime' : updateTime,
-      'createTime': createTime,
+      'updatedAt' : updatedAt,
+      'createdAt': createdAt,
     };
   }
 
@@ -65,8 +65,8 @@ class Device {
         'displaySunBun: $displaySunBun, '
         'accountID: $accountID, '
         'status: $status, '
-        'updateTime: $updateTime, '
-        'createTime: $createTime, '
+        'updatedAt: $updatedAt, '
+        'createdAt: $createdAt, '
       '}';
   }
 }

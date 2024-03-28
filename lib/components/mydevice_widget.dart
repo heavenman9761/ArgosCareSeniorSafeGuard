@@ -7,6 +7,8 @@ import 'package:argoscareseniorsafeguard/pages/add_sensor_page1.dart';
 import 'package:argoscareseniorsafeguard/pages/add_hub_page1.dart';
 import 'package:argoscareseniorsafeguard/providers/providers.dart';
 import 'package:argoscareseniorsafeguard/models/device.dart';
+import 'package:argoscareseniorsafeguard/models/hub.dart';
+import 'package:argoscareseniorsafeguard/models/sensor.dart';
 
 class MyDeviceWidget extends ConsumerWidget{
   MyDeviceWidget({super.key});
@@ -14,7 +16,7 @@ class MyDeviceWidget extends ConsumerWidget{
   bool _existHub = false;
   final List<String> _actionList = ['허브 등록', '센서 등록'];
   int _selectIndex = 0;
-  late List<Device> _hubList;
+  final List<Hub> _hubList = [];
 
   final ButtonStyle elevatedButtonStyle = ElevatedButton.styleFrom(
       foregroundColor: Colors.white60,
@@ -23,13 +25,45 @@ class MyDeviceWidget extends ConsumerWidget{
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))
   );
 
-  Future<List<Map<String, dynamic>>> _getDeviceList() async {
+  Future<List<Device>> _getDeviceList() async {
     DBHelper sd = DBHelper();
-    final List<Map<String, dynamic>> maps = await sd.getDeviceByGroup();
 
-    _hubList = await sd.getDeviceOfHubs();
+    _hubList.clear();
 
-    return maps;
+    List<Hub> hubList = await sd.getHubs();
+    List<Sensor> sensorList = await sd.getSensors();
+    List<Device> deviceList = [];
+
+    for (Hub hub in hubList) {
+        Device device = Device(
+          deviceID: hub.getHubID(),
+          deviceType: hub.getDeviceType(),
+          deviceName: hub.getName(),
+          displaySunBun: hub.getDisplaySunBun(),
+          accountID: "",
+          status: "",
+          updatedAt: "",
+          createdAt: ""
+        );
+        deviceList.add(device);
+        _hubList.add(hub);
+    }
+
+    for (Sensor sensor in sensorList) {
+      Device device = Device(
+          deviceID: sensor.getSensorID(),
+          deviceType: sensor.getDeviceType(),
+          deviceName: sensor.getName(),
+          displaySunBun: sensor.getDisplaySunBun(),
+          accountID: "",
+          status: "",
+          updatedAt: "",
+          createdAt: ""
+      );
+      deviceList.add(device);
+    }
+
+    return deviceList;
   }
 
   @override
@@ -49,10 +83,10 @@ class MyDeviceWidget extends ConsumerWidget{
           Expanded(
             child: Padding(
               padding: const EdgeInsets.all(8.0),
-              child: FutureBuilder<List<Map<String, dynamic>>>(
+              child: FutureBuilder<List<Device>>(
                 future: _getDeviceList(),
                 builder: (context, snapshot) {
-                  final List<Map<String, dynamic>>? devices = snapshot.data;
+                  final List<Device>? devices = snapshot.data;
                   if (snapshot.connectionState != ConnectionState.done) {
                     return Center(
                       child: waitWidget(),
@@ -66,33 +100,33 @@ class MyDeviceWidget extends ConsumerWidget{
                   if (snapshot.hasData) {
                     if (devices != null) {
                       if (devices.isEmpty) {
-                        return Center(
-                          child: waitWidget(),
+                        return const Center(
+                          child: Text("등록된 센서가 없습니다.\n기기 등록에서 센서를 등록하세요.", textAlign: TextAlign.center),
                         );
                       }
                       return ListView.builder(
                         itemCount: devices.length,
                         itemBuilder: (context, index) {
-                          if (devices[index]['deviceType'] == Constants.DEVICE_TYPE_HUB) {
+                          if (devices[index].getDeviceType() == Constants.DEVICE_TYPE_HUB) {
                             _existHub = true;
                             return myListTile(devices[index], '허브');
 
-                          } else if (devices[index]['deviceType'] == Constants.DEVICE_TYPE_ILLUMINANCE) {
+                          } else if (devices[index].getDeviceType() == Constants.DEVICE_TYPE_ILLUMINANCE) {
                             return myListTile(devices[index], '조도 센서');
 
-                          } else if (devices[index]['deviceType'] == Constants.DEVICE_TYPE_TEMPERATURE_HUMIDITY) {
+                          } else if (devices[index].getDeviceType() == Constants.DEVICE_TYPE_TEMPERATURE_HUMIDITY) {
                             return myListTile(devices[index], '온습도 센서');
 
-                          } else if (devices[index]['deviceType'] == Constants.DEVICE_TYPE_SMOKE) {
+                          } else if (devices[index].getDeviceType() == Constants.DEVICE_TYPE_SMOKE) {
                             return myListTile(devices[index], '화재 센서');
 
-                          } else if (devices[index]['deviceType'] == Constants.DEVICE_TYPE_EMERGENCY) {
+                          } else if (devices[index].getDeviceType() == Constants.DEVICE_TYPE_EMERGENCY) {
                             return myListTile(devices[index], 'SOS 버튼');
 
-                          } else if (devices[index]['deviceType'] == Constants.DEVICE_TYPE_MOTION) {
+                          } else if (devices[index].getDeviceType() == Constants.DEVICE_TYPE_MOTION) {
                             return myListTile(devices[index], '움직임 감지 센서');
 
-                          } else if (devices[index]['deviceType'] == Constants.DEVICE_TYPE_DOOR) {
+                          } else if (devices[index].getDeviceType() == Constants.DEVICE_TYPE_DOOR) {
                             return myListTile(devices[index], '도어 센서');
 
                           }
@@ -134,7 +168,7 @@ class MyDeviceWidget extends ConsumerWidget{
     return const CircularProgressIndicator(backgroundColor: Colors.blue);
   }
 
-  Widget myListTile(Map<String, dynamic> device, String title) {
+  Widget myListTile(Device device, String title) {
     return Card(
       child: ListTile(
           tileColor: Colors.white,
@@ -149,20 +183,20 @@ class MyDeviceWidget extends ConsumerWidget{
     );
   }
 
-  Widget _getDeviceIcon(Map<String, dynamic> device) {
-    if (device['deviceType'] == Constants.DEVICE_TYPE_HUB) {
+  Widget _getDeviceIcon(Device device) {
+    if (device.getDeviceType() == Constants.DEVICE_TYPE_HUB) {
       return const Icon(Icons.sensors);
-    } else if (device['deviceType'] == Constants.DEVICE_TYPE_TEMPERATURE_HUMIDITY) {
+    } else if (device.getDeviceType() == Constants.DEVICE_TYPE_TEMPERATURE_HUMIDITY) {
       return const Icon(Icons.device_thermostat);
-    } else if (device['deviceType'] == Constants.DEVICE_TYPE_SMOKE) {
+    } else if (device.getDeviceType() == Constants.DEVICE_TYPE_SMOKE) {
       return const Icon(Icons.local_fire_department);
-    } else if (device['deviceType'] == Constants.DEVICE_TYPE_EMERGENCY) {
+    } else if (device.getDeviceType() == Constants.DEVICE_TYPE_EMERGENCY) {
       return const Icon(Icons.medical_services);
-    } else if (device['deviceType'] == Constants.DEVICE_TYPE_ILLUMINANCE) {
+    } else if (device.getDeviceType() == Constants.DEVICE_TYPE_ILLUMINANCE) {
       return const Icon(Icons.light);
-    } else if (device['deviceType'] == Constants.DEVICE_TYPE_MOTION) {
+    } else if (device.getDeviceType() == Constants.DEVICE_TYPE_MOTION) {
       return const Icon(Icons.directions_run);
-    } else if (device['deviceType'] == Constants.DEVICE_TYPE_DOOR) {
+    } else if (device.getDeviceType() == Constants.DEVICE_TYPE_DOOR) {
       return const Icon(Icons.meeting_room);
     } else {
       return const Icon(Icons.help);
@@ -170,10 +204,14 @@ class MyDeviceWidget extends ConsumerWidget{
   }
 
   void _action(BuildContext context, WidgetRef ref) {
-    if (_existHub) {
-      showActionDialog(context, ref);
+    if (_hubList.isEmpty) {
+      _goAddHubPage(context, ref);
     } else {
-      _goAddSensePage(context, ref);
+      if (_hubList.length == 1) {
+        _goAddSensePage(context, ref);
+      } else {
+        showActionDialog(context, ref);
+      }
     }
   }
 
@@ -193,7 +231,8 @@ class MyDeviceWidget extends ConsumerWidget{
   }
 
   void _goAddSensePage(BuildContext context, WidgetRef ref) {
-    String? deviceID = _hubList[0].getDeviceID();
+    String? deviceID = _hubList[0].getHubID();
+    print(deviceID);
     ref.read(findHubStateProvider.notifier).doChangeState(ConfigState.none);
     Navigator.push(context, MaterialPageRoute(builder: (context) {
       return AddSensorPage1(deviceID: deviceID!);

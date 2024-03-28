@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:mqtt_client/mqtt_client.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import 'package:argoscareseniorsafeguard/providers/providers.dart';
 import 'package:argoscareseniorsafeguard/models/accesspoint.dart';
@@ -151,13 +152,16 @@ class _AddHubPage2State extends ConsumerState<AddHubPage2> {
     try {
       ref.read(findHubStateProvider.notifier).doChangeState(ConfigState.settingMqtt);
 
+      const storage = FlutterSecureStorage();
+      final email = await storage.read(key: 'EMAIL');
+
       final String result =
           await Constants.platform.invokeMethod('settingHub', <String, dynamic>{
         "hubName": hubName,
-        "accountID": Constants.ACCOUNT_ID,
+        "accountID": email,
         "serverIp": "14.42.209.174",
         "serverPort": "6002",
-        "userID": "mings",
+        "userID": "mings", //mqtt 계정
         "userPw": "Sct91234!"
       });
 

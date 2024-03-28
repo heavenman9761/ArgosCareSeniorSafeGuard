@@ -86,11 +86,11 @@ class ProfileWidget extends ConsumerWidget{
               child: const Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text("  장소 관리", style: TextStyle(fontSize: 20),),
+                  Text("  알림 관리", style: TextStyle(fontSize: 20),),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
-                      Text("장소 추가", style: TextStyle(fontSize: 18, color: Colors.grey)),
+                      Text("알림 관리", style: TextStyle(fontSize: 18, color: Colors.grey)),
                       IconButton(
                         icon: Icon(Icons.chevron_right),
                         onPressed: null,

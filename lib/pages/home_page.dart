@@ -3,6 +3,9 @@ import 'dart:convert';
 
 import 'package:argoscareseniorsafeguard/models/hub.dart';
 import 'package:argoscareseniorsafeguard/models/sensor_event.dart';
+import 'package:argoscareseniorsafeguard/models/device.dart';
+import 'package:argoscareseniorsafeguard/models/sensor.dart';
+
 import 'package:flutter/material.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -14,7 +17,6 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import 'package:argoscareseniorsafeguard/mqtt/mqtt.dart';
 import 'package:argoscareseniorsafeguard/providers/providers.dart';
-import 'package:argoscareseniorsafeguard/models/device.dart';
 import 'package:argoscareseniorsafeguard/pages/add_hub_page1.dart';
 import 'package:argoscareseniorsafeguard/pages/add_sensor_page1.dart';
 import 'package:argoscareseniorsafeguard/pages/alarms_view.dart';
@@ -140,23 +142,25 @@ class _HomePageState extends ConsumerState<HomePage> {
 
   void _mqttStartSubscribeTo() async {
     DBHelper sd = DBHelper();
-    List<Device> hubList = await sd.getDeviceOfHubs();
+    List<Hub> hubList = await sd.getHubs();
     for (var hub in hubList) {
-      ref
-          .read(commandTopicProvider.notifier)
-          .state = 'command/${hub.getDeviceID()}';
+      ref.read(commandTopicProvider.notifier).state = 'command/${hub.getHubID()}';
+      ref.read(requestTopicProvider.notifier).state = 'request/${hub.getHubID()}';
+      ref.read(resultTopicProvider.notifier).state = 'result/${hub.getHubID()}';
+
+      mqttAddSubscribeTo('result/${hub.getHubID()}');
+    }
+    /*List<Device> hubList = await sd.getDeviceOfHubs();
+    for (var hub in hubList) {
+      ref.read(commandTopicProvider.notifier).state = 'command/${hub.getDeviceID()}';
       // mqttAddSubscribeTo('command/${hub.getDeviceID()}');
 
-      ref
-          .read(requestTopicProvider.notifier)
-          .state = 'request/${hub.getDeviceID()}';
+      ref.read(requestTopicProvider.notifier).state = 'request/${hub.getDeviceID()}';
       // mqttAddSubscribeTo('request/${hub.getDeviceID()}');
 
-      ref
-          .read(resultTopicProvider.notifier)
-          .state = 'result/${hub.getDeviceID()}';
+      ref.read(resultTopicProvider.notifier).state = 'result/${hub.getDeviceID()}';
       mqttAddSubscribeTo('result/${hub.getDeviceID()}');
-    }
+    }*/
   }
 
   Future<void> _insertSensorEvent(String message) async {
@@ -170,17 +174,19 @@ class _HomePageState extends ConsumerState<HomePage> {
     }
 
     SensorEvent sensorEvent = SensorEvent(
-      hubID: hubID,
+      id: mqttMsg['id'],
+      hubID: mqttMsg['hubID'],
       deviceID: mqttMsg['deviceID'],
       deviceType: mqttMsg['device_type'],
       event: mqttMsg['event'],
       status: mqttMsg['sensorState'].toString(),
-      updateTime: DateTime.now().toString(),
-      createTime: DateTime.now().toString(),
+      updatedAt: DateTime.now().toString(),
+      createdAt: DateTime.now().toString(),
     );
 
     await sd.insertSensorEvent(sensorEvent).then((value) async {
       List<Device> deviceList = await sd.findDeviceBySensor(mqttMsg['device_type']);
+
       Device d = Device(
           deviceID: deviceList[0].deviceID,
           deviceType: deviceList[0].deviceType,
@@ -188,8 +194,8 @@ class _HomePageState extends ConsumerState<HomePage> {
           displaySunBun: deviceList[0].displaySunBun,
           accountID: deviceList[0].accountID,
           status: mqttMsg['sensorState'].toString(),
-          updateTime: DateTime.now().toString(),
-          createTime: deviceList[0].createTime
+          updatedAt: DateTime.now().toString(),
+          createdAt: deviceList[0].createdAt
       );
       await sd.updateDevice(d).then((value) {
         final state = mqttMsg['sensorState'];
@@ -239,6 +245,96 @@ class _HomePageState extends ConsumerState<HomePage> {
     });
   }
 
+  Future<void> _saveHub(String message) async {
+    final mqttMsg = json.decode(message);
+
+    DBHelper sd = DBHelper();
+    List<Hub> lists = await sd.findHub(mqttMsg['deviceID']);
+    if (lists.isEmpty) {
+       Hub hub = Hub(
+         id: mqttMsg['id'],
+         hubID: mqttMsg['deviceID'],
+         name: mqttMsg['name'],
+         displaySunBun: mqttMsg['displaySunBun'],
+         category: mqttMsg['category'],
+         deviceType: mqttMsg['deviceType'],
+         hasSubDevices: mqttMsg['hasSubDevices'] ? 1 : 0,
+         modelName: mqttMsg['modelName'],
+         online: mqttMsg['online'] ? 1 : 0,
+         status: mqttMsg['status'],
+         battery: mqttMsg['battery'],
+         isUse: mqttMsg['isUse'] ? 1 : 0,
+         updatedAt: DateTime.now().toString(),
+         createdAt: DateTime.now().toString(),
+       );
+       await sd.insertHub(hub);
+    } else {
+      Hub hub = Hub(
+        // id: mqttMsg['id'],
+        hubID: mqttMsg['deviceID'],
+        name: mqttMsg['name'],
+        displaySunBun: mqttMsg['displaySunBun'],
+        category: mqttMsg['category'],
+        deviceType: mqttMsg['deviceType'],
+        hasSubDevices: mqttMsg['hasSubDevices'] ? 1 : 0,
+        modelName: mqttMsg['modelName'],
+        online: mqttMsg['online'] ? 1 : 0,
+        status: mqttMsg['status'],
+        battery: mqttMsg['battery'],
+        isUse: mqttMsg['isUse'] ? 1 : 0,
+        updatedAt: DateTime.now().toString(),
+        // createdAt: DateTime.now().toString(),
+      );
+      await sd.updateHub(hub);
+    }
+  }
+
+  Future<void> _saveSensor(String message) async {
+    final mqttMsg = json.decode(message);
+
+    DBHelper sd = DBHelper();
+    List<Sensor> lists = await sd.findSensor(mqttMsg['sensorID']);
+    if (lists.isEmpty) {
+      Sensor sensor = Sensor(
+        id: mqttMsg['id'],
+        sensorID: mqttMsg['sensorID'],
+        name: mqttMsg['name'],
+        displaySunBun: mqttMsg['displaySunBun'],
+        category: mqttMsg['category'],
+        deviceType: mqttMsg['deviceType'],
+        modelName: mqttMsg['modelName'],
+        online: mqttMsg['online'] ? 1 : 0,
+        status: mqttMsg['status'],
+        battery: mqttMsg['battery'],
+        isUse: mqttMsg['isUse'] ? 1 : 0,
+        updatedAt: DateTime.now().toString(),
+        createdAt: DateTime.now().toString(),
+        hubID: mqttMsg['hubID']
+      );
+      await sd.insertSensor(sensor);
+      print('sd.insertSensor');
+    } else {
+      Sensor sensor = Sensor(
+          id: mqttMsg['id'],
+          sensorID: mqttMsg['sensorID'],
+          name: mqttMsg['name'],
+          displaySunBun: mqttMsg['displaySunBun'],
+          category: mqttMsg['category'],
+          deviceType: mqttMsg['deviceType'],
+          modelName: mqttMsg['modelName'],
+          online: mqttMsg['online'] ? 1 : 0,
+          status: mqttMsg['status'],
+          battery: mqttMsg['battery'],
+          isUse: mqttMsg['isUse'] ? 1 : 0,
+          updatedAt: DateTime.now().toString(),
+          // createdAt: DateTime.now().toString(),
+          hubID: mqttMsg['hubID']
+      );
+      await sd.updateSensor(sensor);
+      print('sd.updateSensor');
+    }
+  }
+
   Future<void> _saveDevice(String deviceID, String deviceType) async {
     DBHelper sd = DBHelper();
     int? count = await sd.getDeviceCountByType(deviceType);
@@ -262,15 +358,18 @@ class _HomePageState extends ConsumerState<HomePage> {
       deviceName = 'door $count';
     }
 
+    const storage = FlutterSecureStorage();
+    final email = await storage.read(key: 'EMAIL');
+
     Device device = Device(
       deviceID: deviceID,
       deviceType: deviceType,
       deviceName: deviceName,
       displaySunBun: displaySunBun,
-      accountID: Constants.ACCOUNT_ID,
+      accountID: email,
       status: "",
-      updateTime: DateTime.now().toString(),
-      createTime: DateTime.now().toString(),
+      updatedAt: DateTime.now().toString(),
+      createdAt: DateTime.now().toString(),
     );
 
     if (deviceType == Constants.DEVICE_TYPE_HUB) {
@@ -337,6 +436,7 @@ class _HomePageState extends ConsumerState<HomePage> {
       if (mqttMsg['event'] == 'gatewayADD') {
         if (mqttMsg['state'] == 'success') {
           _saveDevice(mqttMsg['deviceID'], Constants.DEVICE_TYPE_HUB);
+          _saveHub(message);
         } else if (mqttMsg['state'] == 'failure') {
 
         }
@@ -344,6 +444,7 @@ class _HomePageState extends ConsumerState<HomePage> {
       } else if (mqttMsg['event'] == 'device_add') {
         if (mqttMsg['state'] == 'device add success') {
           _saveDevice(mqttMsg['deviceID'], mqttMsg['device_type']);
+          _saveSensor(message);
         } else if (mqttMsg['state'] == 'device add failure') {
 
         }
