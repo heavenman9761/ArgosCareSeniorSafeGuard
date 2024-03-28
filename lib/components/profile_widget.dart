@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:argoscareseniorsafeguard/pages/setting_alarm.dart';
 
 class ProfileWidget extends ConsumerWidget{
   const ProfileWidget({super.key});
@@ -83,17 +84,19 @@ class ProfileWidget extends ConsumerWidget{
             padding: const EdgeInsets.fromLTRB(8.0, 0, 8.0, 0),
             child: Container(
               color: Colors.white,
-              child: const Row(
+              child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text("  알림 관리", style: TextStyle(fontSize: 20),),
+                  const Text("  알림 관리", style: TextStyle(fontSize: 20),),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
-                      Text("알림 관리", style: TextStyle(fontSize: 18, color: Colors.grey)),
+                      const Text("알림 관리", style: TextStyle(fontSize: 18, color: Colors.grey)),
                       IconButton(
-                        icon: Icon(Icons.chevron_right),
-                        onPressed: null,
+                        icon: const Icon(Icons.chevron_right),
+                        onPressed: () {
+                          _goSettingAlarm(context);
+                        }
                       )
                     ],
                   )
@@ -151,5 +154,11 @@ class ProfileWidget extends ConsumerWidget{
         ),
       ]
     );
+  }
+
+  void _goSettingAlarm(BuildContext context) {
+    Navigator.push(context, MaterialPageRoute(builder: (context) {
+      return const SettingAlarm();
+    }));
   }
 }
