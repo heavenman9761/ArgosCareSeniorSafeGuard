@@ -85,15 +85,15 @@ class Hub {
       'id': id ?? '',
       'hubID': hubID ?? '',
       'name': name ?? '',
-      'displaySunBun': displaySunBun ?? '',
+      'displaySunBun': displaySunBun ?? 0,
       'category': category ?? '',
       'deviceType': deviceType ?? '',
-      'hasSubDevices': hasSubDevices ?? '',
+      'hasSubDevices': hasSubDevices ?? 0,
       'modelName': modelName ?? '',
-      'online': online ?? '',
+      'online': online ?? 0,
       'status': status ?? '',
-      'battery': battery ?? '',
-      'isUse': isUse ?? '',
+      'battery': battery ?? 0,
+      'isUse': isUse ?? 0,
       'createdAt': createdAt ?? '',
       'updatedAt': updatedAt ?? '',
     };
@@ -126,15 +126,15 @@ class Hub {
         'name: $name, '
         'displaySunBun: $displaySunBun, '
         'category: $category, '
-        'deviceType: $deviceType'
-        'hasSubDevices: $hasSubDevices'
-        'modelName: $modelName'
-        'online: $online'
-        'status: $status'
-        'battery: $battery'
-        'isUse: $isUse'
-        'createdAt: $createdAt'
-        'updatedAt: $updatedAt'
+        'deviceType: $deviceType, '
+        'hasSubDevices: $hasSubDevices, '
+        'modelName: $modelName, '
+        'online: $online, '
+        'status: $status, '
+        'battery: $battery, '
+        'isUse: $isUse, '
+        'createdAt: $createdAt, '
+        'updatedAt: $updatedAt, '
       '}';
   }
 }

@@ -34,7 +34,7 @@ class Room {
   Map<String, dynamic> toMap() {
     return {
       'id': id ?? '',
-      'name': name ?? 0,
+      'name': name ?? '',
       'createdAt': createdAt ?? '',
       'updatedAt': updatedAt ?? '',
       'locationID': locationID ?? '',

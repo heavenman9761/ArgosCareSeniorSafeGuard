@@ -8,24 +8,19 @@ import 'package:argoscareseniorsafeguard/constants.dart';
 import 'package:intl/intl.dart';
 
 class AlarmDetailView extends StatefulWidget {
-  AlarmDetailView({super.key, required this.device, required this.date});
+  const AlarmDetailView({super.key, required this.device, required this.date});
 
   final Device device;
   final String date;
 
   @override
-  State<AlarmDetailView> createState() => _AlarmDetailViewState(device: device, date: date);
+  State<AlarmDetailView> createState() => _AlarmDetailViewState();
 }
 
 class _AlarmDetailViewState extends State<AlarmDetailView> {
-  _AlarmDetailViewState({ required this.device, required this.date });
-
-  final Device device;
-  final String date;
-
   Future<List<SensorEvent>> _getEventList() async {
     DBHelper sd = DBHelper();
-    List<SensorEvent> sensorEventList = await sd.getSensorEventsByDeviceType(device.getDeviceType()!, date);
+    List<SensorEvent> sensorEventList = await sd.getSensorEventsByDeviceType(widget.device.getDeviceType()!, widget.date);
 
     return sensorEventList;
   }

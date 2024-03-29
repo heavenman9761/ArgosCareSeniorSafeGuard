@@ -42,6 +42,6 @@ class AccessPoint {
 
   @override
   String toString() {
-    return 'AccessPoint{WifiName: $WifiName, rssi: $rssi, security: $security, password: $password}';
+    return 'AccessPoint {WifiName: $WifiName, rssi: $rssi, security: $security, password: $password}';
   }
 }

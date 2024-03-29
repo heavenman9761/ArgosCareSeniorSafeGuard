@@ -16,8 +16,6 @@ class AlarmsView extends StatefulWidget {
 }
 
 class _NotisViewState extends State<AlarmsView> {
-  late List<Device> _deviceList = [];
-
   Future<List<Device>> _getDeviceList() async {
     DBHelper sd = DBHelper();
 

@@ -53,7 +53,7 @@ class Sensor {
   }
 
   int? getBattery() {
-    return getBattery();
+    return battery;
   }
 
   int? getIsUse() {
@@ -86,14 +86,14 @@ class Sensor {
       'id': id ?? '',
       'sensorID': sensorID ?? '',
       'name': name ?? '',
-      'displaySunBun': displaySunBun ?? '',
+      'displaySunBun': displaySunBun ?? 0,
       'category': category ?? '',
       'deviceType': deviceType ?? '',
       'modelName': modelName ?? '',
-      'online': online ?? '',
+      'online': online ?? 0,
       'status': status ?? '',
-      'battery': battery ?? '',
-      'isUse': isUse ?? '',
+      'battery': battery ?? 0,
+      'isUse': isUse ?? 0,
       'createdAt': createdAt ?? '',
       'updatedAt': updatedAt ?? '',
       'hubID': hubID ?? '',

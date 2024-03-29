@@ -270,7 +270,7 @@ class _HomePageState extends ConsumerState<HomePage> {
        await sd.insertHub(hub);
     } else {
       Hub hub = Hub(
-        // id: mqttMsg['id'],
+        id: mqttMsg['id'],
         hubID: mqttMsg['deviceID'],
         name: mqttMsg['name'],
         displaySunBun: mqttMsg['displaySunBun'],

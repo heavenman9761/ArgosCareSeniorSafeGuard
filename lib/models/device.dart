@@ -45,14 +45,14 @@ class Device {
 
   Map<String, dynamic> toMap() {
     return {
-      'deviceID': deviceID,
-      'deviceType': deviceType,
-      'deviceName': deviceName,
-      'displaySunBun': displaySunBun ?? '',
-      'accountID': accountID,
+      'deviceID': deviceID ?? '',
+      'deviceType': deviceType ?? '',
+      'deviceName': deviceName ?? '',
+      'displaySunBun': displaySunBun ?? 0,
+      'accountID': accountID ?? '',
       'status': status ?? '',
-      'updatedAt' : updatedAt,
-      'createdAt': createdAt,
+      'updatedAt' : updatedAt ?? '',
+      'createdAt': createdAt ?? '',
     };
   }
 
