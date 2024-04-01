@@ -8,6 +8,8 @@ import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:argoscareseniorsafeguard/models/sensor_event.dart';
+import 'package:intl/intl.dart';
 
 class Constants {
   static const platform = MethodChannel('est.co.kr/IoT_Hub');
@@ -38,6 +40,67 @@ enum ConfigState {
   settingWifi, settingWifiError, settingWifiDone,
 
   findingSensor, findingSensorError, findingSensorDone
+}
+
+String removeJsonAndArray(String text) {
+  if (text.startsWith('[') || text.startsWith('{')) {
+    text = text.substring(1, text.length - 1);
+    if (text.startsWith('[') || text.startsWith('{')) {
+      text = removeJsonAndArray(text);
+    }
+  }
+  return text;
+}
+
+String analysisSensorEvent(SensorEvent event) {
+  String? stringJson = event.getStatus();
+  stringJson = removeJsonAndArray(stringJson!);
+  var dataSp = stringJson.split(',');
+
+  Map<String, String> data = {};
+  for (var element in dataSp) {
+    data[element.split(':')[0].trim()] = element.split(':')[1].trim();
+  }
+  String time = event.getCreatedAt()!.split('.')[0];
+
+  if (event.getDeviceType() == Constants.DEVICE_TYPE_EMERGENCY) {
+    return '$time에 SOS 호출이 있었습니다.';
+
+  } else if (event.getDeviceType() == Constants.DEVICE_TYPE_SMOKE) {
+    if (data['fire'] == '1') {
+      return '$time에 화재 감지 신호가 있었습니다.';
+    } else {
+      return '';
+    }
+
+  } else if (event.getDeviceType() == Constants.DEVICE_TYPE_DOOR) {
+    if (data['door'] == '1') {
+      return '$time에 문이 열렸습니다.';
+    } else {
+      return '$time부터 문이 닫혔습니다.';
+    }
+
+  } else if (event.getDeviceType() == Constants.DEVICE_TYPE_MOTION) {
+    if (data['motion'] == '1') {
+      return '$time에 움직임이 감지되었습니다.';
+    } else {
+      return '$time부터 움직임이 감지되지 않습니다.';
+    }
+
+  } else if (event.getDeviceType() == Constants.DEVICE_TYPE_ILLUMINANCE) {
+    return "$time 조도: ${data['illuminance']}";
+
+  } else if (event.getDeviceType() == Constants.DEVICE_TYPE_TEMPERATURE_HUMIDITY) {
+    var celsius = int.parse(data['temp']!) / 10;
+
+    NumberFormat format = NumberFormat("#0.0");
+    String strCelsius = format.format(celsius);
+
+    return "$time 온도: $strCelsius°, 습도: ${data['hum']}%";
+
+  } else {
+    return '';
+  }
 }
 
 void getMyDeviceToken() async {

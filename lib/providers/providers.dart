@@ -69,3 +69,117 @@ final humiditySensorStateProvider = StateProvider<String>((ref) {
 final illuminanceSensorStateProvider = StateProvider<String>((ref) {
   return "";
 });
+
+//------------------------------------------------------------------
+
+final alarmEntireEnableProvider = StateProvider<bool>((ref) {
+  return true;
+});
+
+//------------------------------------------------------------------
+
+final alarmHumidityEnableProvider = StateProvider<bool>((ref) {
+  return true;
+});
+
+final alarmHumidityStartTimeProvider = StateProvider<String>((ref) {
+  return "00:00";
+});
+
+final alarmHumidityEndTimeProvider = StateProvider<String>((ref) {
+  return "23:59";
+});
+
+final alarmHumidityStartValueProvider = StateProvider<int>((ref) {
+  return 0;
+});
+
+final alarmHumidityEndValueProvider = StateProvider<int>((ref) {
+  return 100;
+});
+
+final alarmTemperatureStartValueProvider = StateProvider<int>((ref) {
+  return -10;
+});
+
+final alarmTemperatureEndValueProvider = StateProvider<int>((ref) {
+  return 50;
+});
+
+//------------------------------------------------------------------
+
+final alarmEmergencyEnableProvider = StateProvider<bool>((ref) {
+  return true;
+});
+
+final alarmEmergencyStartTimeProvider = StateProvider<String>((ref) {
+  return "00:00";
+});
+
+final alarmEmergencyEndTimeProvider = StateProvider<String>((ref) {
+  return "23:59";
+});
+
+//------------------------------------------------------------------
+
+final alarmMotionEnableProvider = StateProvider<bool>((ref) {
+  return true;
+});
+
+final alarmMotionStartTimeProvider = StateProvider<String>((ref) {
+  return "00:00";
+});
+
+final alarmMotionEndTimeProvider = StateProvider<String>((ref) {
+  return "23:59";
+});
+
+//------------------------------------------------------------------
+
+final alarmSmokeEnableProvider = StateProvider<bool>((ref) {
+  return true;
+});
+
+final alarmSmokeStartTimeProvider = StateProvider<String>((ref) {
+  return "00:00";
+});
+
+final alarmSmokeEndTimeProvider = StateProvider<String>((ref) {
+  return "23:59";
+});
+
+//------------------------------------------------------------------
+
+final alarmIlluminanceEnableProvider = StateProvider<bool>((ref) {
+  return true;
+});
+
+final alarmIlluminanceStartTimeProvider = StateProvider<String>((ref) {
+  return "00:00";
+});
+
+final alarmIlluminanceEndTimeProvider = StateProvider<String>((ref) {
+  return "23:59";
+});
+
+final alarmIlluminanceStartValueProvider = StateProvider<int>((ref) {
+  return 1;
+});
+
+final alarmIlluminanceEndValueProvider = StateProvider<int>((ref) {
+  return 10;
+});
+
+//------------------------------------------------------------------
+
+final alarmDoorEnableProvider = StateProvider<bool>((ref) {
+  return true;
+});
+
+final alarmDoorStartTimeProvider = StateProvider<String>((ref) {
+  return "00:00";
+});
+
+final alarmDoorEndTimeProvider = StateProvider<String>((ref) {
+  return "23:59";
+});

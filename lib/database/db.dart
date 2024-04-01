@@ -532,6 +532,27 @@ class DBHelper {
     });
   }
 
+  Future <List<SensorEvent>> findSensorLast(String deviceType) async {
+    final db = await database;
+
+    final List<Map<String, dynamic>> maps =
+    await db.query(tableNameSensorEvents, where: 'deviceType = ?', whereArgs: [deviceType], limit: 1);
+
+    return List.generate(maps.length, (i) {
+      return SensorEvent(
+        id: maps[i]['id'],
+        hubID: maps[i]['hubID'],
+        deviceID: maps[i]['deviceID'],
+        deviceType: maps[i]['deviceType'],
+        event: maps[i]['event'],
+        status: maps[i]['status'],
+        updatedAt: maps[i]['updatedAt'],
+        createdAt: maps[i]['createdAt'],
+      );
+    });
+  }
+
+
   //--------> locations table handling
 
   Future<void> insertLocation(Location location) async {

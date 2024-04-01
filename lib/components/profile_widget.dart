@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:argoscareseniorsafeguard/pages/setting_alarm.dart';
+import 'package:argoscareseniorsafeguard/database/db.dart';
+import 'package:argoscareseniorsafeguard/models/sensor.dart';
 
 class ProfileWidget extends ConsumerWidget{
   const ProfileWidget({super.key});
@@ -156,9 +158,15 @@ class ProfileWidget extends ConsumerWidget{
     );
   }
 
-  void _goSettingAlarm(BuildContext context) {
+  Future<List<Sensor>> _getSensorList() async {
+    DBHelper sd = DBHelper();
+    return await sd.getSensors();
+  }
+
+  void _goSettingAlarm(BuildContext context) async {
+    List<Sensor> list = await _getSensorList();
     Navigator.push(context, MaterialPageRoute(builder: (context) {
-      return const SettingAlarm();
+      return SettingAlarm(sensorList: list);
     }));
   }
 }

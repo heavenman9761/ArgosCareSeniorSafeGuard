@@ -57,6 +57,8 @@ class _HomePageState extends ConsumerState<HomePage> {
 
     _fcmSetListener();
 
+    _getLastEvent();
+
     super.initState();
   }
 
@@ -64,6 +66,53 @@ class _HomePageState extends ConsumerState<HomePage> {
   void dispose() {
     mqttDisconnect();
     super.dispose();
+  }
+
+  void _getLastEvent() async {
+    DBHelper sd = DBHelper();
+
+    List<SensorEvent> es = await sd.findSensorLast(Constants.DEVICE_TYPE_ILLUMINANCE);
+    if (es.isNotEmpty) {
+      SensorEvent sensorEvent = es[0];
+      String description = analysisSensorEvent(sensorEvent);
+      ref.read(illuminanceSensorStateProvider.notifier).state = description;
+    }
+
+    es = await sd.findSensorLast(Constants.DEVICE_TYPE_TEMPERATURE_HUMIDITY);
+    if (es.isNotEmpty) {
+      SensorEvent sensorEvent = es[0];
+      String description = analysisSensorEvent(sensorEvent);
+      ref.read(humiditySensorStateProvider.notifier).state = description;
+    }
+
+    es = await sd.findSensorLast(Constants.DEVICE_TYPE_SMOKE);
+    if (es.isNotEmpty) {
+      SensorEvent sensorEvent = es[0];
+      String description = analysisSensorEvent(sensorEvent);
+      ref.read(smokeSensorStateProvider.notifier).state = description;
+    }
+
+    es = await sd.findSensorLast(Constants.DEVICE_TYPE_EMERGENCY);
+    if (es.isNotEmpty) {
+      SensorEvent sensorEvent = es[0];
+      String description = analysisSensorEvent(sensorEvent);
+      ref.read(emergencySensorStateProvider.notifier).state = description;
+    }
+
+    es = await sd.findSensorLast(Constants.DEVICE_TYPE_MOTION);
+    if (es.isNotEmpty) {
+      SensorEvent sensorEvent = es[0];
+      String description = analysisSensorEvent(sensorEvent);
+      ref.read(motionSensorStateProvider.notifier).state = description;
+    }
+
+    es = await sd.findSensorLast(Constants.DEVICE_TYPE_DOOR);
+    if (es.isNotEmpty) {
+      SensorEvent sensorEvent = es[0];
+      String description = analysisSensorEvent(sensorEvent);
+      ref.read(doorSensorStateProvider.notifier).state = description;
+    }
+
   }
 
   void _fcmSetListener() {
@@ -204,42 +253,37 @@ class _HomePageState extends ConsumerState<HomePage> {
 
         if (mqttMsg['device_type'] == Constants.DEVICE_TYPE_DOOR) {
           if (state['door_window'] == 0) {
-            ref
-                .read(doorSensorStateProvider.notifier)
-                .state = "$formatDate 닫힘";
+            ref.read(doorSensorStateProvider.notifier).state = "$formatDate 닫힘";
+
           } else if (state['door_window'] == 1) {
-            ref
-                .read(doorSensorStateProvider.notifier)
-                .state = "$formatDate 열림";
+            ref.read(doorSensorStateProvider.notifier).state = "$formatDate 열림";
           }
         } else if (mqttMsg['device_type'] == Constants.DEVICE_TYPE_MOTION) {
           if (state['motion'] == 0) {
-            ref
-                .read(motionSensorStateProvider.notifier)
-                .state = "$formatDate 움직임 없음";
+            ref.read(motionSensorStateProvider.notifier).state = "$formatDate 움직임 없음";
           } else if (state['motion'] == 1) {
-            ref
-                .read(motionSensorStateProvider.notifier)
-                .state = "$formatDate 감지";
+            ref.read(motionSensorStateProvider.notifier).state = "$formatDate 움직임 감지";
           }
         } else if (mqttMsg['device_type'] == Constants.DEVICE_TYPE_ILLUMINANCE) {
           final int illuminance = state['illuminance'];
           final String value = illuminance.toString();
-          ref
-              .read(illuminanceSensorStateProvider.notifier)
-              .state = '$formatDate $value';
+          ref.read(illuminanceSensorStateProvider.notifier).state = '$formatDate $value';
+
         } else if (mqttMsg['device_type'] == Constants.DEVICE_TYPE_TEMPERATURE_HUMIDITY) {
-          ref
-              .read(humiditySensorStateProvider.notifier)
-              .state = "$formatDate 온도: ${state['temp']} 습도${state['hum']}";
+          print(state['temp'].runtimeType);
+          double celsius = state['temp'] / 10;
+
+          NumberFormat format = NumberFormat("#0.0");
+          String strCelsius = format.format(celsius);
+
+          ref.read(humiditySensorStateProvider.notifier).state = "$formatDate 온도: $strCelsius° 습도: ${state['hum']}%";
+
         } else if (mqttMsg['device_type'] == Constants.DEVICE_TYPE_EMERGENCY) {
-          ref
-              .read(emergencySensorStateProvider.notifier)
-              .state = "$formatDate Emergency";
+          ref.read(emergencySensorStateProvider.notifier).state = "$formatDate SOS 호출이 있었습니다.";
+
         } else if (mqttMsg['device_type'] == Constants.DEVICE_TYPE_SMOKE) {
-          ref
-              .read(smokeSensorStateProvider.notifier)
-              .state = "$formatDate Fire";
+          ref.read(smokeSensorStateProvider.notifier).state = "$formatDate Fire";
+
         }
       });
     });
@@ -461,12 +505,8 @@ class _HomePageState extends ConsumerState<HomePage> {
   Widget build(BuildContext context) {
     ref.listen(mqttCurrentMessageProvider, (previous, next) {
       _analysisMqttMsg(
-          ref
-              .watch(mqttCurrentTopicProvider.notifier)
-              .state,
-          ref
-              .watch(mqttCurrentMessageProvider.notifier)
-              .state
+          ref.watch(mqttCurrentTopicProvider.notifier).state,
+          ref.watch(mqttCurrentMessageProvider.notifier).state
       );
       logger.i('current msg: ${ref
           .watch(mqttCurrentTopicProvider.notifier)
@@ -552,7 +592,7 @@ class _HomePageState extends ConsumerState<HomePage> {
     if (_selectedIndex == 0) {
       return HomeWidget(userName: widget.userName);
     } else if (_selectedIndex == 1) {
-      return MyDeviceWidget();
+      return const MyDeviceWidget();
     } else if (_selectedIndex == 2) {
       return const ProfileWidget();
     } else {
