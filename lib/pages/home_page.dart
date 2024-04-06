@@ -25,6 +25,7 @@ import 'package:argoscareseniorsafeguard/database/db.dart';
 import 'package:argoscareseniorsafeguard/components/home_widget.dart';
 import 'package:argoscareseniorsafeguard/components/mydevice_widget.dart';
 import 'package:argoscareseniorsafeguard/components/profile_widget.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key, required this.title, required this.userName});
@@ -270,7 +271,6 @@ class _HomePageState extends ConsumerState<HomePage> {
           ref.read(illuminanceSensorStateProvider.notifier).state = '$formatDate $value';
 
         } else if (mqttMsg['device_type'] == Constants.DEVICE_TYPE_TEMPERATURE_HUMIDITY) {
-          print(state['temp'].runtimeType);
           double celsius = state['temp'] / 10;
 
           NumberFormat format = NumberFormat("#0.0");

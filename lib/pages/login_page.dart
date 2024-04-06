@@ -42,7 +42,7 @@ class _LoginPageState extends State<LoginPage> {
       );
 
       final token = response.data['token'];
-
+      print('first token: $token');
       const storage = FlutterSecureStorage();
       await storage.write(key: 'ACCESS_TOKEN', value: token);
 
@@ -54,6 +54,7 @@ class _LoginPageState extends State<LoginPage> {
 
       await storage.write(key: 'ID', value: loginResponse.data['user']['id']);
       await storage.write(key: 'EMAIL', value: loginResponse.data['user']['email']);
+      await storage.write(key: 'PASSWORD', value: passwordController.text);
       await storage.write(key: 'NAME', value: loginResponse.data['user']['name']);
       await storage.write(key: 'ADDR_ZIP', value: loginResponse.data['user']['addr_zip']);
       await storage.write(key: 'ADDR', value: loginResponse.data['user']['addr']);

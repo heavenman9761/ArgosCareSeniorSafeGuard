@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -5,6 +7,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:argoscareseniorsafeguard/models/sensor.dart';
 import 'package:argoscareseniorsafeguard/constants.dart';
 import 'package:argoscareseniorsafeguard/providers/providers.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SettingAlarm extends ConsumerStatefulWidget {
   const SettingAlarm({super.key, required this.sensorList});
@@ -808,8 +812,129 @@ class _SettingAlarmState extends ConsumerState<SettingAlarm> {
       }
     ).then((val) {
       if (val) {
-        print(' 저장 ');
+        _saveSettings();
       }
     });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    _loadSettings();
+  }
+
+  void _loadSettings() async {
+    final SharedPreferences pref = await SharedPreferences.getInstance();
+
+    ref.read(alarmEntireEnableProvider.notifier).state = pref.getBool("EntireAlarm") ?? true;
+
+    ref.read(alarmHumidityEnableProvider.notifier).state = pref.getBool("HumidityAlarmEnable") ?? true;
+    ref.read(alarmHumidityStartTimeProvider.notifier).state = pref.getString("HumidityStartTime") ?? "00:00";
+    ref.read(alarmHumidityEndTimeProvider.notifier).state = pref.getString("HumidityEndTime") ?? "23:59";
+    ref.read(alarmHumidityStartValueProvider.notifier).state = pref.getInt("HumidityStartValue") ?? 0;
+    ref.read(alarmHumidityEndValueProvider.notifier).state = pref.getInt("HumidityEndValue") ?? 100;
+    ref.read(alarmTemperatureStartValueProvider.notifier).state = pref.getInt("TemperatureStartValue") ?? -10;
+    ref.read(alarmTemperatureEndValueProvider.notifier).state = pref.getInt("TemperatureEndValue") ?? 50;
+
+    ref.read(alarmEmergencyEnableProvider.notifier).state = pref.getBool("EmergencyAlarmEnable") ?? true;
+    ref.read(alarmEmergencyStartTimeProvider.notifier).state = pref.getString("EmergencyStartTime") ?? "00:00";
+    ref.read(alarmEmergencyEndTimeProvider.notifier).state = pref.getString("EmergencyEndTime") ?? "23:59";
+
+    ref.read(alarmMotionEnableProvider.notifier).state = pref.getBool("MotionAlarmEnable") ?? true;
+    ref.read(alarmMotionStartTimeProvider.notifier).state = pref.getString("MotionStartTime") ?? "00:00";
+    ref.read(alarmMotionEndTimeProvider.notifier).state = pref.getString("MotionEndTime") ?? "23:59";
+
+    ref.read(alarmSmokeEnableProvider.notifier).state = pref.getBool("SmokeAlarmEnable") ?? true;
+    ref.read(alarmSmokeStartTimeProvider.notifier).state = pref.getString("SmokeStartTime") ?? "00:00";
+    ref.read(alarmSmokeEndTimeProvider.notifier).state = pref.getString("SmokeEndTime") ?? "23:59";
+
+    ref.read(alarmIlluminanceEnableProvider.notifier).state = pref.getBool("IlluminanceAlarmEnable") ?? true;
+    ref.read(alarmIlluminanceStartTimeProvider.notifier).state = pref.getString("IlluminanceStartTime") ?? "00:00";
+    ref.read(alarmIlluminanceEndTimeProvider.notifier).state = pref.getString("IlluminanceEndTime") ?? "23:59";
+    ref.read(alarmIlluminanceStartValueProvider.notifier).state = pref.getInt("IlluminanceStartValue") ?? 1;
+    ref.read(alarmIlluminanceEndValueProvider.notifier).state = pref.getInt("IlluminanceEndValue") ?? 10;
+
+    ref.read(alarmDoorEnableProvider.notifier).state = pref.getBool("DoorAlarmEnable") ?? true;
+    ref.read(alarmDoorStartTimeProvider.notifier).state = pref.getString("DoorStartTime") ?? "00:00";
+    ref.read(alarmDoorEndTimeProvider.notifier).state = pref.getString("DoorEndTime") ?? "23:59";
+  }
+
+  void _saveSettings() async {
+    const storage = FlutterSecureStorage();
+    final userID = await storage.read(key: 'ID');
+
+    final SharedPreferences pref = await SharedPreferences.getInstance();
+
+    pref.setBool("EntireAlarm", ref.watch(alarmEntireEnableProvider));
+
+    pref.setBool("HumidityAlarmEnable", ref.watch(alarmHumidityEnableProvider));
+    pref.setString("HumidityStartTime", ref.watch(alarmHumidityStartTimeProvider));
+    pref.setString("HumidityEndTime", ref.watch(alarmHumidityEndTimeProvider));
+    pref.setInt("HumidityStartValue", ref.watch(alarmHumidityStartValueProvider));
+    pref.setInt("HumidityEndValue", ref.watch(alarmHumidityEndValueProvider));
+    pref.setInt("TemperatureStartValue", ref.watch(alarmTemperatureStartValueProvider));
+    pref.setInt("TemperatureEndValue", ref.watch(alarmTemperatureEndValueProvider));
+
+    pref.setBool("EmergencyAlarmEnable", ref.watch(alarmEmergencyEnableProvider));
+    pref.setString("EmergencyStartTime", ref.watch(alarmEmergencyStartTimeProvider));
+    pref.setString("EmergencyEndTime", ref.watch(alarmEmergencyEndTimeProvider));
+
+    pref.setBool("MotionAlarmEnable", ref.watch(alarmMotionEnableProvider));
+    pref.setString("MotionStartTime", ref.watch(alarmMotionStartTimeProvider));
+    pref.setString("MotionEndTime", ref.watch(alarmMotionEndTimeProvider));
+
+    pref.setBool("SmokeAlarmEnable", ref.watch(alarmSmokeEnableProvider));
+    pref.setString("SmokeStartTime", ref.watch(alarmSmokeStartTimeProvider));
+    pref.setString("SmokeEndTime", ref.watch(alarmSmokeEndTimeProvider));
+
+    pref.setBool("IlluminanceAlarmEnable", ref.watch(alarmIlluminanceEnableProvider));
+    pref.setString("IlluminanceStartTime", ref.watch(alarmIlluminanceStartTimeProvider));
+    pref.setString("IlluminanceEndTime", ref.watch(alarmIlluminanceEndTimeProvider));
+    pref.setInt("IlluminanceStartValue", ref.watch(alarmIlluminanceStartValueProvider));
+    pref.setInt("IlluminanceEndValue", ref.watch(alarmIlluminanceEndValueProvider));
+
+    pref.setBool("DoorAlarmEnable", ref.watch(alarmDoorEnableProvider));
+    pref.setString("DoorStartTime", ref.watch(alarmDoorStartTimeProvider));
+    pref.setString("DoorEndTime", ref.watch(alarmDoorEndTimeProvider));
+
+    final response = await dio.post(
+      "/devices/set_alarm",
+      data: jsonEncode({
+        "userID": userID,
+
+        "entireAlarm": ref.watch(alarmEntireEnableProvider),
+
+        "humidityAlarmEnable": ref.watch(alarmHumidityEnableProvider),
+        "humidityStartTime": ref.watch(alarmHumidityStartTimeProvider),
+        "humidityEndTime": ref.watch(alarmHumidityEndTimeProvider),
+        "humidityStartValue": ref.watch(alarmHumidityStartValueProvider),
+        "humidityEndValue": ref.watch(alarmHumidityEndValueProvider),
+        "temperatureStartValue": ref.watch(alarmTemperatureStartValueProvider),
+        "temperatureEndValue": ref.watch(alarmTemperatureEndValueProvider),
+
+        "emergencyAlarmEnable": ref.watch(alarmEmergencyEnableProvider),
+        "emergencyStartTime": ref.watch(alarmEmergencyStartTimeProvider),
+        "emergencyEndTime": ref.watch(alarmEmergencyEndTimeProvider),
+
+        "motionAlarmEnable": ref.watch(alarmMotionEnableProvider),
+        "motionStartTime": ref.watch(alarmMotionStartTimeProvider),
+        "motionEndTime": ref.watch(alarmMotionEndTimeProvider),
+
+        "smokeAlarmEnable": ref.watch(alarmSmokeEnableProvider),
+        "smokeStartTime": ref.watch(alarmSmokeStartTimeProvider),
+        "smokeEndTime": ref.watch(alarmSmokeEndTimeProvider),
+
+        "illuminanceAlarmEnable": ref.watch(alarmIlluminanceEnableProvider),
+        "illuminanceStartTime": ref.watch(alarmIlluminanceStartTimeProvider),
+        "illuminanceEndTime": ref.watch(alarmIlluminanceEndTimeProvider),
+        "illuminanceStartValue": ref.watch(alarmIlluminanceStartValueProvider),
+        "illuminanceEndValue": ref.watch(alarmIlluminanceEndValueProvider),
+
+        "doorAlarmEnable": ref.watch(alarmDoorEnableProvider),
+        "doorStartTime": ref.watch(alarmDoorStartTimeProvider),
+        "doorEndTime": ref.watch(alarmDoorEndTimeProvider),
+      })
+    );
   }
 }

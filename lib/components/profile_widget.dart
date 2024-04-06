@@ -149,7 +149,6 @@ class ProfileWidget extends ConsumerWidget{
                       )
                     ],
                   )
-
                 ],
               ),
             )

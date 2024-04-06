@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:cookie_jar/cookie_jar.dart';
@@ -9,9 +11,6 @@ Future<Dio> authDio() async {
       baseUrl: uri,
   );
   var dio = Dio(options);
-
-  const storage = FlutterSecureStorage();
-
   // const storage = FlutterSecureStorage(
   //   iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock),
   //   aOptions: AndroidOptions(encryptedSharedPreferences: true),
@@ -21,13 +20,75 @@ Future<Dio> authDio() async {
   dio.interceptors.add(CookieManager(CookieJar()));
   dio.interceptors.add(InterceptorsWrapper(onRequest: (options, handler) async {
     // 기기에 저장된 AccessToken 로드
+    const storage = FlutterSecureStorage();
     final accessToken = await storage.read(key: 'ACCESS_TOKEN');
-
     options.headers['Authorization'] = 'Bearer $accessToken';
+
     return handler.next(options);
+
   }, onError: (error, handler) async {
-    if (error.response?.statusCode == 401) {  // 인증 오류가 발생했을 경우: AccessToken의 만료
+    if (error.response?.statusCode == 403) {  // cookie나 token의 유효기간이 지났을 경우 재 로그인
+      const storage = FlutterSecureStorage();
+      final email = await storage.read(key: "EMAIL");
+      final password = await storage.read(key: 'PASSWORD');
+
+      var refreshDio = Dio(options);
+      String? newCookie = "";
+
+      refreshDio.interceptors.clear();
+      refreshDio.interceptors.add(CookieManager(CookieJar()));
+      refreshDio.interceptors.add(InterceptorsWrapper(onRequest: (options, handler) async {
+        final accessToken = await storage.read(key: 'ACCESS_TOKEN');
+
+        options.headers['Authorization'] = 'Bearer $accessToken';
+        newCookie = options.headers['cookie'] ?? '';
+
+        return handler.next(options);
+      }));
+
+      final response = await refreshDio.post(
+          "/auth/signin",
+          data: jsonEncode({
+            "email": email,
+            "password": password
+          })
+      );
+
+      final token = response.data['token'];
+      await storage.write(key: 'ACCESS_TOKEN', value: token);
+
+      var loginResponse = await refreshDio.get(
+          "/auth/me"
+      );
+
+      final String userName = loginResponse.data['user']['name'];
+
+      await storage.write(key: 'ID', value: loginResponse.data['user']['id']);
+      await storage.write(key: 'EMAIL', value: loginResponse.data['user']['email']);
+      await storage.write(key: 'PASSWORD', value: password);
+      await storage.write(key: 'NAME', value: loginResponse.data['user']['name']);
+      await storage.write(key: 'ADDR_ZIP', value: loginResponse.data['user']['addr_zip']);
+      await storage.write(key: 'ADDR', value: loginResponse.data['user']['addr']);
+      await storage.write(key: 'MOBILE_PHONE', value: loginResponse.data['user']['mobilephone']);
+      await storage.write(key: 'TEL', value: loginResponse.data['user']['tel']);
+      await storage.write(key: 'SNS_ID', value: loginResponse.data['user']['snsId']);
+      await storage.write(key: 'PROVIDER', value: loginResponse.data['user']['provider']);
+      await storage.write(key: 'ADMiN', value: loginResponse.data['user']['admin'].toString());
+
+      // 수행하지 못했던 API 요청 복사본 생성
+      error.requestOptions.headers['Authorization'] = 'Bearer $token';
+      error.requestOptions.headers['cookie'] = newCookie;
+
+      final clonedRequest = await dio.request(error.requestOptions.path,
+          options: Options(method: error.requestOptions.method, headers: error.requestOptions.headers), data: error.requestOptions.data, queryParameters: error.requestOptions.queryParameters);
+
+      // API 복사본으로 재요청
+      return handler.resolve(clonedRequest);
+
       /*
+      //아랫 부분 지우지 말 것.
+
+
 
       // 기기에 저장된 AccessToken과 RefreshToken 로드
       final accessToken = await storage.read(key: 'ACCESS_TOKEN');

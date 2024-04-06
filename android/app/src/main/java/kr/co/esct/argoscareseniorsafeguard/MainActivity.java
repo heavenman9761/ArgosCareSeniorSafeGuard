@@ -567,7 +567,9 @@ public class MainActivity extends FlutterActivity {
         CGetDeviceID getDeviceIDConfig = new CGetDeviceID("getDeviceID");
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
-        byte[] result = gson.toJson(getDeviceIDConfig).getBytes(StandardCharsets.UTF_8);
+//        byte[] result = gson.toJson(getDeviceIDConfig).getBytes(StandardCharsets.UTF_8);
+        String strJson = "{\"order\":\"getDeviceID\"}";
+        byte[] result = strJson.getBytes(StandardCharsets.UTF_8);
 
         Log.i(TAG, Arrays.toString(result));
         Log.i(TAG, new String(result));
@@ -595,6 +597,7 @@ public class MainActivity extends FlutterActivity {
 
             @Override
             public void onFailure(Exception e) {
+                Log.d(TAG, e.toString());
                 runOnUiThread(new Runnable() {
 
                     @Override
