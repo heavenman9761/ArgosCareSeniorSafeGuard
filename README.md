@@ -14,3 +14,9 @@ A few resources to get you started if this is your first Flutter project:
 For help getting started with Flutter development, view the
 [online documentation](https://docs.flutter.dev/), which offers tutorials,
 samples, guidance on mobile development, and a full API reference.
+
+## 오류 모음
+Could not create task ':path_provider_android:generateDebugUnitTestConfig'.
+ - run flutter clean
+ - do the Gradle sync without flutter pub get and make necessary changes to native android code.
+ - do pub get and run the app.

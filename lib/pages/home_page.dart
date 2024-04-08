@@ -379,6 +379,13 @@ class _HomePageState extends ConsumerState<HomePage> {
     }
   }
 
+  Future<void> _delSensor(String sensorID) async {
+
+    DBHelper sd = DBHelper();
+    await sd.deleteSensor(sensorID);
+
+  }
+
   Future<void> _saveDevice(String deviceID, String deviceType) async {
     DBHelper sd = DBHelper();
     int? count = await sd.getDeviceCountByType(deviceType);
@@ -425,6 +432,12 @@ class _HomePageState extends ConsumerState<HomePage> {
 
       });
     });
+  }
+
+  Future<void> _delDevice(String deviceID) async {
+    DBHelper sd = DBHelper();
+    await sd.deleteDevice(deviceID);
+
   }
 
   void _goHome() {
@@ -476,6 +489,15 @@ class _HomePageState extends ConsumerState<HomePage> {
       if (mqttMsg['order'] == 'device_add' || mqttMsg['order'] == 'pairingEnabled') {
 
       }
+
+      if (mqttMsg['event'] == 'boot' && mqttMsg['reason'] == 'power reconnect' && mqttMsg['state'] == 'power_on') {
+        //paring 명령후 허브에서 가끔씩 재부팅이 된다. 허브 오류인 듯.
+        if (ref.watch(findHubStateProvider) == ConfigState.findingSensor) {
+          final topic = ref.watch(commandTopicProvider);
+          mqttSendCommand(topic, MqttCommand.mcParing, mqttMsg['deviceID']);
+        }
+      }
+
     } else if (topic == ref.watch(resultTopicProvider)) {
       if (mqttMsg['event'] == 'gatewayADD') {
         if (mqttMsg['state'] == 'success') {
@@ -493,6 +515,11 @@ class _HomePageState extends ConsumerState<HomePage> {
 
         }
         _goHome();
+      } else if (mqttMsg['event'] == 'device_del') {
+        if (mqttMsg['state'] == 'device del success') {
+          _delDevice(mqttMsg['deviceID']);
+          _delSensor(mqttMsg['deviceID']);
+        }
       }
 
       if (mqttMsg['event'] == 'device_detected' && mqttMsg['state'] == 'device data success') {

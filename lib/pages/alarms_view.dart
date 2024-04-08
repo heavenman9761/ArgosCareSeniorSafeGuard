@@ -7,6 +7,7 @@ import 'package:argoscareseniorsafeguard/constants.dart';
 import 'package:argoscareseniorsafeguard/pages/alarms_detail_view.dart';
 import 'package:argoscareseniorsafeguard/constants.dart';
 import 'package:intl/intl.dart';
+import 'package:timeline_tile/timeline_tile.dart';
 
 class AlarmsView extends StatefulWidget {
   const AlarmsView({super.key});

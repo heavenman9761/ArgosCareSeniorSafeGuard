@@ -83,33 +83,6 @@ public class MainActivity extends FlutterActivity {
     private String selectedWifiPassword = "";
     private ArrayList<WiFiAccessPoint> wifiAPList;
 
-    private static String[] PERMISSIONS_LOCATION  = {
-            Manifest.permission.ACCESS_FINE_LOCATION,
-            Manifest.permission.ACCESS_COARSE_LOCATION,
-            Manifest.permission.ACCESS_LOCATION_EXTRA_COMMANDS,
-            Manifest.permission.BLUETOOTH_SCAN,
-            Manifest.permission.BLUETOOTH_CONNECT,
-            Manifest.permission.BLUETOOTH_PRIVILEGED
-    };
-    private void checkPermissions() {
-        // 권한 체크해서 권한이 있을 때
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
-                && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
-                && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_LOCATION_EXTRA_COMMANDS) == PackageManager.PERMISSION_GRANTED
-                && ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_SCAN) == PackageManager.PERMISSION_GRANTED
-                && ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED
-                && ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_PRIVILEGED) == PackageManager.PERMISSION_GRANTED) {
-        }
-
-        // 권한이 없을 때 권한을 요구함
-        else {
-            ActivityCompat.requestPermissions(
-                    this,
-                    PERMISSIONS_LOCATION,
-                    1
-            );
-        }
-    }
     @Override
     public void configureFlutterEngine(@NonNull FlutterEngine flutterEngine) {
         super.configureFlutterEngine(flutterEngine);
@@ -121,7 +94,6 @@ public class MainActivity extends FlutterActivity {
                         (call, result) -> {
                             // This method is invoked on the main thread.
                             if (call.method.equals("findEsp32")) {
-//                                checkPermissions();
                                 hubName = "";
                                 mainActivityResult = result;
                                 scanEsp32Device();
@@ -136,7 +108,7 @@ public class MainActivity extends FlutterActivity {
 
                                 mainActivityResult = result;
 
-                                scanEsp32Device();
+                                settingHub();
                             } else if (call.method.equals("_wifiProvision")) {
                                 wifiAPList = new ArrayList<>();
                                 mainActivityResult = result;
@@ -145,7 +117,7 @@ public class MainActivity extends FlutterActivity {
                             } else if (call.method.equals("setWifiConfig")) {
                                 selectedWifiName = call.argument("wifiName");
                                 selectedWifiPassword = call.argument("password");
-                                Log.d(TAG, "-------------- " + selectedWifiName + "  " + selectedWifiPassword);
+//                                Log.d(TAG, "-------------- " + selectedWifiName + "  " + selectedWifiPassword);
 
                                 mainActivityResult = result;
 
@@ -270,8 +242,6 @@ public class MainActivity extends FlutterActivity {
     }
 
     private void scanEsp32Device() {
-        checkPermissions();
-
         sharedPreferences = getSharedPreferences(AppConstants.ESP_PREFERENCES, Context.MODE_PRIVATE);
         provisionManager = ESPProvisionManager.getInstance(getApplicationContext());
 
@@ -287,11 +257,7 @@ public class MainActivity extends FlutterActivity {
         BluetoothAdapter bleAdapter = bluetoothManager.getAdapter();
 
         if (!bleAdapter.isEnabled()) {
-//            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-//            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
-//                closeErrorActivity("Can't find device");
-//            }
-//            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+
         } else {
             startProvisioningFlow();
         }
@@ -308,7 +274,6 @@ public class MainActivity extends FlutterActivity {
             securityType = 1;
         }
 
-        Log.d(TAG, "=================");
         provisionManager.createESPDevice(ESPConstants.TransportType.TRANSPORT_BLE, ESPConstants.SecurityType.SECURITY_1);
         bleProvisionLanding(securityType);
     }
@@ -316,7 +281,6 @@ public class MainActivity extends FlutterActivity {
     private void bleProvisionLanding(int securityType) {
         Log.d(TAG, "bleProvisionLanding()");
         if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
-            Log.d(TAG, "=====================");
             closeErrorActivity("Sorry! BLE is not supported - 1");
             return;
         }
@@ -339,12 +303,7 @@ public class MainActivity extends FlutterActivity {
         deviceNamePrefix = sharedPreferences.getString(AppConstants.KEY_BLE_DEVICE_NAME_PREFIX, "PROV_");
 
         if (!bleAdapter.isEnabled()) {
-//            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-//            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
-//                closeErrorActivity("Sorry! BLE is not supported - 3");
-//                return;
-//            }
-//            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+
         } else {
 
             if (!isDeviceConnected && !isConnecting) {
@@ -353,16 +312,7 @@ public class MainActivity extends FlutterActivity {
         }
     }
 
-
-
     private void startScan() {
-
-//        if (!hasPermissions() || isScanning) {
-//            Log.d(TAG, "hasPermissions()");
-//            closeErrorActivity("hasPermissions() is failed.");
-//            return;
-//        }
-
         isScanning = true;
         deviceList.clear();
         bluetoothDevices.clear();
@@ -373,21 +323,6 @@ public class MainActivity extends FlutterActivity {
             closeErrorActivity("Not able to start scan as Location permission is not granted.");
         }
     }
-
-//    private boolean hasPermissions() {
-//
-//        if (bleAdapter == null || !bleAdapter.isEnabled()) {
-//            Log.d(TAG, "hasPermissioin() - 1");
-//            requestBluetoothEnable();
-//            return false;
-//
-//        } else if (!hasLocationPermissions()) {
-//            Log.d(TAG, "hasPermissioin() - 2");
-//            requestLocationPermission();
-//            return false;
-//        }
-//        return true;
-//    }
 
     private void stopScan() {
 
@@ -414,14 +349,14 @@ public class MainActivity extends FlutterActivity {
 
         @Override
         public void onPeripheralFound(BluetoothDevice device, ScanResult scanResult) {
-            Log.d(TAG, "====== onPeripheralFound ===== " + device.getName());
+//            Log.d(TAG, "====== onPeripheralFound ===== " + device.getName());
             boolean deviceExists = false;
             String serviceUuid = "";
 
             if (scanResult.getScanRecord().getServiceUuids() != null && scanResult.getScanRecord().getServiceUuids().size() > 0) {
                 serviceUuid = scanResult.getScanRecord().getServiceUuids().get(0).toString();
             }
-            Log.d(TAG, "Add service UUID : " + serviceUuid);
+//            Log.d(TAG, "Add service UUID : " + serviceUuid);
 
             if (bluetoothDevices.containsKey(device)) {
                 deviceExists = true;
@@ -437,10 +372,7 @@ public class MainActivity extends FlutterActivity {
 
                 deviceNameList.add(scanResult.getScanRecord().getDeviceName());
 
-                if (hubName != "")
-                {
-                    stopScan();
-                }
+                stopScan();
             }
         }
 
@@ -450,15 +382,8 @@ public class MainActivity extends FlutterActivity {
 
             Log.d(TAG, "scanCompleted() - " + deviceNameList.toString());
 
-            if (hubName == "") {
-                EventBus.getDefault().unregister(this);
-                mainActivityResult.success(deviceNameList);
-            } else {
-                if (deviceList.size() > 0) {
-                    settingHub();
-                }
-
-            }
+            EventBus.getDefault().unregister(this);
+            mainActivityResult.success(deviceNameList);
         }
 
         @Override
@@ -479,7 +404,6 @@ public class MainActivity extends FlutterActivity {
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onEvent(DeviceConnectionEvent event) {
 
-        Log.d(TAG, "ON Device Prov Event RECEIVED : " + event.getEventType());
         handler.removeCallbacks(disconnectDeviceTask);
 
         switch (event.getEventType()) {
@@ -496,13 +420,14 @@ public class MainActivity extends FlutterActivity {
                 break;
 
             case ESPConstants.EVENT_DEVICE_DISCONNECTED:
-
+                Log.d(TAG, "Device Disconnected Event");
                 isConnecting = false;
                 isDeviceConnected = false;
                 //Toast.makeText(BLEProvisionLanding.this, "Device disconnected", Toast.LENGTH_LONG).show();
                 break;
 
             case ESPConstants.EVENT_DEVICE_CONNECTION_FAILED:
+                Log.d(TAG, "Device Connection Failed Event");
                 isConnecting = false;
                 isDeviceConnected = false;
                 //Utils.displayDeviceConnectionError(this, getString(R.string.error_device_connect_failed));
@@ -515,11 +440,11 @@ public class MainActivity extends FlutterActivity {
 
         //if (deviceCaps != null && !deviceCaps.contains("no_pop") && securityType != AppConstants.SEC_TYPE_0) {
         if (deviceCaps != null && !deviceCaps.contains("no_pop")) {
-            Log.d(TAG, "11111111111");
+            Log.d(TAG, "!deviceCaps.contains(\"no_pop\")");
 //            goToPopActivity();
 
         } else if (deviceCaps.contains("wifi_scan")) {
-            Log.d(TAG, "22222222222");
+            Log.d(TAG, "deviceCaps.contains(\"wifi_scan\")");
             getDeviceID();
 
         } else {
@@ -567,18 +492,16 @@ public class MainActivity extends FlutterActivity {
         CGetDeviceID getDeviceIDConfig = new CGetDeviceID("getDeviceID");
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
-//        byte[] result = gson.toJson(getDeviceIDConfig).getBytes(StandardCharsets.UTF_8);
-        String strJson = "{\"order\":\"getDeviceID\"}";
-        byte[] result = strJson.getBytes(StandardCharsets.UTF_8);
+        byte[] result = gson.toJson(getDeviceIDConfig).getBytes(StandardCharsets.UTF_8);
 
-        Log.i(TAG, Arrays.toString(result));
-        Log.i(TAG, new String(result));
+//        Log.i(TAG, Arrays.toString(result));
+//        Log.i(TAG, new String(result));
         provisionManager.getEspDevice().sendDataToCustomEndPoint("custom-data", result, new ResponseListener() {
 
             @Override
             public void onSuccess(final byte[] returnData) {
-                Log.i(TAG, ">>> sendData response  : " + new String(returnData));
-                Log.i(TAG, ">>> sendData response length : " + returnData.length);
+                Log.i(TAG, ">>> getDeviceID() - sendData response  : " + new String(returnData));
+//                Log.i(TAG, ">>> sendData response length : " + returnData.length);
 
                 runOnUiThread(new Runnable() {
 
@@ -586,7 +509,7 @@ public class MainActivity extends FlutterActivity {
                     public void run() {
                         try {
                             hubID = new String(returnData, "US-ASCII");
-                        }catch(UnsupportedEncodingException e){
+                        } catch (UnsupportedEncodingException e){
 
                         }
                     }
@@ -610,25 +533,20 @@ public class MainActivity extends FlutterActivity {
     }
 
     private void setAccountID() {
-
         CSetID idConfig = new CSetID("setID", accountID);
-//        CSetID idConfig = new CSetID("setID", "dn9318dn@gmail.com");
 
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
-
         byte[] result = gson.toJson(idConfig).getBytes(StandardCharsets.UTF_8);
 
-
-
-        Log.i(TAG, "1 " + Arrays.toString(result));
-        Log.i(TAG, "2 " + new String(result));
+//        Log.i(TAG, "1 " + Arrays.toString(result));
+//        Log.i(TAG, "2 " + new String(result));
 
         provisionManager.getEspDevice().sendDataToCustomEndPoint("custom-data", result, new ResponseListener() {
 
             @Override
             public void onSuccess(final byte[] returnData) {
-                Log.i(TAG, ">>> sendData response  : " + new String(returnData));
-                Log.i(TAG, ">>> sendData response length : " + returnData.length);
+                Log.i(TAG, ">>> setAccountID() - sendData response  : " + new String(returnData));
+//                Log.i(TAG, ">>> sendData response length : " + returnData.length);
 
                 setMqtt();
                 //getKeyValue();
@@ -642,26 +560,20 @@ public class MainActivity extends FlutterActivity {
     }
 
     private void setMqtt() {
-        Log.d(TAG, "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
         CSetMQTT mqttConfig = new CSetMQTT("setMQTT", serverIp, serverPort, userID, userPw);
-
-//        Log.d(TAG, "" + serverIp + " " + serverPort + " " + userID + " " + userPw);
-//        CSetMQTT mqttConfig = new CSetMQTT("setMQTT", "14.42.209.174", "6002", "mings", "Sct91234!");
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
         byte[] result = gson.toJson(mqttConfig).getBytes(StandardCharsets.UTF_8);
 
-        Log.i(TAG, "1 " + Arrays.toString(result));
-        Log.i(TAG, "2 " + new String(result));
+//        Log.i(TAG, "1 " + Arrays.toString(result));
+//        Log.i(TAG, "2 " + new String(result));
 
         provisionManager.getEspDevice().sendDataToCustomEndPoint("custom-data", result, new ResponseListener() {
 
             @Override
             public void onSuccess(final byte[] returnData) {
-                Log.i(TAG, ">>> sendData response  : " + new String(returnData));
-                Log.i(TAG, ">>> sendData response length : " + returnData.length);
-
-//                startWifiScan();
+                Log.i(TAG, ">>> setMqtt() - sendData response  : " + new String(returnData));
+//                Log.i(TAG, ">>> sendData response length : " + returnData.length);
 
                 mainActivityResult.success(hubID);
             }
@@ -682,16 +594,6 @@ public class MainActivity extends FlutterActivity {
     private void startWifiScan() {
         Log.d(TAG, "Start Wi-Fi Scan");
         wifiAPList.clear();
-
-//        runOnUiThread(new Runnable() {
-//
-//            @Override
-//            public void run() {
-//                updateProgressAndScanBtn(true);
-//            }
-//        });
-
-//        handler.postDelayed(stopScanningTask, 100000);
 
         provisionManager.getEspDevice().scanNetworks(new WiFiScanListener() {
 
@@ -729,9 +631,6 @@ public class MainActivity extends FlutterActivity {
         WiFiAccessPoint wifiAp = new WiFiAccessPoint();
         wifiAp.setWifiName("Join Other Network");
         wifiAPList.add(wifiAp);
-
-//        updateProgressAndScanBtn(false);
-//        handler.removeCallbacks(stopScanningTask);
 
         try {
             JSONArray jsonArr = new JSONArray();
