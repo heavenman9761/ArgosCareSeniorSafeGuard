@@ -10,6 +10,7 @@ import 'package:argoscareseniorsafeguard/models/sensor.dart';
 import 'package:argoscareseniorsafeguard/models/sensor_event.dart';
 import 'package:argoscareseniorsafeguard/models/location.dart';
 import 'package:argoscareseniorsafeguard/models/room.dart';
+import 'package:argoscareseniorsafeguard/models/event_list.dart';
 
 const String databaseName = 'ArgosCareSeniorSafeGuard.db';
 const String tableNameDevices = 'devices';
@@ -491,6 +492,29 @@ class DBHelper {
     });
   }
 
+  Future<List<SensorEvent>> getSensorEventsByDate(String date) async {
+    final db = await database;
+
+    String start = '$date 00:00:00.000000';
+    String end = '$date 23:59:59.999999';
+
+    final List<Map<String, dynamic>> maps =
+    await db.query(tableNameSensorEvents, where: 'createdAt >= ? AND createdAt <= ?', whereArgs: [start, end], orderBy: 'createdAt DESC');
+
+    return List.generate(maps.length, (i) {
+      return SensorEvent(
+        id: maps[i]['id'],
+        hubID: maps[i]['hubID'],
+        deviceID: maps[i]['deviceID'],
+        deviceType: maps[i]['deviceType'],
+        event: maps[i]['event'],
+        status: maps[i]['status'],
+        updatedAt: maps[i]['updatedAt'],
+        createdAt: maps[i]['createdAt'],
+      );
+    });
+  }
+
   Future<void> updateSensorEvent(SensorEvent sensorEvent) async {
     final db = await database;
 
@@ -681,6 +705,35 @@ class DBHelper {
           locationID: maps[i]['locationID'],
           createdAt: maps[i]['createdAt'],
           updatedAt: maps[i]['updatedAt']
+      );
+    });
+  }
+
+  //=====================================
+
+  Future<List<EventList>> getEventList(String date) async {
+    final db = await database;
+
+    String start = '$date 00:00:00.000000';
+    String end = '$date 23:59:59.999999';
+
+    List<Map<String, dynamic>> maps = await db.rawQuery(
+      "SELECT "
+          "sensorEvents.hubID, sensorEvents.deviceID, sensorEvents.deviceType, sensorEvents.event, sensorEvents.status, sensorEvents.createdAt, sensors.Name FROM sensorEvents "
+          "INNER JOIN sensors ON sensorEvents.deviceID = sensors.sensorID "
+          "WHERE sensorEvents.createdAt >= '$start' AND sensorEvents.createdAt <= '$end' "
+          "ORDER BY sensorEvents.createdAt DESC"
+    );
+
+    return List.generate(maps.length, (i) {
+      return EventList(
+        hubID: maps[i]['hubID'],
+        deviceID: maps[i]['deviceID'],
+        deviceType: maps[i]['deviceType'],
+        event: maps[i]['event'],
+        status: maps[i]['status'],
+        createdAt: maps[i]['createdAt'],
+        name: maps[i]['name'],
       );
     });
   }

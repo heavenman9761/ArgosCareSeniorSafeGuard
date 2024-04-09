@@ -1,86 +1,76 @@
 import 'package:flutter/material.dart';
-import 'package:argoscareseniorsafeguard/database/db.dart';
-import 'package:argoscareseniorsafeguard/models/device.dart';
-import 'package:argoscareseniorsafeguard/models/hub.dart';
-import 'package:argoscareseniorsafeguard/models/sensor.dart';
-import 'package:argoscareseniorsafeguard/constants.dart';
-import 'package:argoscareseniorsafeguard/pages/alarms_detail_view.dart';
-import 'package:argoscareseniorsafeguard/constants.dart';
-import 'package:intl/intl.dart';
 import 'package:timeline_tile/timeline_tile.dart';
+import 'package:intl/intl.dart';
+import 'package:intl/date_symbol_data_local.dart';
+
+import 'package:argoscareseniorsafeguard/database/db.dart';
+import 'package:argoscareseniorsafeguard/models/event_list.dart';
+import 'package:argoscareseniorsafeguard/constants.dart';
 
 class AlarmsView extends StatefulWidget {
   const AlarmsView({super.key});
 
   @override
-  State<AlarmsView> createState() => _NotisViewState();
+  State<AlarmsView> createState() => _AlarmsViewState();
 }
 
-class _NotisViewState extends State<AlarmsView> {
-  Future<List<Device>> _getDeviceList() async {
+class _AlarmsViewState extends State<AlarmsView> {
+  String _dayOfWeek = '';
+  late DateTime _selectedDate;
+
+  final ButtonStyle elevatedButtonStyle = ElevatedButton.styleFrom(
+      foregroundColor: Colors.white60,
+      backgroundColor: Colors.lightBlue, // text color
+      elevation: 5, //
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))
+  );
+
+  @override
+  void initState() {
+    super.initState();
+
+    _selectedDate = DateTime.now();
+    _dayOfWeek = DateFormat('E', 'ko_KR').format(_selectedDate);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    initializeDateFormatting(Localizations.localeOf(context).languageCode);
+  }
+
+  Widget _getDateText() {
+    var now = DateTime.now();
+    if (DateFormat('yyyy-MM-dd').format(_selectedDate) == DateFormat('yyyy-MM-dd').format(now)) {
+      return Text('오늘 ($_dayOfWeek)', style: const TextStyle(fontSize: 16.0),);
+
+    } else {
+      String curr = DateFormat('yyyy-MM-dd').format(_selectedDate);
+      return Text('$curr ($_dayOfWeek)', style: const TextStyle(fontSize: 16.0),);
+
+    }
+  }
+
+  Future<List<EventList>> _getEventList() async {
+    String date = DateFormat('yyyy-MM-dd').format(_selectedDate);
     DBHelper sd = DBHelper();
 
-    List<Hub> hubList = await sd.getHubs();
-    List<Sensor> sensorList = await sd.getSensors();
-    List<Device> deviceList = [];
-
-    for (Hub hub in hubList) {
-      Device device = Device(
-          deviceID: hub.getHubID(),
-          deviceType: hub.getDeviceType(),
-          deviceName: hub.getName(),
-          displaySunBun: hub.getDisplaySunBun(),
-          accountID: "",
-          status: "",
-          updatedAt: "",
-          createdAt: ""
-      );
-      deviceList.add(device);
-    }
-
-    for (Sensor sensor in sensorList) {
-      Device device = Device(
-          deviceID: sensor.getSensorID(),
-          deviceType: sensor.getDeviceType(),
-          deviceName: sensor.getName(),
-          displaySunBun: sensor.getDisplaySunBun(),
-          accountID: "",
-          status: "",
-          updatedAt: "",
-          createdAt: ""
-      );
-      deviceList.add(device);
-    }
-
-    return deviceList;
+    return await sd.getEventList(date);
   }
 
-  Widget _getDeviceIcon(Device device) {
-    if (device.getDeviceType() == Constants.DEVICE_TYPE_TEMPERATURE_HUMIDITY) {
-      return const Icon(Icons.device_thermostat);
-    } else if (device.getDeviceType() == Constants.DEVICE_TYPE_SMOKE) {
-      return const Icon(Icons.local_fire_department);
-    } else if (device.getDeviceType() == Constants.DEVICE_TYPE_EMERGENCY) {
-      return const Icon(Icons.medical_services);
-    } else if (device.getDeviceType() == Constants.DEVICE_TYPE_ILLUMINANCE) {
-      return const Icon(Icons.light);
-    } else if (device.getDeviceType() == Constants.DEVICE_TYPE_MOTION) {
-      return const Icon(Icons.directions_run);
-    } else if (device.getDeviceType() == Constants.DEVICE_TYPE_DOOR) {
-      return const Icon(Icons.meeting_room);
-    } else {
-      return const Icon(Icons.help);
+  Future _selectDate(BuildContext context) async {
+    final DateTime? selected = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate,
+      firstDate: DateTime(1900),
+      lastDate: DateTime.now(),
+    );
+    if (selected != null) {
+      setState(() {
+        _selectedDate = selected;
+        _dayOfWeek = DateFormat('E', 'ko_KR').format(_selectedDate);
+      });
     }
-  }
-
-  void _goDetailView(Device device) {
-    var now = DateTime.now();
-    var formatter = DateFormat('yyyy-MM-dd');
-    String formattedDate = formatter.format(now);
-
-    Navigator.push(context, MaterialPageRoute(builder: (context) {
-      return AlarmDetailView(device: device, date: formattedDate);
-    }));
   }
 
   @override
@@ -94,22 +84,33 @@ class _NotisViewState extends State<AlarmsView> {
         ),
         body: Column(
           children: [
-            const Padding(
-                padding: EdgeInsets.fromLTRB(16, 16, 8, 8),
+            Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 8, 8),
                 child: Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Icon(Icons.fiber_manual_record, size: 10.0, color: Colors.redAccent),
-                      SizedBox(width: 10),
-                      Text("오늘", style: TextStyle(fontSize: 16.0),),
+                      Row (
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          const Icon(Icons.fiber_manual_record, size: 10.0, color: Colors.redAccent),
+                          const SizedBox(width: 10),
+                          _getDateText(),
+                        ],
+                      ),
+                      Row (
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          ElevatedButton(onPressed: () => _selectDate(context), style: elevatedButtonStyle, child: const Text('날짜 선택')),
+                        ],
+                      )
                     ]
                 )
             ),
             Expanded(
-              child: FutureBuilder<List<Device>>(
-                future: _getDeviceList(),
+              child: FutureBuilder<List<EventList>>(
+                future: _getEventList(),
                 builder: (context, snapshot) {
-                  final List<Device>? devices = snapshot.data;
+                  final List<EventList>? events = snapshot.data;
                   if (snapshot.connectionState != ConnectionState.done) {
                     return const Center(
                       child: CircularProgressIndicator(),
@@ -121,60 +122,73 @@ class _NotisViewState extends State<AlarmsView> {
                     );
                   }
                   if (snapshot.hasData) {
-                    if (devices != null) {
-                      if (devices.isEmpty) {
+                    if (events != null) {
+                      if (events.isEmpty) {
                         return const Center(
-                          child: CircularProgressIndicator(),
+                          child: Text("이벤트가 없습니다."),
                         );
                       }
-                      return ListView.builder(
-                        itemCount: devices.length,
-                        itemBuilder: (context, index) {
-                          return Padding(
-                            padding: const EdgeInsets.fromLTRB(8, 4, 8, 0),
-                            child: Card(
+                      return Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: ListView.builder(
+                          itemCount: events.length,
+                          itemBuilder: (context, index) {
+                            return Container(
                               color: Colors.white,
-                              surfaceTintColor: Colors.transparent,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
-                              child: InkWell(borderRadius: BorderRadius.circular(8.0),
-                                onTap: () {
-                                  _goDetailView(devices[index]);
-                                },
-                                child: Container(
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(8.0),
-                                      color: Colors.transparent,
-                                    ),
+                              child: TimelineTile(
+                                alignment: TimelineAlign.manual,
+                                lineXY: 0.3,
+                                isFirst: index == 0 ? true : false,
+                                isLast: index == events.length - 1 ? true : false,
+                                indicatorStyle: IndicatorStyle(
+                                  width: 40,
+                                  indicatorXY: 0.55,
+                                  color: _getIconColor(events[index]),
+                                  padding: const EdgeInsets.all(8),
+                                  iconStyle: IconStyle(
+                                    color: Colors.white,
+                                    iconData: _getDeviceIcon(events[index])//Icons.medical_services,
+                                  ),
+                                ),
+                                startChild: Container(
+                                  constraints: const BoxConstraints(
+                                    minHeight: 100,
+                                  ),
+                                  color: Colors.white,
+                                  child: Center(
                                     child: Padding(
-                                      padding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
-                                      child: ListTile(
-                                        title: Text(devices[index].getDeviceName()!,
-                                        style: const TextStyle(
-                                            fontSize: 20.0,
-                                            fontWeight: FontWeight.w700,
-                                            color: Colors.grey)),
-                                        leading: _getDeviceIcon(devices[index]),
-                                        trailing: const Icon(Icons.chevron_right),//Row(
-                                        //   mainAxisAlignment: MainAxisAlignment.end,
-                                        //   mainAxisSize: MainAxisSize.min,
-                                        //   children: [
-                                        //     IconButton(
-                                        //       icon: const Icon(Icons.chevron_right),
-                                        //       onPressed: () {
-                                        //         debugPrint("===========");
-                                        //       },
-                                        //     )
-                                        //   ],
-                                        // ),
-                                      )
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Row (
+                                        mainAxisAlignment: MainAxisAlignment.end,
+                                        children: [
+                                          _getTime(events[index])
+                                        ],
+                                      ),
+                                    ),
+                                  )
+                                ),
+                                endChild: Container (
+                                  constraints: const BoxConstraints(
+                                    minHeight: 100,
+                                  ),
+                                  color: Colors.white,
+                                    child: Center(
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: Row (
+                                          mainAxisAlignment: MainAxisAlignment.start,
+                                          children: [
+                                            _getDescription(events[index])
+                                          ],
+                                        ),
+                                      ),
                                     )
                                 ),
-                              ),
-                            ),
-                          );
-                        },
+                              )
+                            );
+                          }
+                        ),
                       );
-
                     } else {
                       return const Center(
                         child: CircularProgressIndicator(),
@@ -191,5 +205,156 @@ class _NotisViewState extends State<AlarmsView> {
           ],
         )
     );
+  }
+
+  Widget _getTime(EventList eventList) {
+    String time = eventList.getCreatedAt()!.split(' ')[1].split('.')[0];
+    return Text(time);
+  }
+
+  Widget _getDescription(EventList eventList) {
+    String status = eventList.getStatus()!;
+    status = removeJsonAndArray(status);
+
+    var dataSp = status.split(',');
+    Map<String, String> data = {};
+    for (var element in dataSp) {
+      data[element.split(':')[0].trim()] = element.split(':')[1].trim();
+    }
+
+    if (eventList.getDeviceType() == Constants.DEVICE_TYPE_EMERGENCY) {
+      if (data['switch_detect'] == '1') {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children:[
+            Row(mainAxisAlignment: MainAxisAlignment.start, children: [Text('${eventList.getName()}', style: const TextStyle(color: Colors.grey))]),
+            const SizedBox(height: 10),
+            const Row(mainAxisAlignment: MainAxisAlignment.start, children: [Text('SOS 호출이 있었습니다.', style: TextStyle(fontSize: 20),)]),
+          ]
+        );
+      } else {
+        return const Text('');
+      }
+
+    } else if (eventList.getDeviceType() == Constants.DEVICE_TYPE_TEMPERATURE_HUMIDITY) {
+      var celsius = int.parse(data['temp']!) / 10;
+
+      NumberFormat format = NumberFormat("#0.0");
+      String strCelsius = format.format(celsius);
+
+      String msg = '현재 온도는 $strCelsius°, 습도: ${data['hum']}% 입니다.';
+      return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children:[
+            Row(mainAxisAlignment: MainAxisAlignment.start, children: [Text('${eventList.getName()}', style: const TextStyle(color: Colors.grey))]),
+            const SizedBox(height: 10),
+            Row(mainAxisAlignment: MainAxisAlignment.start, children: [Text(msg, style: const TextStyle(fontSize: 20),)]),
+          ]
+      );
+
+    } else if (eventList.getDeviceType() == Constants.DEVICE_TYPE_SMOKE) {
+      if (data['fire'] == '1') {
+        return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children:[
+              Row(mainAxisAlignment: MainAxisAlignment.start, children: [Text('${eventList.getName()}', style: const TextStyle(color: Colors.grey))]),
+              const SizedBox(height: 10),
+              const Row(mainAxisAlignment: MainAxisAlignment.start, children: [Text("화재 센서가 작동하였습니다.", style: TextStyle(fontSize: 20),)]),
+            ]
+        );
+      } else {
+        return const Text('');
+      }
+
+    } else if (eventList.getDeviceType() == Constants.DEVICE_TYPE_ILLUMINANCE) {
+      String msg = '현재 조도는 ${data['illuminance']} 입니다.';
+      return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children:[
+            Row(mainAxisAlignment: MainAxisAlignment.start, children: [Text('${eventList.getName()}', style: const TextStyle(color: Colors.grey))]),
+            const SizedBox(height: 10),
+            Row(mainAxisAlignment: MainAxisAlignment.start, children: [Text(msg, style: const TextStyle(fontSize: 20),)]),
+          ]
+      );
+
+    } else if (eventList.getDeviceType() == Constants.DEVICE_TYPE_MOTION) {
+      if (data['motion'] == '1') {
+        return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children:[
+              Row(mainAxisAlignment: MainAxisAlignment.start, children: [Text('${eventList.getName()}', style: const TextStyle(color: Colors.grey))]),
+              const SizedBox(height: 10),
+              const Row(mainAxisAlignment: MainAxisAlignment.start, children: [Text('움직임이 감지되었습니다.', style: TextStyle(fontSize: 20),)]),
+            ]
+        );
+      } else {
+        return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children:[
+              Row(mainAxisAlignment: MainAxisAlignment.start, children: [Text('${eventList.getName()}', style: const TextStyle(color: Colors.grey))]),
+              const SizedBox(height: 10),
+              const Row(mainAxisAlignment: MainAxisAlignment.start, children: [Text('움직임이 없습니다.', style: TextStyle(fontSize: 20),)]),
+            ]
+        );
+      }
+    } else if (eventList.getDeviceType() == Constants.DEVICE_TYPE_DOOR) {
+      if (data['door'] == '1') {
+        return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children:[
+              Row(mainAxisAlignment: MainAxisAlignment.start, children: [Text('${eventList.getName()}', style: const TextStyle(color: Colors.grey))]),
+              const SizedBox(height: 10),
+              const Row(mainAxisAlignment: MainAxisAlignment.start, children: [Text('문이 열렸습니다.', style: TextStyle(fontSize: 20),)]),
+            ]
+        );
+      } else {
+        return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children:[
+              Row(mainAxisAlignment: MainAxisAlignment.start, children: [Text('${eventList.getName()}', style: const TextStyle(color: Colors.grey))]),
+              const SizedBox(height: 10),
+              const Row(mainAxisAlignment: MainAxisAlignment.start, children: [Text('문이 닫혔습니다.', style: TextStyle(fontSize: 20),)]),
+            ]
+        );
+      }
+    }
+
+    return const Text('');
+  }
+
+  IconData _getDeviceIcon(EventList event) {
+    if (event.getDeviceType() == Constants.DEVICE_TYPE_TEMPERATURE_HUMIDITY) {
+      return Icons.device_thermostat;
+    } else if (event.getDeviceType() == Constants.DEVICE_TYPE_SMOKE) {
+      return Icons.local_fire_department;
+    } else if (event.getDeviceType() == Constants.DEVICE_TYPE_EMERGENCY) {
+      return Icons.medical_services;
+    } else if (event.getDeviceType() == Constants.DEVICE_TYPE_ILLUMINANCE) {
+      return Icons.light;
+    } else if (event.getDeviceType() == Constants.DEVICE_TYPE_MOTION) {
+      return Icons.directions_run;
+    } else if (event.getDeviceType() == Constants.DEVICE_TYPE_DOOR) {
+      return Icons.meeting_room;
+    } else {
+      return Icons.help;
+    }
+  }
+
+  Color _getIconColor(EventList event) {
+    if (event.getDeviceType() == Constants.DEVICE_TYPE_TEMPERATURE_HUMIDITY) {
+      return Colors.grey;
+    } else if (event.getDeviceType() == Constants.DEVICE_TYPE_SMOKE) {
+      return Colors.grey;
+    } else if (event.getDeviceType() == Constants.DEVICE_TYPE_EMERGENCY) {
+      return Colors.redAccent;
+    } else if (event.getDeviceType() == Constants.DEVICE_TYPE_ILLUMINANCE) {
+      return Colors.grey;
+    } else if (event.getDeviceType() == Constants.DEVICE_TYPE_MOTION) {
+      return Colors.grey;
+    } else if (event.getDeviceType() == Constants.DEVICE_TYPE_DOOR) {
+      return Colors.grey;
+    } else {
+      return Colors.grey;
+    }
   }
 }
