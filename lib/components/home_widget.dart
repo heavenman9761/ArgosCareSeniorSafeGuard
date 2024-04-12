@@ -85,7 +85,7 @@ class HomeWidget extends ConsumerWidget{
           child: FutureBuilder<List<Sensor>>(
             future: _getSensorList(),
             builder: (context, snapshot) {
-              final List<Sensor>? devices = snapshot.data;
+              final List<Sensor>? sensors = snapshot.data;
               if (snapshot.connectionState != ConnectionState.done) {
                 return Center(
                   child: waitWidget(),
@@ -97,34 +97,56 @@ class HomeWidget extends ConsumerWidget{
                 );
               }
               if (snapshot.hasData) {
-                if (devices != null) {
-                  if (devices.isEmpty) {
+                if (sensors != null) {
+                  if (sensors.isEmpty) {
                     return const Center(
                       child: Text("등록된 센서가 없습니다.\n내 기기 탭에서 센서를 등록하세요.", textAlign: TextAlign.center),
                     );
                   } else {
                     return ListView.builder(
-                      itemCount: devices.length,
+                      itemCount: sensors.length,
                       itemBuilder: (context, index) {
                         /*if (devices[index].deviceType == Constants.DEVICE_TYPE_HUB) {
                           return CardWidget(deviceName: devices[index].getName()!);
-                        } else */if (devices[index].deviceType == Constants.DEVICE_TYPE_DOOR) {
-                          return DoorCardWidget(deviceName: devices[index].getName()!);
-                        } else if (devices[index].deviceType == Constants.DEVICE_TYPE_ILLUMINANCE) {
-                          return IlluminanceCardWidget(deviceName: devices[index].getName()!);
-                        } else if (devices[index].deviceType == Constants.DEVICE_TYPE_TEMPERATURE_HUMIDITY) {
-                          return HumidityCardWidget(deviceName: devices[index].getName()!);
-                        } else if (devices[index].deviceType == Constants.DEVICE_TYPE_SMOKE) {
-                          return SmokeCardWidget(deviceName: devices[index].getName()!);
-                        } else if (devices[index].deviceType == Constants.DEVICE_TYPE_EMERGENCY) {
-                          return EmergencyCardWidget(deviceName: devices[index].getName()!);
-                        } else if (devices[index].deviceType == Constants.DEVICE_TYPE_MOTION) {
-                          return MotionCardWidget(deviceName: devices[index].getName()!);
+                        } else */if (sensors[index].deviceType == Constants.DEVICE_TYPE_DOOR) {
+                          return DoorCardWidget(deviceName: sensors[index].getName()!);
+
+                        } else if (sensors[index].deviceType == Constants.DEVICE_TYPE_ILLUMINANCE) {
+                          return IlluminanceCardWidget(deviceName: sensors[index].getName()!);
+
+                        } else if (sensors[index].deviceType == Constants.DEVICE_TYPE_TEMPERATURE_HUMIDITY) {
+                          return HumidityCardWidget(deviceName: sensors[index].getName()!);
+
+                        } else if (sensors[index].deviceType == Constants.DEVICE_TYPE_SMOKE) {
+                          return SmokeCardWidget(deviceName: sensors[index].getName()!);
+
+                        } else if (sensors[index].deviceType == Constants.DEVICE_TYPE_EMERGENCY) {
+                          return EmergencyCardWidget(deviceName: sensors[index].getName()!);
+
+                        } else if (sensors[index].deviceType == Constants.DEVICE_TYPE_MOTION) {
+                          return MotionCardWidget(deviceName: sensors[index].getName()!);
+
                         } else {
                           return null;
                         }
                       },
                     );
+
+                    // return ReorderableListView.builder(
+                    //     itemBuilder: (context, index) {
+                    //       return Padding(
+                    //         key: Key('$index'),
+                    //         padding: const EdgeInsets.all(0.0),
+                    //         child: Container(
+                    //           child: _getSensorWidget(sensors[index])
+                    //         ),
+                    //       );
+                    //     },
+                    //     itemCount: sensors.length,
+                    //     onReorder: (oldIndex, newIndex) {
+                    //       _updateSensorOrder(oldIndex, newIndex);
+                    //     }
+                    // );
                   }
                 } else {
                   return Center(
@@ -142,4 +164,38 @@ class HomeWidget extends ConsumerWidget{
       ],
     );
   }
+
+  Widget _getSensorWidget(Sensor sensor) {
+    if (sensor.deviceType == Constants.DEVICE_TYPE_DOOR) {
+      return DoorCardWidget(deviceName: sensor.getName()!);
+
+    } else if (sensor.deviceType == Constants.DEVICE_TYPE_ILLUMINANCE) {
+      return IlluminanceCardWidget(deviceName: sensor.getName()!);
+
+    } else if (sensor.deviceType == Constants.DEVICE_TYPE_TEMPERATURE_HUMIDITY) {
+      return HumidityCardWidget(deviceName: sensor.getName()!);
+
+    } else if (sensor.deviceType == Constants.DEVICE_TYPE_SMOKE) {
+      return SmokeCardWidget(deviceName: sensor.getName()!);
+
+    } else if (sensor.deviceType == Constants.DEVICE_TYPE_EMERGENCY) {
+      return EmergencyCardWidget(deviceName: sensor.getName()!);
+
+    } else if (sensor.deviceType == Constants.DEVICE_TYPE_MOTION) {
+      return MotionCardWidget(deviceName: sensor.getName()!);
+
+    }
+    return const Text("");
+  }
+
+  // void _updateSensorOrder(int oldIndex, int newIndex) {
+  //   setState(() {
+  //     if (oldIndex < newIndex) {
+  //       newIndex -= 1;
+  //     }
+  //
+  //     final String tile = myTiles.removeAt(oldIndex);
+  //     myTiles.insert(newIndex, tile);
+  //   });
+  // }
 }

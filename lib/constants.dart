@@ -21,6 +21,13 @@ class Constants {
   static const DEVICE_TYPE_EMERGENCY = 'emergency_button';
   static const DEVICE_TYPE_MOTION = 'motion_sensor';
   static const DEVICE_TYPE_DOOR = 'door_sensor';
+
+  static final ButtonStyle elevatedButtonStyle = ElevatedButton.styleFrom(
+      foregroundColor: Colors.white60,
+      backgroundColor: Colors.lightBlue, // text color
+      elevation: 5, //
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))
+  );
 }
 
 late Dio dio;
@@ -104,10 +111,64 @@ String analysisSensorEvent(SensorEvent event) {
   }
 }
 
+String analysisSimpleSensorEvent(SensorEvent event) {
+  String? stringJson = event.getStatus();
+  stringJson = removeJsonAndArray(stringJson!);
+  var dataSp = stringJson.split(',');
+
+  Map<String, String> data = {};
+  for (var element in dataSp) {
+    data[element.split(':')[0].trim()] = element.split(':')[1].trim();
+  }
+  String time = event.getCreatedAt()!.split('.')[0];
+
+  if (event.getDeviceType() == Constants.DEVICE_TYPE_EMERGENCY) {
+    return 'SOS 호출이 있었습니다.';
+
+  } else if (event.getDeviceType() == Constants.DEVICE_TYPE_SMOKE) {
+    if (data['fire'] == '1') {
+      return '화재 감지 신호가 있었습니다.';
+    } else {
+      return '';
+    }
+
+  } else if (event.getDeviceType() == Constants.DEVICE_TYPE_DOOR) {
+    if (data['door'] == '1') {
+      return '문이 열렸습니다.';
+    } else {
+      return '문이 닫혔습니다.';
+    }
+
+  } else if (event.getDeviceType() == Constants.DEVICE_TYPE_MOTION) {
+    if (data['motion'] == '1') {
+      return '움직임이 감지되었습니다.';
+    } else {
+      return '움직임이 감지되지 않습니다.';
+    }
+
+  } else if (event.getDeviceType() == Constants.DEVICE_TYPE_ILLUMINANCE) {
+    return "조도: ${data['illuminance']}";
+
+  } else if (event.getDeviceType() == Constants.DEVICE_TYPE_TEMPERATURE_HUMIDITY) {
+    var celsius = int.parse(data['temp']!) / 10;
+
+    NumberFormat format = NumberFormat("#0.0");
+    String strCelsius = format.format(celsius);
+
+    return "온도: $strCelsius°, 습도: ${data['hum']}%";
+
+  } else {
+    return '';
+  }
+}
+
 void getMyDeviceToken() async {
   final token = await FirebaseMessaging.instance.getToken();
 
-  const storage = FlutterSecureStorage();
+  const storage = FlutterSecureStorage(
+      iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock),
+      aOptions: AndroidOptions(encryptedSharedPreferences: true),
+  );
   final email = await storage.read(key: 'EMAIL');
 
   try {

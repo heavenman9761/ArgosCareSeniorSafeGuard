@@ -19,13 +19,12 @@ import 'package:argoscareseniorsafeguard/mqtt/mqtt.dart';
 import 'package:argoscareseniorsafeguard/providers/providers.dart';
 import 'package:argoscareseniorsafeguard/pages/add_hub_page1.dart';
 import 'package:argoscareseniorsafeguard/pages/add_sensor_page1.dart';
-import 'package:argoscareseniorsafeguard/pages/alarms_view.dart';
 import 'package:argoscareseniorsafeguard/constants.dart';
 import 'package:argoscareseniorsafeguard/database/db.dart';
 import 'package:argoscareseniorsafeguard/components/home_widget.dart';
 import 'package:argoscareseniorsafeguard/components/mydevice_widget.dart';
 import 'package:argoscareseniorsafeguard/components/profile_widget.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:argoscareseniorsafeguard/components/nofify_badge_widget.dart';
 
 class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key, required this.title, required this.userName});
@@ -134,8 +133,14 @@ class _HomePageState extends ConsumerState<HomePage> {
         ),
       );
 
-      //logger.i("Foreground 메시지 수신: ${message.notification!.body!}");
-      // }
+
+      if (!ref.watch(alarmReceivedProvider.notifier).state) {
+        ref
+            .read(alarmReceivedProvider.notifier)
+            .state = true;
+      }
+
+      // logger.i("Foreground 메시지 수신: ${message.notification!.body!}");
     });
   }
 
@@ -223,6 +228,13 @@ class _HomePageState extends ConsumerState<HomePage> {
       return;
     }
 
+    int humi = 0;
+    double temp = 0.0;
+    if (mqttMsg['device_type'] == Constants.DEVICE_TYPE_TEMPERATURE_HUMIDITY) {
+      humi = mqttMsg['sensorState']['hum'];
+      temp = mqttMsg['sensorState']['temp'] / 10;
+    }
+
     SensorEvent sensorEvent = SensorEvent(
       id: mqttMsg['id'],
       hubID: mqttMsg['hubID'],
@@ -230,6 +242,8 @@ class _HomePageState extends ConsumerState<HomePage> {
       deviceType: mqttMsg['device_type'],
       event: mqttMsg['event'],
       status: mqttMsg['sensorState'].toString(),
+      humi: humi,
+      temp: temp,
       updatedAt: DateTime.now().toString(),
       createdAt: DateTime.now().toString(),
     );
@@ -247,6 +261,7 @@ class _HomePageState extends ConsumerState<HomePage> {
           updatedAt: DateTime.now().toString(),
           createdAt: deviceList[0].createdAt
       );
+
       await sd.updateDevice(d).then((value) {
         final state = mqttMsg['sensorState'];
         var now = DateTime.now();
@@ -259,12 +274,14 @@ class _HomePageState extends ConsumerState<HomePage> {
           } else if (state['door_window'] == 1) {
             ref.read(doorSensorStateProvider.notifier).state = "$formatDate 열림";
           }
+
         } else if (mqttMsg['device_type'] == Constants.DEVICE_TYPE_MOTION) {
           if (state['motion'] == 0) {
             ref.read(motionSensorStateProvider.notifier).state = "$formatDate 움직임 없음";
           } else if (state['motion'] == 1) {
             ref.read(motionSensorStateProvider.notifier).state = "$formatDate 움직임 감지";
           }
+
         } else if (mqttMsg['device_type'] == Constants.DEVICE_TYPE_ILLUMINANCE) {
           final int illuminance = state['illuminance'];
           final String value = illuminance.toString();
@@ -409,7 +426,10 @@ class _HomePageState extends ConsumerState<HomePage> {
       deviceName = 'door $count';
     }
 
-    const storage = FlutterSecureStorage();
+    const storage = FlutterSecureStorage(
+      iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock),
+      aOptions: AndroidOptions(encryptedSharedPreferences: true),
+    );
     final email = await storage.read(key: 'EMAIL');
 
     Device device = Device(
@@ -450,7 +470,9 @@ class _HomePageState extends ConsumerState<HomePage> {
   /*Future<void> _downDeviceListFromServer() async {
     //오류있음 필요하면 나중에 고칠것
     try {
-      const storage = FlutterSecureStorage();
+      const storage = FlutterSecureStorage(
+      iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock),
+      aOptions: AndroidOptions(encryptedSharedPreferences: true),);
       final userID = await storage.read(key: 'ID');
       final res = await dio.get(
           "/devices/$userID"
@@ -493,8 +515,8 @@ class _HomePageState extends ConsumerState<HomePage> {
       if (mqttMsg['event'] == 'boot' && mqttMsg['reason'] == 'power reconnect' && mqttMsg['state'] == 'power_on') {
         //paring 명령후 허브에서 가끔씩 재부팅이 된다. 허브 오류인 듯.
         if (ref.watch(findHubStateProvider) == ConfigState.findingSensor) {
-          final topic = ref.watch(commandTopicProvider);
-          mqttSendCommand(topic, MqttCommand.mcParing, mqttMsg['deviceID']);
+          // final topic = ref.watch(commandTopicProvider);
+          mqttSendCommand(MqttCommand.mcParing, mqttMsg['deviceID']);
         }
       }
 
@@ -555,25 +577,11 @@ class _HomePageState extends ConsumerState<HomePage> {
         backgroundColor: Colors.white,
         title: const Text('Argos Care'),
         centerTitle: true,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications_none_outlined),
-            tooltip: "Menu",
-            color: Colors.grey,
-            onPressed: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) {
-                return const AlarmsView();
-              }));
-            },
-          ),
+        actions: const [
+          NotifyBadgeWidget(),
         ],
       ),
       body: selectWidget(),
-      // floatingActionButton: SizedBox(
-      //   height: 50,
-      //   width: 120,
-      //   child: extendButton(),
-      // ),
       bottomNavigationBar: BottomNavigationBar(
           items: const <BottomNavigationBarItem>[
             BottomNavigationBarItem(
@@ -618,10 +626,13 @@ class _HomePageState extends ConsumerState<HomePage> {
   Widget selectWidget() {
     if (_selectedIndex == 0) {
       return HomeWidget(userName: widget.userName);
+
     } else if (_selectedIndex == 1) {
       return const MyDeviceWidget();
+
     } else if (_selectedIndex == 2) {
       return const ProfileWidget();
+
     } else {
       return HomeWidget(userName: widget.userName);
     }

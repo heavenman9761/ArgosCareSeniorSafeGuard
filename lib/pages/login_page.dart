@@ -43,7 +43,10 @@ class _LoginPageState extends State<LoginPage> {
 
       final token = response.data['token'];
       print('first token: $token');
-      const storage = FlutterSecureStorage();
+      const storage = FlutterSecureStorage(
+        iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock),
+        aOptions: AndroidOptions(encryptedSharedPreferences: true),
+      );
       await storage.write(key: 'ACCESS_TOKEN', value: token);
 
       var loginResponse = await dio.get(

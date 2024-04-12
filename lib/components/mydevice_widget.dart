@@ -24,13 +24,6 @@ class _MyDeviceWidgetState extends ConsumerState<MyDeviceWidget> {
   int _selectIndex = 0;
   final List<Hub> _hubList = [];
 
-  final ButtonStyle elevatedButtonStyle = ElevatedButton.styleFrom(
-      foregroundColor: Colors.white60,
-      backgroundColor: Colors.lightBlue, // text color
-      elevation: 5, //
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))
-  );
-
   Future<List<Device>> _getDeviceList() async {
     DBHelper sd = DBHelper();
 
@@ -82,7 +75,7 @@ class _MyDeviceWidgetState extends ConsumerState<MyDeviceWidget> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     const Text("기기 조회", style: TextStyle(fontSize: 24.0),),
-                    ElevatedButton(onPressed: () { _action(context, ref); }, style: elevatedButtonStyle, child: const Text('기기 등록')),
+                    ElevatedButton(onPressed: () { _action(context, ref); }, style: Constants.elevatedButtonStyle, child: const Text('기기 등록')),
                   ]
               )
           ),
@@ -176,17 +169,18 @@ class _MyDeviceWidgetState extends ConsumerState<MyDeviceWidget> {
 
   Widget myListTile(BuildContext context, Device device) {
     return Card(
-        child: ListTile(
-            tileColor: Colors.white,
-            title: Text(device.getDeviceName()!,
-                style: const TextStyle(
-                    fontSize: 20.0,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.grey)),
-            leading: _getDeviceIcon(device),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () { _goDeviceDetailView(context, device); }
-        )
+      child: ListTile(
+        tileColor: Colors.white,
+        title: Text(device.getDeviceName()!,
+          style: const TextStyle(
+            fontSize: 20.0,
+            fontWeight: FontWeight.w700,
+            color: Colors.grey)
+          ),
+        leading: _getDeviceIcon(device),
+        trailing: const Icon(Icons.chevron_right),
+        onTap: () { _goDeviceDetailView(context, device); }
+      )
     );
   }
 
@@ -232,13 +226,6 @@ class _MyDeviceWidgetState extends ConsumerState<MyDeviceWidget> {
     }
   }
 
-  void _goAddHubPage(BuildContext context, WidgetRef ref) {
-    ref.read(findHubStateProvider.notifier).doChangeState(ConfigState.none);
-    Navigator.push(context, MaterialPageRoute(builder: (context) {
-      return const AddHubPage1();
-    }));
-  }
-
   void _goParingPage(BuildContext context, WidgetRef ref) {
     if (_selectIndex == 0) {
       _goAddHubPage(context, ref);
@@ -247,62 +234,79 @@ class _MyDeviceWidgetState extends ConsumerState<MyDeviceWidget> {
     }
   }
 
+  void _goAddHubPage(BuildContext context, WidgetRef ref) {
+    ref.read(findHubStateProvider.notifier).doChangeState(ConfigState.none);
+    Navigator.push(context, MaterialPageRoute(builder: (context) {
+      return const AddHubPage1();
+    })).then((value) {
+      setState(() {
+
+      });
+    });
+  }
+
   void _goAddSensePage(BuildContext context, WidgetRef ref) {
     String? deviceID = _hubList[0].getHubID();
     print(deviceID);
     ref.read(findHubStateProvider.notifier).doChangeState(ConfigState.none);
     Navigator.push(context, MaterialPageRoute(builder: (context) {
       return AddSensorPage1(deviceID: deviceID!);
-    }));
+    })).then((value) {
+      setState(() {
+
+      });
+    });
   }
 
   void showActionDialog(BuildContext context, WidgetRef ref) {
     showDialog(
-        context: context,
-        builder: (context) {
-          return StatefulBuilder(
-              builder: (BuildContext context, StateSetter setState) {
-                return AlertDialog(
-                  title: const Text("기기 선택"),
-                  content: SizedBox(
-                    width: 150,
-                    height: 100,
-                    child: ListView.builder(
-                        itemCount: _actionList.length,
-                        itemBuilder: (BuildContext context, int index) {
-                          return RadioListTile<int>(
-                            value: index,
-                            groupValue: _selectIndex,
-                            title: Text(_actionList[index]),
-                            onChanged: (value) {
-                              setState((){
-                                _selectIndex = value??0;
-                              });
-                            },
-                          );
-                        }),
-                  ),
-                  actions: [
-                    ElevatedButton(
-                        onPressed: () {
-                          setState(() {
-                            Navigator.pop(context);
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setState) {
+            return AlertDialog(
+              title: const Text("기기 선택"),
+              content: SizedBox(
+                width: 150,
+                height: 100,
+                child: ListView.builder(
+                    itemCount: _actionList.length,
+                    itemBuilder: (BuildContext context, int index) {
+                      return RadioListTile<int>(
+                        value: index,
+                        groupValue: _selectIndex,
+                        title: Text(_actionList[index]),
+                        onChanged: (value) {
+                          setState((){
+                            _selectIndex = value??0;
                           });
                         },
-                        child: const Text("Cancel")
-                    ),
-                    ElevatedButton(
-                        onPressed: () {
-                          setState(() {
-                            Navigator.pop(context);
-                            _goParingPage(context, ref);
-                          });
-                        },
-                        child: const Text("Ok")
-                    ),
-                  ],
-                );
-              });
-        });
+                      );
+                    }),
+              ),
+              actions: [
+                ElevatedButton(
+                    onPressed: () {
+                      setState(() {
+                        Navigator.pop(context);
+                      });
+                    },
+                    child: const Text("Cancel")
+                ),
+                ElevatedButton(
+                    onPressed: () {
+                      setState(() {
+                        Navigator.pop(context);
+                        _goParingPage(context, ref);
+                      });
+                    },
+                    child: const Text("Ok")
+                ),
+              ],
+            );
+          }
+        );
+      }
+    );
   }
 }

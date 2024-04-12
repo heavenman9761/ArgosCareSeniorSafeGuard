@@ -85,35 +85,37 @@ class DBHelper {
 
     await db.execute(
       "CREATE TABLE $tableNameSensorEvents ("
+      "id TEXT PRIMARY KEY, "
+      "hubID TEXT, "
+      "deviceID TEXT, "
+      "deviceType TEXT, "
+      "event TEXT, "
+      "status TEXT, "
+      "humi INTEGER, "
+      "temp DOUBLE, "
+      "createdAt TEXT, "
+      "updatedAt TEXT"
+      ")",
+    );
+
+    await db.execute(
+      "CREATE TABLE $tableNameLocations ("
         "id TEXT PRIMARY KEY, "
-        "hubID TEXT, "
-        "deviceID TEXT, "
-        "deviceType TEXT, "
-        "event TEXT, "
-        "status TEXT, "
+        "name TEXT, "
+        "sensorID TEXT, "
         "createdAt TEXT, "
         "updatedAt TEXT"
       ")",
     );
 
     await db.execute(
-      "CREATE TABLE $tableNameLocations ("
-          "id TEXT PRIMARY KEY, "
-          "name TEXT, "
-          "sensorID TEXT, "
-          "createdAt TEXT, "
-          "updatedAt TEXT"
-          ")",
-    );
-
-    await db.execute(
       "CREATE TABLE $tableNameRooms ("
-          "id TEXT PRIMARY KEY, "
-          "name TEXT, "
-          "locationID TEXT, "
-          "createdAt TEXT, "
-          "updatedAt TEXT"
-          ")",
+        "id TEXT PRIMARY KEY, "
+        "name TEXT, "
+        "locationID TEXT, "
+        "createdAt TEXT, "
+        "updatedAt TEXT"
+      ")",
     );
   }
 
@@ -463,6 +465,8 @@ class DBHelper {
         deviceType: maps[i]['deviceType'],
         event: maps[i]['event'],
         status: maps[i]['status'],
+        humi: maps[i]['humi'],
+        temp: maps[i]['temp'],
         updatedAt: maps[i]['updatedAt'],
         createdAt: maps[i]['createdAt'],
       );
@@ -486,6 +490,8 @@ class DBHelper {
         deviceType: maps[i]['deviceType'],
         event: maps[i]['event'],
         status: maps[i]['status'],
+        humi: maps[i]['humi'],
+        temp: maps[i]['temp'],
         updatedAt: maps[i]['updatedAt'],
         createdAt: maps[i]['createdAt'],
       );
@@ -509,6 +515,8 @@ class DBHelper {
         deviceType: maps[i]['deviceType'],
         event: maps[i]['event'],
         status: maps[i]['status'],
+        humi: maps[i]['humi'],
+        temp: maps[i]['temp'],
         updatedAt: maps[i]['updatedAt'],
         createdAt: maps[i]['createdAt'],
       );
@@ -550,6 +558,8 @@ class DBHelper {
         deviceType: maps[i]['deviceType'],
         event: maps[i]['event'],
         status: maps[i]['status'],
+        humi: maps[i]['humi'],
+        temp: maps[i]['temp'],
         updatedAt: maps[i]['updatedAt'],
         createdAt: maps[i]['createdAt'],
       );
@@ -570,6 +580,8 @@ class DBHelper {
         deviceType: maps[i]['deviceType'],
         event: maps[i]['event'],
         status: maps[i]['status'],
+        humi: maps[i]['humi'],
+        temp: maps[i]['temp'],
         updatedAt: maps[i]['updatedAt'],
         createdAt: maps[i]['createdAt'],
       );

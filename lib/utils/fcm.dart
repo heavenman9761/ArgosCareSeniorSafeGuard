@@ -78,7 +78,6 @@ void showFlutterNotification(RemoteMessage message) {
 }
 
 void showFlutterNotificationData(RemoteMessage message) {
-
   RemoteNotification? notification = message.notification;
 
   AndroidNotification? android = message.notification?.android;

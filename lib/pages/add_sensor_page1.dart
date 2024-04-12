@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:argoscareseniorsafeguard/providers/providers.dart';
 import 'package:argoscareseniorsafeguard/mqtt/mqtt.dart';
 import 'package:argoscareseniorsafeguard/constants.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 
 class AddSensorPage1 extends ConsumerStatefulWidget {
   const AddSensorPage1({super.key, required this.deviceID});
@@ -90,7 +91,10 @@ class _AddSensorPage1State extends ConsumerState<AddSensorPage1> {
   Widget widget1() {
     if (ref.watch(findHubStateProvider) == ConfigState.findingSensor) {
       _startTimer();
-      return const CircularProgressIndicator();
+      return const SpinKitRipple(
+        color: Colors.blue,
+        size: 100,
+      );
 
     } else if (ref.watch(findHubStateProvider) == ConfigState.findingSensorDone) {
       Navigator.pop(context);
@@ -124,8 +128,8 @@ class _AddSensorPage1State extends ConsumerState<AddSensorPage1> {
           ),
           onPressed: () {
             ref.read(findHubStateProvider.notifier).doChangeState(ConfigState.findingSensor);
-            final topic = ref.watch(commandTopicProvider);
-            mqttSendCommand(topic, MqttCommand.mcParing, widget.deviceID);
+            // final topic = ref.watch(commandTopicProvider);
+            mqttSendCommand(MqttCommand.mcParing, widget.deviceID);
           }, //findHub,
           child: const Text('검색')
       );

@@ -20,7 +20,10 @@ Future<Dio> authDio() async {
   dio.interceptors.add(CookieManager(CookieJar()));
   dio.interceptors.add(InterceptorsWrapper(onRequest: (options, handler) async {
     // 기기에 저장된 AccessToken 로드
-    const storage = FlutterSecureStorage();
+    const storage = FlutterSecureStorage(
+      iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock),
+      aOptions: AndroidOptions(encryptedSharedPreferences: true),
+    );
     final accessToken = await storage.read(key: 'ACCESS_TOKEN');
     options.headers['Authorization'] = 'Bearer $accessToken';
 
@@ -28,7 +31,10 @@ Future<Dio> authDio() async {
 
   }, onError: (error, handler) async {
     if (error.response?.statusCode == 403) {  // cookie나 token의 유효기간이 지났을 경우 재 로그인
-      const storage = FlutterSecureStorage();
+      const storage = FlutterSecureStorage(
+        iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock),
+        aOptions: AndroidOptions(encryptedSharedPreferences: true),
+      );
       final email = await storage.read(key: "EMAIL");
       final password = await storage.read(key: 'PASSWORD');
 

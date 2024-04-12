@@ -861,7 +861,10 @@ class _SettingAlarmState extends ConsumerState<SettingAlarm> {
   }
 
   void _saveSettings() async {
-    const storage = FlutterSecureStorage();
+    const storage = FlutterSecureStorage(
+      iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock),
+      aOptions: AndroidOptions(encryptedSharedPreferences: true),
+    );
     final userID = await storage.read(key: 'ID');
 
     final SharedPreferences pref = await SharedPreferences.getInstance();

@@ -5,6 +5,8 @@ class SensorEvent {
   final String? deviceType;
   final String? event;
   final String? status;
+  final int? humi;
+  final double? temp;
   final String? updatedAt;
   final String? createdAt;
 
@@ -32,6 +34,14 @@ class SensorEvent {
     return status;
   }
 
+  int? getHumi() {
+    return humi;
+  }
+
+  double? getTemp() {
+    return temp;
+  }
+
   String? getUpdateAt() {
     return updatedAt;
   }
@@ -41,7 +51,7 @@ class SensorEvent {
   }
 
   SensorEvent({this.id, required this.deviceID, required this.hubID, required this.deviceType,
-    required this.event, required this.status, required this.updatedAt, required this.createdAt});
+    required this.event, required this.status, required this.humi, required this.temp, required this.updatedAt, required this.createdAt});
 
   Map<String, dynamic> toMap() {
     return {
@@ -51,6 +61,8 @@ class SensorEvent {
       'deviceType': deviceType ?? '',
       'event': event ?? '',
       'status': status ?? '',
+      'humi': humi ?? 0,
+      'temp': temp ?? 0.0,
       'updatedAt': updatedAt ?? '',
       'createdAt': createdAt ?? '',
     };
@@ -64,6 +76,8 @@ class SensorEvent {
       deviceType: json['deviceType'],
       event: json['event'],
       status: json['status'],
+      humi: json['humi'],
+      temp: json['temp'],
       updatedAt: json['updatedAt'],
       createdAt: json['createdAt'],
     );
@@ -78,6 +92,8 @@ class SensorEvent {
         'deviceType: $deviceType, '
         'event: $event, '
         'status: $status, '
+        'humi: $humi, '
+        'temp: $temp, '
         'updatedAt: $updatedAt, '
         'createdAt: $createdAt'
     '}';

@@ -183,3 +183,9 @@ final alarmDoorStartTimeProvider = StateProvider<String>((ref) {
 final alarmDoorEndTimeProvider = StateProvider<String>((ref) {
   return "23:59";
 });
+
+//------------------------------------------------------------------
+
+final alarmReceivedProvider = StateProvider<bool>((ref) {
+  return false;
+});

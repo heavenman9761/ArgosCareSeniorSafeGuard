@@ -18,13 +18,6 @@ class _AlarmsViewState extends State<AlarmsView> {
   String _dayOfWeek = '';
   late DateTime _selectedDate;
 
-  final ButtonStyle elevatedButtonStyle = ElevatedButton.styleFrom(
-      foregroundColor: Colors.white60,
-      backgroundColor: Colors.lightBlue, // text color
-      elevation: 5, //
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))
-  );
-
   @override
   void initState() {
     super.initState();
@@ -100,7 +93,7 @@ class _AlarmsViewState extends State<AlarmsView> {
                       Row (
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
-                          ElevatedButton(onPressed: () => _selectDate(context), style: elevatedButtonStyle, child: const Text('날짜 선택')),
+                          ElevatedButton(onPressed: () => _selectDate(context), style: Constants.elevatedButtonStyle, child: const Text('날짜 선택')),
                         ],
                       )
                     ]
@@ -213,14 +206,8 @@ class _AlarmsViewState extends State<AlarmsView> {
   }
 
   Widget _getDescription(EventList eventList) {
-    String status = eventList.getStatus()!;
-    status = removeJsonAndArray(status);
 
-    var dataSp = status.split(',');
-    Map<String, String> data = {};
-    for (var element in dataSp) {
-      data[element.split(':')[0].trim()] = element.split(':')[1].trim();
-    }
+    Map<String, String> data = _analysisStatus(eventList.getStatus()!);
 
     if (eventList.getDeviceType() == Constants.DEVICE_TYPE_EMERGENCY) {
       if (data['switch_detect'] == '1') {
@@ -242,7 +229,7 @@ class _AlarmsViewState extends State<AlarmsView> {
       NumberFormat format = NumberFormat("#0.0");
       String strCelsius = format.format(celsius);
 
-      String msg = '현재 온도는 $strCelsius°, 습도: ${data['hum']}% 입니다.';
+      String msg = '현재 온도는 $strCelsius°, 습도는 ${data['hum']}% 입니다.';
       return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children:[
@@ -332,9 +319,23 @@ class _AlarmsViewState extends State<AlarmsView> {
     } else if (event.getDeviceType() == Constants.DEVICE_TYPE_ILLUMINANCE) {
       return Icons.light;
     } else if (event.getDeviceType() == Constants.DEVICE_TYPE_MOTION) {
-      return Icons.directions_run;
+      Map<String, String> data = _analysisStatus(event.getStatus()!);
+
+      if (data['motion'] == '1') {
+        return Icons.directions_run;
+      } else  {
+        return Icons.man;
+      }
+
     } else if (event.getDeviceType() == Constants.DEVICE_TYPE_DOOR) {
-      return Icons.meeting_room;
+      Map<String, String> data = _analysisStatus(event.getStatus()!);
+
+      if (data['door'] == '1') {
+        return Icons.meeting_room;
+      } else  {
+        return Icons.sensor_door;
+      }
+
     } else {
       return Icons.help;
     }
@@ -350,11 +351,30 @@ class _AlarmsViewState extends State<AlarmsView> {
     } else if (event.getDeviceType() == Constants.DEVICE_TYPE_ILLUMINANCE) {
       return Colors.grey;
     } else if (event.getDeviceType() == Constants.DEVICE_TYPE_MOTION) {
-      return Colors.grey;
+      Map<String, String> data = _analysisStatus(event.getStatus()!);
+
+      if (data['motion'] == '1') {
+        return Colors.greenAccent;
+      } else  {
+        return Colors.redAccent;
+      }
+
     } else if (event.getDeviceType() == Constants.DEVICE_TYPE_DOOR) {
       return Colors.grey;
     } else {
       return Colors.grey;
     }
+  }
+
+  Map<String, String> _analysisStatus(String statusMsg) {
+    String status = removeJsonAndArray(statusMsg);
+
+    var dataSp = status.split(',');
+    Map<String, String> data = {};
+    for (var element in dataSp) {
+      data[element.split(':')[0].trim()] = element.split(':')[1].trim();
+    }
+
+    return data;
   }
 }

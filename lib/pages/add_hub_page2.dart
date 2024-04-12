@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 
 import 'package:argoscareseniorsafeguard/providers/providers.dart';
 import 'package:argoscareseniorsafeguard/models/accesspoint.dart';
@@ -27,13 +28,6 @@ class _AddHubPage2State extends ConsumerState<AddHubPage2> {
   late AccessPoint selectedAp;
   String wifiPassword = "";
   bool _hasError = false;
-
-  final ButtonStyle elevatedButtonStyle = ElevatedButton.styleFrom(
-    foregroundColor: Colors.white60,
-    backgroundColor: Colors.lightBlue, // text color
-    elevation: 5, //
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))
-  );
 
   // Future<void> setHubIdToPrefs(String value) async {
   //   try {
@@ -70,7 +64,7 @@ class _AddHubPage2State extends ConsumerState<AddHubPage2> {
       if (isGranted) {
         _findHub().catchError((onError){
           _hasError = true;
-          return [];
+          return <String> [];
         }).then((devices) {
           if (devices.isNotEmpty && !_hasError) {
             _settingHub(devices[0]).catchError((onError){
@@ -152,7 +146,10 @@ class _AddHubPage2State extends ConsumerState<AddHubPage2> {
     try {
       ref.read(findHubStateProvider.notifier).doChangeState(ConfigState.settingMqtt);
 
-      const storage = FlutterSecureStorage();
+      const storage = FlutterSecureStorage(
+        iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock),
+        aOptions: AndroidOptions(encryptedSharedPreferences: true),
+      );
       final email = await storage.read(key: 'EMAIL');
 
       final String result =
@@ -296,7 +293,7 @@ class _AddHubPage2State extends ConsumerState<AddHubPage2> {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        ElevatedButton(onPressed: () async => _pairingHub(context), style: elevatedButtonStyle, child: const Text('다시 시도')),
+        ElevatedButton(onPressed: () async => _pairingHub(context), style: Constants.elevatedButtonStyle, child: const Text('다시 시도')),
         const SizedBox(height: 20,),
         Text(msg)
       ]);
@@ -307,9 +304,13 @@ class _AddHubPage2State extends ConsumerState<AddHubPage2> {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        const CircularProgressIndicator(),
+        //const CircularProgressIndicator(),
+        const SpinKitRipple(
+          color: Colors.blue,
+          size: 100,
+        ),
         const SizedBox(height: 20,),
-        Text(msg)
+        Text(msg),
       ],
     );
   }

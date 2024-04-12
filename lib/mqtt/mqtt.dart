@@ -10,14 +10,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:argoscareseniorsafeguard/constants.dart';
 import 'package:argoscareseniorsafeguard/providers/providers.dart';
 
-enum MqttCommand {mcSensorList, mcParing}
+enum MqttCommand { mcSensorList, mcParing, mcInitHub, mcRestartHub }
 
 late MqttServerClient mqttClient;
 late WidgetRef _ref;
 
-void mqttSendCommand(String topic, MqttCommand mc, String deviceID) {
+void mqttSendCommand(MqttCommand mc, String deviceID) {
   var now = DateTime.now();
   String formatDate = DateFormat('yyyyMMdd_HHmmss').format(now);
+
+  final topic = _ref.watch(commandTopicProvider);
 
   if (mc == MqttCommand.mcSensorList) {
     //펌웨어 에서 기능 구현 안됨.
@@ -33,6 +35,22 @@ void mqttSendCommand(String topic, MqttCommand mc, String deviceID) {
         topic,
         jsonEncode({
           "order": "pairingEnabled",
+          "deviceID": deviceID,
+          "time": formatDate
+        }));
+  } else if (mc == MqttCommand.mcInitHub) {
+    mqttPublish(
+        topic,
+        jsonEncode({
+          "order": "allReset",
+          "deviceID": deviceID,
+          "time": formatDate
+        }));
+  } else if (mc == MqttCommand.mcRestartHub) {
+    mqttPublish(
+        topic,
+        jsonEncode({
+          "order": "reboot",
           "deviceID": deviceID,
           "time": formatDate
         }));
