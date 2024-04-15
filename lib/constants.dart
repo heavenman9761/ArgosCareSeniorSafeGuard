@@ -9,6 +9,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:argoscareseniorsafeguard/models/sensor_event.dart';
 import 'package:intl/intl.dart';
+import 'package:argoscareseniorsafeguard/utils/device_info.dart';
 
 class Constants {
   static const platform = MethodChannel('est.co.kr/IoT_Hub');
@@ -24,8 +25,10 @@ class Constants {
       foregroundColor: Colors.white60,
       backgroundColor: Colors.lightBlue, // text color
       elevation: 5, //
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
   );
+
+
 }
 
 late Dio dio;
@@ -46,6 +49,18 @@ enum ConfigState {
   settingWifi, settingWifiError, settingWifiDone,
 
   findingSensor, findingSensorError, findingSensorDone
+}
+
+double deviceCardHeight = 40;
+double deviceFontSize = 18.0;
+double deviceIconSize = 16.0;
+
+void getDeviceFontSize(BuildContext context) {
+  if (DeviceScreen.isPhone(context)) {
+    deviceFontSize = 18.0;
+  } else if (DeviceScreen.isTablet(context)) {
+    deviceFontSize = 20.0;
+  }
 }
 
 String removeJsonAndArray(String text) {

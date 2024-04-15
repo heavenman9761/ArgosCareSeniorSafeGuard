@@ -85,16 +85,16 @@ class DBHelper {
 
     await db.execute(
       "CREATE TABLE $tableNameSensorEvents ("
-      "id TEXT PRIMARY KEY, "
-      "hubID TEXT, "
-      "deviceID TEXT, "
-      "deviceType TEXT, "
-      "event TEXT, "
-      "status TEXT, "
-      "humi INTEGER, "
-      "temp DOUBLE, "
-      "createdAt TEXT, "
-      "updatedAt TEXT"
+        "id TEXT PRIMARY KEY, "
+        "hubID TEXT, "
+        "deviceID TEXT, "
+        "deviceType TEXT, "
+        "event TEXT, "
+        "status TEXT, "
+        "humi INTEGER, "
+        "temp REAL, "
+        "createdAt TEXT, "
+        "updatedAt TEXT"
       ")",
     );
 

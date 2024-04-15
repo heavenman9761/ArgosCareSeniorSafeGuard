@@ -10,6 +10,7 @@ import 'package:argoscareseniorsafeguard/providers/providers.dart';
 import 'package:argoscareseniorsafeguard/models/device.dart';
 import 'package:argoscareseniorsafeguard/models/hub.dart';
 import 'package:argoscareseniorsafeguard/models/sensor.dart';
+import 'package:argoscareseniorsafeguard/constants.dart';
 
 class MyDeviceWidget extends ConsumerStatefulWidget {
   const MyDeviceWidget({super.key});
@@ -148,17 +149,6 @@ class _MyDeviceWidgetState extends ConsumerState<MyDeviceWidget> {
               ),
             ),
           ),
-          const Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                Center(
-                  child: Text(
-                      'Wi-Fi를 2.4GHz 주파수로 설정해주세요. \n(5GHz는 지원하지 않습니다.)',
-                      textAlign: TextAlign.center
-                  ),
-                ),
-                SizedBox(height: 50)
-              ])
         ]
     );
   }
@@ -169,17 +159,30 @@ class _MyDeviceWidgetState extends ConsumerState<MyDeviceWidget> {
 
   Widget myListTile(BuildContext context, Device device) {
     return Card(
-      child: ListTile(
-        tileColor: Colors.white,
-        title: Text(device.getDeviceName()!,
-          style: const TextStyle(
-            fontSize: 20.0,
-            fontWeight: FontWeight.w700,
-            color: Colors.grey)
-          ),
-        leading: _getDeviceIcon(device),
-        trailing: const Icon(Icons.chevron_right),
-        onTap: () { _goDeviceDetailView(context, device); }
+      color: Colors.white,
+      surfaceTintColor: Colors.transparent,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            _getDeviceIcon(device),
+            const SizedBox(width: 10, height: 40),
+            Text(device.getDeviceName()!, style: TextStyle(fontSize: deviceFontSize,)),
+            Expanded(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  GestureDetector(
+                    onTap: () { _goDeviceDetailView(context, device); },
+                    child: const Icon(Icons.chevron_right, size: 20, color: Colors.black),
+                  ),
+                ],
+              ),
+            )
+          ],
+        )
       )
     );
   }

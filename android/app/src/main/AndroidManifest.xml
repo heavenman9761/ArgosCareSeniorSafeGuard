@@ -24,7 +24,10 @@
         android:label="argoscareseniorsafeguard"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
-        android:allowBackup="true">
+        android:allowBackup="false"
+        android:fullBackupContent="false">
+<!--        android:allowBackup="false"   flutterSecureStorage를 사용할때 필요, 아니면 Exception -->
+<!--        android:fullBackupContent="false"  flutterSecureStorage를 사용할때 필요, 아니면 Exception -->
         <activity
             android:name=".MainActivity"
             android:exported="true"

@@ -1,4 +1,5 @@
 import "package:argoscareseniorsafeguard/mqtt/mqtt.dart";
+import 'package:flutter/cupertino.dart';
 import "package:flutter/material.dart";
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
@@ -11,7 +12,7 @@ import 'package:argoscareseniorsafeguard/database/db.dart';
 import 'package:argoscareseniorsafeguard/constants.dart';
 import 'package:argoscareseniorsafeguard/models/sensor_event.dart';
 import 'package:argoscareseniorsafeguard/components/humi_temp_chart.dart';
-
+import 'package:argoscareseniorsafeguard/constants.dart';
 
 class DeviceDetailView extends StatefulWidget {
   const DeviceDetailView({super.key, required this.device});
@@ -55,14 +56,14 @@ class _DeviceDetailViewState extends State<DeviceDetailView> {
           child: SingleChildScrollView(
             child: Column(
               children: [
-                const Padding(
-                    padding: EdgeInsets.fromLTRB(16, 16, 8, 8),
+                Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 16, 8, 8),
                     child: Row(
                         mainAxisAlignment: MainAxisAlignment.start,
                         children: [
-                          Icon(Icons.fiber_manual_record, size: 10.0, color: Colors.redAccent),
-                          SizedBox(width: 10),
-                          Text("일반", style: TextStyle(fontSize: 16.0),),
+                          const Icon(Icons.fiber_manual_record, size: 10.0, color: Colors.redAccent),
+                          const SizedBox(width: 10),
+                          Text("일반", style: TextStyle(fontSize: deviceFontSize - 2),),
                         ]
                     )
                 ),
@@ -75,21 +76,24 @@ class _DeviceDetailViewState extends State<DeviceDetailView> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: [
-                        const Text('디바이스 이름', style: TextStyle(fontSize: 20),),
+                        Text('디바이스 이름', style: TextStyle(fontSize: deviceFontSize),),
                         Flexible(
-                            child: Row(
-                              // mainAxisSize : MainAxisSize.max,
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: [
-                                const SizedBox(height: 48),
-                                Text(_deviceName!, style: const TextStyle(fontSize: 20),),
-                                IconButton(
-                                  onPressed: (){ _inputDeviceNameDialog(context, _deviceName!); },
-                                  icon: const Icon(Icons.edit),
-                                  iconSize: 20,
-                                )
-                              ],
-                            )
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              SizedBox(width: 5, height: deviceCardHeight),
+                              Flexible(
+                                flex: 1,
+                                fit: FlexFit.tight,
+                                child: Text(_deviceName!, style: TextStyle(fontSize: deviceFontSize - 2), overflow: TextOverflow.ellipsis, textAlign: TextAlign.right,),
+                              ),
+                              const SizedBox(width: 10),
+                              GestureDetector(
+                                onTap: (){ _inputDeviceNameDialog(context, _deviceName!); },
+                                child: const Icon(Icons.edit, size: 20, color: Colors.black),
+                              )
+                            ],
+                          ),
                         )
                       ]
                     ),
@@ -104,18 +108,17 @@ class _DeviceDetailViewState extends State<DeviceDetailView> {
                     child: Row(
                         mainAxisAlignment: MainAxisAlignment.start,
                         children: [
-                          const Text('디바이스 ID', style: TextStyle(fontSize: 20),),
+                          Text('디바이스 ID', style: TextStyle(fontSize: deviceFontSize),),
                           Flexible(
                               child: Row(
-                                // mainAxisSize : MainAxisSize.max,
                                 mainAxisAlignment: MainAxisAlignment.end,
                                 children: [
-                                  const SizedBox(height: 48),
-                                  Text(widget.device.getDeviceID()!, style: const TextStyle(fontSize: 20),),
-                                  IconButton(
-                                    onPressed: (){ _copyDeviceID(widget.device.getDeviceID()!); },
-                                    icon: const Icon(Icons.copy),
-                                    iconSize: 20,
+                                  SizedBox(height: deviceCardHeight),
+                                  Text(widget.device.getDeviceID()!, style: TextStyle(fontSize: deviceFontSize - 2),),
+                                  const SizedBox(width: 10),
+                                  GestureDetector(
+                                    onTap: (){ _copyDeviceID(widget.device.getDeviceID()!); },
+                                    child: const Icon(Icons.copy, size: 20, color: Colors.black),
                                   )
                                 ],
                               )
@@ -133,13 +136,13 @@ class _DeviceDetailViewState extends State<DeviceDetailView> {
                     child: Row(
                         mainAxisAlignment: MainAxisAlignment.start,
                         children: [
-                          const Text('등록일', style: TextStyle(fontSize: 20),),
+                          Text('등록일', style: TextStyle(fontSize: deviceFontSize),),
                           Flexible(
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.end,
                                 children: [
-                                  const SizedBox(height: 48),
-                                  Text(widget.device.getCreateAt()!.split('.')[0], style: const TextStyle(fontSize: 20),),
+                                  SizedBox(height: deviceCardHeight),
+                                  Text(widget.device.getCreateAt()!.split('.')[0], style: TextStyle(fontSize: deviceFontSize - 2),),
                                 ],
                               )
                           )
@@ -200,18 +203,22 @@ class _DeviceDetailViewState extends State<DeviceDetailView> {
         child: Row(
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
-              const Text('발생시간:', style: TextStyle(fontSize: 20),),
-              const SizedBox(width: 10,),
-              Text(event.getCreatedAt()!.split(' ')[1].split('.')[0], style: const TextStyle(fontSize: 20),),
               Flexible(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      const SizedBox(height: 48),
-                      Text(description, style: const TextStyle(fontSize: 20),),
-                    ],
-                  )
-              )
+                flex: 1,
+                fit: FlexFit.tight,
+                child: Row(
+                  children: [
+                    Text('발생시간:', style: TextStyle(fontSize: deviceFontSize),),
+                    SizedBox(width: 10, height: deviceCardHeight,),
+                    Text(event.getCreatedAt()!.split(' ')[1].split('.')[0].substring(0, 5), style: TextStyle(fontSize: deviceFontSize - 2),),
+                  ],
+                )
+              ),
+              Flexible(
+                flex: 1,
+                fit: FlexFit.tight,
+                child: Text(description, style: TextStyle(fontSize: deviceFontSize - 2), overflow: TextOverflow.ellipsis, textAlign: TextAlign.right,),
+              ),
             ]
         ),
       ),
@@ -317,26 +324,26 @@ class _DeviceDetailViewState extends State<DeviceDetailView> {
 
   Widget _selectDivider() {
     if (widget.device.getDeviceType() == Constants.DEVICE_TYPE_HUB) {
-      return const Padding(
-          padding: EdgeInsets.fromLTRB(16, 16, 8, 8),
+      return Padding(
+          padding: const EdgeInsets.fromLTRB(16, 16, 8, 8),
           child: Row(
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
-                Icon(Icons.fiber_manual_record, size: 10.0, color: Colors.redAccent),
-                SizedBox(width: 10),
-                Text("연결된 센서", style: TextStyle(fontSize: 16.0),),
+                const Icon(Icons.fiber_manual_record, size: 10.0, color: Colors.redAccent),
+                const SizedBox(width: 10),
+                Text("연결된 센서", style: TextStyle(fontSize: deviceFontSize - 2),),
               ]
           )
       );
     } else {
       var now = DateTime.now();
       String title = '';
-      if (DateFormat('yyyy-MM-dd').format(_selectedDate) == DateFormat('yyyy-MM-dd').format(now)) {
-        title = '이벤트 목록: 오늘 ($_dayOfWeek)';
+      if (DateFormat('yy-MM-dd').format(_selectedDate) == DateFormat('yy-MM-dd').format(now)) {
+        title = '이벤트: 오늘 ($_dayOfWeek)';
 
       } else {
-        String curr = DateFormat('yyyy-MM-dd').format(_selectedDate);
-        title = '이벤트 목록: $curr ($_dayOfWeek)';
+        String curr = DateFormat('yy-MM-dd').format(_selectedDate);
+        title = '이벤트: $curr ($_dayOfWeek)';
 
       }
       return Padding(
@@ -346,7 +353,7 @@ class _DeviceDetailViewState extends State<DeviceDetailView> {
               children: [
                 const Icon(Icons.fiber_manual_record, size: 10.0, color: Colors.redAccent),
                 const SizedBox(width: 10),
-                Text(title, style: const TextStyle(fontSize: 16.0),),
+                Text(title, style: TextStyle(fontSize: deviceFontSize - 2),),
                 Flexible(
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.end,
@@ -386,24 +393,28 @@ class _DeviceDetailViewState extends State<DeviceDetailView> {
         child: Row(
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
-              _getSensorIcon(sensor),
-              const SizedBox(width: 10,),
-              Text(sensor.getName()!, style: const TextStyle(fontSize: 20),),
               Flexible(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      const SizedBox(height: 48),
-                      Text(sensor.getSensorID()!, style: const TextStyle(fontSize: 20),),
-                      IconButton(
-                        onPressed: (){ _copyDeviceID(sensor.getSensorID()!); },
-                        icon: const Icon(Icons.copy),
-                        iconSize: 20,
+                flex: 1,
+                fit: FlexFit.tight,
+                child: Text(sensor.getName()!, style: TextStyle(fontSize: deviceFontSize), overflow: TextOverflow.clip),
+              ),
+              Flexible(
+                flex: 2,
+                fit: FlexFit.tight,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    SizedBox(height: deviceCardHeight),
+                    Text(sensor.getSensorID()!, style: TextStyle(fontSize: deviceFontSize - 2)),
+                    const SizedBox(width: 10,),
+                      GestureDetector(
+                        onTap: (){ _copyDeviceID(sensor.getSensorID()!); },
+                        child: const Icon(Icons.copy, size: 20, color: Colors.black),
                       )
-                    ],
-                  )
+                  ],
+                )
               )
-            ]
+                  ]
         ),
       ),
     );
@@ -445,17 +456,22 @@ class _DeviceDetailViewState extends State<DeviceDetailView> {
           child: Row(
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
-                const Text('초기화', style: TextStyle(fontSize: 20),),
+                Text('초기화', style: TextStyle(fontSize: deviceFontSize),),
                 Flexible(
                     child: Row(
                       // mainAxisSize : MainAxisSize.max,
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        ElevatedButton(
-                          onPressed: () { _confirmHubInit(context); },
-                          style: Constants.elevatedButtonStyle,
-                          child: const Text('초기화')
-                        ),
+                        SizedBox(
+                          width: 100,
+                          height: deviceCardHeight,
+                          child: ElevatedButton(
+                              onPressed: () { _confirmHubInit(context); },
+                              style: Constants.elevatedButtonStyle,
+                              child: const Text('초기화')
+                          ),
+                        )
+
                       ],
                     )
                 )
@@ -479,17 +495,21 @@ class _DeviceDetailViewState extends State<DeviceDetailView> {
           child: Row(
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
-                const Text('재시작', style: TextStyle(fontSize: 20),),
+                Text('재시작', style: TextStyle(fontSize: deviceFontSize),),
                 Flexible(
                     child: Row(
                       // mainAxisSize : MainAxisSize.max,
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        ElevatedButton(
-                            onPressed: () { _confirmHubRestart(context); },
-                            style: Constants.elevatedButtonStyle,
-                            child: const Text('재시작')
-                        ),
+                        SizedBox(
+                          width: 100,
+                          height: deviceCardHeight,
+                          child: ElevatedButton(
+                              onPressed: () { _confirmHubRestart(context); },
+                              style: Constants.elevatedButtonStyle,
+                              child: const Text('재시작')
+                          ),
+                        )
                       ],
                     )
                 )

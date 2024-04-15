@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:argoscareseniorsafeguard/models/sensor.dart';
@@ -9,6 +10,7 @@ import 'package:argoscareseniorsafeguard/constants.dart';
 import 'package:argoscareseniorsafeguard/providers/providers.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:argoscareseniorsafeguard/constants.dart';
 
 class SettingAlarm extends ConsumerStatefulWidget {
   const SettingAlarm({super.key, required this.sensorList});
@@ -44,7 +46,7 @@ class _SettingAlarmState extends ConsumerState<SettingAlarm> {
             children: [
               Entire(context, ref),
               Expanded(child: ListView.builder(
-                  padding: const EdgeInsets.all(8.0),
+                  // padding: const EdgeInsets.all(8.0),
                   itemCount: widget.sensorList.length,
                   itemBuilder: (BuildContext context, int index) {
                     return Consumer(
@@ -64,35 +66,39 @@ class _SettingAlarmState extends ConsumerState<SettingAlarm> {
   }
 
   Widget Entire(BuildContext context, WidgetRef ref) {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Card(
-          color: Colors.white,
-          surfaceTintColor: Colors.transparent,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text('알림', style: TextStyle(fontSize: 20),),
-                CupertinoSwitch(
-                  value: ref.watch(alarmEntireEnableProvider),
-                  activeColor: CupertinoColors.activeBlue,
-                  onChanged: (bool? value) {
-                    ref.read(alarmEntireEnableProvider.notifier).state = value ?? false;
-                    ref.read(alarmHumidityEnableProvider.notifier).state = value ?? false;
-                    ref.read(alarmEmergencyEnableProvider.notifier).state = value ?? false;
-                    ref.read(alarmMotionEnableProvider.notifier).state = value ?? false;
-                    ref.read(alarmSmokeEnableProvider.notifier).state = value ?? false;
-                    ref.read(alarmIlluminanceEnableProvider.notifier).state = value ?? false;
-                    ref.read(alarmDoorEnableProvider.notifier).state = value ?? false;
-                  },
-                ),
-              ],
-            ),
-          )
-      ),
+     return Card(
+        color: Colors.white,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('알림', style: TextStyle(fontSize: deviceFontSize),),
+              SizedBox(
+                height: 30,
+                child: FittedBox(
+                  fit: BoxFit.contain,
+                  child: CupertinoSwitch(
+                    value: ref.watch(alarmEntireEnableProvider),
+                    activeColor: CupertinoColors.activeBlue,
+                    onChanged: (bool? value) {
+                      ref.read(alarmEntireEnableProvider.notifier).state = value ?? false;
+                      ref.read(alarmHumidityEnableProvider.notifier).state = value ?? false;
+                      ref.read(alarmEmergencyEnableProvider.notifier).state = value ?? false;
+                      ref.read(alarmMotionEnableProvider.notifier).state = value ?? false;
+                      ref.read(alarmSmokeEnableProvider.notifier).state = value ?? false;
+                      ref.read(alarmIlluminanceEnableProvider.notifier).state = value ?? false;
+                      ref.read(alarmDoorEnableProvider.notifier).state = value ?? false;
+                    },
+                  ),
+                )
+
+              ),
+            ],
+          ),
+        )
     );
   }
 
@@ -104,7 +110,7 @@ class _SettingAlarmState extends ConsumerState<SettingAlarm> {
             children: [
               const Icon(Icons.fiber_manual_record, size: 10.0, color: Colors.redAccent),
               const SizedBox(width: 10),
-              Text(sensorName, style: const TextStyle(fontSize: 16.0),),
+              Text(sensorName, style: TextStyle(fontSize: deviceFontSize - 2),),
             ]
         )
     );
@@ -155,28 +161,34 @@ class _SettingAlarmState extends ConsumerState<SettingAlarm> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('알림', style: TextStyle(fontSize: 20),),
-                  CupertinoSwitch(
-                    value: ref.watch(alarmHumidityEnableProvider),
-                    activeColor: CupertinoColors.activeBlue,
-                    onChanged: (bool? value) {
-                      ref
-                          .read(alarmHumidityEnableProvider.notifier)
-                          .state = value ?? false;
-                    },
-                  ),
+                  Text('알림', style: TextStyle(fontSize: deviceFontSize),),
+                  SizedBox(
+                    height: 30,
+                    child: FittedBox(
+                      child: CupertinoSwitch(
+                        value: ref.watch(alarmHumidityEnableProvider),
+                        activeColor: CupertinoColors.activeBlue,
+                        onChanged: (bool? value) {
+                          ref
+                              .read(alarmHumidityEnableProvider.notifier)
+                              .state = value ?? false;
+                        },
+                      ),
+                    )
+                  )
+
                 ],
               ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('시간대 설정', style: TextStyle(fontSize: 20),),
+                  Text('시간대 설정', style: TextStyle(fontSize: deviceFontSize),),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
                       TextButton(
                         style: TextButton.styleFrom(
-                            textStyle: const TextStyle(fontSize: 20),
+                            textStyle: TextStyle(fontSize: deviceFontSize),
                             foregroundColor: Colors.black
                         ),
                         onPressed: () async {
@@ -194,10 +206,10 @@ class _SettingAlarmState extends ConsumerState<SettingAlarm> {
                         },
                         child: Text(ref.watch(alarmHumidityStartTimeProvider)),
                       ),
-                      const Text(' ~ ', style: TextStyle(fontSize: 20),),
+                      Text(' ~ ', style: TextStyle(fontSize: deviceFontSize),),
                       TextButton(
                         style: TextButton.styleFrom(
-                            textStyle: const TextStyle(fontSize: 20),
+                            textStyle: TextStyle(fontSize: deviceFontSize),
                             foregroundColor: Colors.black
                         ),
                         onPressed: () async {
@@ -223,13 +235,13 @@ class _SettingAlarmState extends ConsumerState<SettingAlarm> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('습도 범위', style: TextStyle(fontSize: 20),),
+                  Text('습도 범위', style: TextStyle(fontSize: deviceFontSize),),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
                       TextButton(
                         style: TextButton.styleFrom(
-                            textStyle: const TextStyle(fontSize: 20),
+                            textStyle: TextStyle(fontSize: deviceFontSize),
                             foregroundColor: Colors.black
                         ),
                         onPressed: () async {
@@ -237,10 +249,10 @@ class _SettingAlarmState extends ConsumerState<SettingAlarm> {
                         },
                         child: Text('${ref.watch(alarmHumidityStartValueProvider).toString()}%'),
                       ),
-                      const Text(' ~ ', style: TextStyle(fontSize: 20),),
+                      Text(' ~ ', style: TextStyle(fontSize: deviceFontSize),),
                       TextButton(
                         style: TextButton.styleFrom(
-                            textStyle: const TextStyle(fontSize: 20),
+                            textStyle: TextStyle(fontSize: deviceFontSize),
                             foregroundColor: Colors.black
                         ),
                         onPressed: () async {
@@ -255,13 +267,13 @@ class _SettingAlarmState extends ConsumerState<SettingAlarm> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('온도 범위', style: TextStyle(fontSize: 20),),
+                  Text('온도 범위', style: TextStyle(fontSize: deviceFontSize),),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
                       TextButton(
                         style: TextButton.styleFrom(
-                            textStyle: const TextStyle(fontSize: 20),
+                            textStyle: TextStyle(fontSize: deviceFontSize),
                             foregroundColor: Colors.black
                         ),
                         onPressed: () async {
@@ -269,10 +281,10 @@ class _SettingAlarmState extends ConsumerState<SettingAlarm> {
                         },
                         child: Text('${ref.watch(alarmTemperatureStartValueProvider).toString()}°'),
                       ),
-                      const Text(' ~ ', style: TextStyle(fontSize: 20),),
+                      Text(' ~ ', style: TextStyle(fontSize: deviceFontSize),),
                       TextButton(
                         style: TextButton.styleFrom(
-                            textStyle: const TextStyle(fontSize: 20),
+                            textStyle: TextStyle(fontSize: deviceFontSize),
                             foregroundColor: Colors.black
                         ),
                         onPressed: () async {
@@ -303,26 +315,33 @@ class _SettingAlarmState extends ConsumerState<SettingAlarm> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text('알림', style: TextStyle(fontSize: 20),),
-                    CupertinoSwitch(
-                      value: ref.watch(alarmIlluminanceEnableProvider),
-                      activeColor: CupertinoColors.activeBlue,
-                      onChanged: (bool? value) {
-                        ref.read(alarmIlluminanceEnableProvider.notifier).state = value ?? false;
-                      },
-                    ),
+                    Text('알림', style: TextStyle(fontSize: deviceFontSize),),
+                    SizedBox(
+                      height: 30,
+                      child: FittedBox(
+                        fit: BoxFit.contain,
+                        child: CupertinoSwitch(
+                          value: ref.watch(alarmIlluminanceEnableProvider),
+                          activeColor: CupertinoColors.activeBlue,
+                          onChanged: (bool? value) {
+                            ref.read(alarmIlluminanceEnableProvider.notifier).state = value ?? false;
+                          },
+                        ),
+                      ),
+                    )
+
                   ],
                 ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text('시간대 설정', style: TextStyle(fontSize: 20),),
+                    Text('시간대 설정', style: TextStyle(fontSize: deviceFontSize),),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
                         TextButton(
                           style: TextButton.styleFrom(
-                              textStyle: const TextStyle(fontSize: 20),
+                              textStyle: TextStyle(fontSize: deviceFontSize),
                               foregroundColor: Colors.black
                           ),
                           onPressed: () async {
@@ -340,10 +359,10 @@ class _SettingAlarmState extends ConsumerState<SettingAlarm> {
                           },
                           child: Text(ref.watch(alarmIlluminanceStartTimeProvider)),
                         ),
-                        const Text(' ~ ', style: TextStyle(fontSize: 20),),
+                        Text(' ~ ', style: TextStyle(fontSize: deviceFontSize),),
                         TextButton(
                           style: TextButton.styleFrom(
-                              textStyle: const TextStyle(fontSize: 20),
+                              textStyle: TextStyle(fontSize: deviceFontSize),
                               foregroundColor: Colors.black
                           ),
                           onPressed: () async {
@@ -369,13 +388,13 @@ class _SettingAlarmState extends ConsumerState<SettingAlarm> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text('조도 범위', style: TextStyle(fontSize: 20),),
+                    Text('조도 범위', style: TextStyle(fontSize: deviceFontSize),),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
                         TextButton(
                           style: TextButton.styleFrom(
-                              textStyle: const TextStyle(fontSize: 20),
+                              textStyle: TextStyle(fontSize: deviceFontSize),
                               foregroundColor: Colors.black
                           ),
                           onPressed: () async {
@@ -383,10 +402,10 @@ class _SettingAlarmState extends ConsumerState<SettingAlarm> {
                           },
                           child: Text(ref.watch(alarmIlluminanceStartValueProvider).toString()),
                         ),
-                        const Text(' ~ ', style: TextStyle(fontSize: 20),),
+                        Text(' ~ ', style: TextStyle(fontSize: deviceFontSize),),
                         TextButton(
                           style: TextButton.styleFrom(
-                              textStyle: const TextStyle(fontSize: 20),
+                              textStyle: TextStyle(fontSize: deviceFontSize),
                               foregroundColor: Colors.black
                           ),
                           onPressed: () async {
@@ -416,26 +435,32 @@ class _SettingAlarmState extends ConsumerState<SettingAlarm> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text('알림', style: TextStyle(fontSize: 20),),
-                    CupertinoSwitch(
-                      value: ref.watch(alarmMotionEnableProvider),
-                      activeColor: CupertinoColors.activeBlue,
-                      onChanged: (bool? value) {
-                        ref.read(alarmMotionEnableProvider.notifier).state = value ?? false;
-                      },
-                    ),
+                    Text('알림', style: TextStyle(fontSize: deviceFontSize),),
+                    SizedBox(
+                      height: 30,
+                      child: FittedBox(
+                        fit: BoxFit.contain,
+                        child: CupertinoSwitch(
+                          value: ref.watch(alarmMotionEnableProvider),
+                          activeColor: CupertinoColors.activeBlue,
+                          onChanged: (bool? value) {
+                            ref.read(alarmMotionEnableProvider.notifier).state = value ?? false;
+                          },
+                        ),
+                      )
+                    )
                   ],
                 ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text('시간대 설정', style: TextStyle(fontSize: 20),),
+                    Text('시간대 설정', style: TextStyle(fontSize: deviceFontSize),),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
                         TextButton(
                           style: TextButton.styleFrom(
-                              textStyle: const TextStyle(fontSize: 20),
+                              textStyle: TextStyle(fontSize: deviceFontSize),
                               foregroundColor: Colors.black
                           ),
                           onPressed: () async {
@@ -453,10 +478,10 @@ class _SettingAlarmState extends ConsumerState<SettingAlarm> {
                           },
                           child: Text(ref.watch(alarmMotionStartTimeProvider)),
                         ),
-                        const Text(' ~ ', style: TextStyle(fontSize: 20),),
+                        Text(' ~ ', style: TextStyle(fontSize: deviceFontSize),),
                         TextButton(
                           style: TextButton.styleFrom(
-                              textStyle: const TextStyle(fontSize: 20),
+                              textStyle: TextStyle(fontSize: deviceFontSize),
                               foregroundColor: Colors.black
                           ),
                           onPressed: () async {
@@ -497,26 +522,32 @@ class _SettingAlarmState extends ConsumerState<SettingAlarm> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text('알림', style: TextStyle(fontSize: 20),),
-                    CupertinoSwitch(
-                      value: ref.watch(alarmDoorEnableProvider),
-                      activeColor: CupertinoColors.activeBlue,
-                      onChanged: (bool? value) {
-                        ref.read(alarmDoorEnableProvider.notifier).state = value ?? false;
-                      },
-                    ),
+                    Text('알림', style: TextStyle(fontSize: deviceFontSize),),
+                    SizedBox(
+                      height: 30,
+                      child: FittedBox(
+                        fit: BoxFit.contain,
+                        child: CupertinoSwitch(
+                          value: ref.watch(alarmDoorEnableProvider),
+                          activeColor: CupertinoColors.activeBlue,
+                          onChanged: (bool? value) {
+                            ref.read(alarmDoorEnableProvider.notifier).state = value ?? false;
+                          },
+                        ),
+                      )
+                    )
                   ],
                 ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text('시간대 설정', style: TextStyle(fontSize: 20),),
+                    Text('시간대 설정', style: TextStyle(fontSize: deviceFontSize),),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
                         TextButton(
                           style: TextButton.styleFrom(
-                              textStyle: const TextStyle(fontSize: 20),
+                              textStyle: TextStyle(fontSize: deviceFontSize),
                               foregroundColor: Colors.black
                           ),
                           onPressed: () async {
@@ -534,10 +565,10 @@ class _SettingAlarmState extends ConsumerState<SettingAlarm> {
                           },
                           child: Text(ref.watch(alarmDoorStartTimeProvider)),
                         ),
-                        const Text(' ~ ', style: TextStyle(fontSize: 20),),
+                        Text(' ~ ', style: TextStyle(fontSize: deviceFontSize),),
                         TextButton(
                           style: TextButton.styleFrom(
-                              textStyle: const TextStyle(fontSize: 20),
+                              textStyle: TextStyle(fontSize: deviceFontSize),
                               foregroundColor: Colors.black
                           ),
                           onPressed: () async {
@@ -578,26 +609,32 @@ class _SettingAlarmState extends ConsumerState<SettingAlarm> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text('알림', style: TextStyle(fontSize: 20),),
-                    CupertinoSwitch(
-                      value: ref.watch(alarmSmokeEnableProvider),
-                      activeColor: CupertinoColors.activeBlue,
-                      onChanged: (bool? value) {
-                        ref.read(alarmSmokeEnableProvider.notifier).state = value ?? false;
-                      },
-                    ),
+                    Text('알림', style: TextStyle(fontSize: deviceFontSize),),
+                    SizedBox(
+                      height: 30,
+                      child: FittedBox(
+                        fit: BoxFit.contain,
+                        child: CupertinoSwitch(
+                          value: ref.watch(alarmSmokeEnableProvider),
+                          activeColor: CupertinoColors.activeBlue,
+                          onChanged: (bool? value) {
+                            ref.read(alarmSmokeEnableProvider.notifier).state = value ?? false;
+                          },
+                        ),
+                      )
+                    )
                   ],
                 ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text('시간대 설정', style: TextStyle(fontSize: 20),),
+                    Text('시간대 설정', style: TextStyle(fontSize: deviceFontSize),),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
                         TextButton(
                           style: TextButton.styleFrom(
-                              textStyle: const TextStyle(fontSize: 20),
+                              textStyle: TextStyle(fontSize: deviceFontSize),
                               foregroundColor: Colors.black
                           ),
                           onPressed: () async {
@@ -615,10 +652,10 @@ class _SettingAlarmState extends ConsumerState<SettingAlarm> {
                           },
                           child: Text(ref.watch(alarmSmokeStartTimeProvider)),
                         ),
-                        const Text(' ~ ', style: TextStyle(fontSize: 20),),
+                        Text(' ~ ', style: TextStyle(fontSize: deviceFontSize),),
                         TextButton(
                           style: TextButton.styleFrom(
-                              textStyle: const TextStyle(fontSize: 20),
+                              textStyle: TextStyle(fontSize: deviceFontSize),
                               foregroundColor: Colors.black
                           ),
                           onPressed: () async {
@@ -659,26 +696,32 @@ class _SettingAlarmState extends ConsumerState<SettingAlarm> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text('알림', style: TextStyle(fontSize: 20),),
-                    CupertinoSwitch(
-                      value: ref.watch(alarmEmergencyEnableProvider),
-                      activeColor: CupertinoColors.activeBlue,
-                      onChanged: (bool? value) {
-                        ref.read(alarmEmergencyEnableProvider.notifier).state = value ?? false;
-                      },
-                    ),
+                    Text('알림', style: TextStyle(fontSize: deviceFontSize),),
+                    SizedBox(
+                      height: 30,
+                      child: FittedBox(
+                        fit: BoxFit.contain,
+                        child: CupertinoSwitch(
+                          value: ref.watch(alarmEmergencyEnableProvider),
+                          activeColor: CupertinoColors.activeBlue,
+                          onChanged: (bool? value) {
+                            ref.read(alarmEmergencyEnableProvider.notifier).state = value ?? false;
+                          },
+                        ),
+                      )
+                    )
                   ],
                 ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text('시간대 설정', style: TextStyle(fontSize: 20),),
+                    Text('시간대 설정', style: TextStyle(fontSize: deviceFontSize),),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
                         TextButton(
                           style: TextButton.styleFrom(
-                              textStyle: const TextStyle(fontSize: 20),
+                              textStyle: TextStyle(fontSize: deviceFontSize),
                               foregroundColor: Colors.black
                           ),
                           onPressed: () async {
@@ -696,10 +739,10 @@ class _SettingAlarmState extends ConsumerState<SettingAlarm> {
                           },
                           child: Text(ref.watch(alarmEmergencyStartTimeProvider)),
                         ),
-                        const Text(' ~ ', style: TextStyle(fontSize: 20),),
+                        Text(' ~ ', style: TextStyle(fontSize: deviceFontSize),),
                         TextButton(
                           style: TextButton.styleFrom(
-                              textStyle: const TextStyle(fontSize: 20),
+                              textStyle: TextStyle(fontSize: deviceFontSize),
                               foregroundColor: Colors.black
                           ),
                           onPressed: () async {

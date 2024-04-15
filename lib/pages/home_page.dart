@@ -43,6 +43,8 @@ class _HomePageState extends ConsumerState<HomePage> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+
+    getDeviceFontSize(context);
   }
 
   @override
