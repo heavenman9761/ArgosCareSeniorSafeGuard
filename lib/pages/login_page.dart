@@ -10,6 +10,7 @@ import 'package:argoscareseniorsafeguard/components/square_tile.dart';
 import 'package:argoscareseniorsafeguard/pages/home_page.dart';
 import 'package:argoscareseniorsafeguard/constants.dart';
 import 'package:argoscareseniorsafeguard/auth/auth_dio.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -42,37 +43,73 @@ class _LoginPageState extends State<LoginPage> {
       );
 
       final token = response.data['token'];
-      print('first token: $token');
       const storage = FlutterSecureStorage(
         iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock),
         aOptions: AndroidOptions(encryptedSharedPreferences: true),
       );
       await storage.write(key: 'ACCESS_TOKEN', value: token);
 
-      var loginResponse = await dio.get(
+      final loginResponse = await dio.get(
           "/auth/me"
       );
 
       final String userName = loginResponse.data['user']['name'];
+      final String userID = loginResponse.data['user']['id'];
 
       await storage.write(key: 'ID', value: loginResponse.data['user']['id']);
       await storage.write(key: 'EMAIL', value: loginResponse.data['user']['email']);
       await storage.write(key: 'PASSWORD', value: passwordController.text);
-      await storage.write(key: 'NAME', value: loginResponse.data['user']['name']);
-      await storage.write(key: 'ADDR_ZIP', value: loginResponse.data['user']['addr_zip']);
-      await storage.write(key: 'ADDR', value: loginResponse.data['user']['addr']);
-      await storage.write(key: 'MOBILE_PHONE', value: loginResponse.data['user']['mobilephone']);
-      await storage.write(key: 'TEL', value: loginResponse.data['user']['tel']);
-      await storage.write(key: 'SNS_ID', value: loginResponse.data['user']['snsId']);
-      await storage.write(key: 'PROVIDER', value: loginResponse.data['user']['provider']);
-      await storage.write(key: 'ADMiN', value: loginResponse.data['user']['admin'].toString());
+      // await storage.write(key: 'NAME', value: loginResponse.data['user']['name']);
+      // await storage.write(key: 'ADDR_ZIP', value: loginResponse.data['user']['addr_zip']);
+      // await storage.write(key: 'ADDR', value: loginResponse.data['user']['addr']);
+      // await storage.write(key: 'MOBILE_PHONE', value: loginResponse.data['user']['mobilephone']);
+      // await storage.write(key: 'TEL', value: loginResponse.data['user']['tel']);
+      // await storage.write(key: 'SNS_ID', value: loginResponse.data['user']['snsId']);
+      // await storage.write(key: 'PROVIDER', value: loginResponse.data['user']['provider']);
+      // await storage.write(key: 'ADMiN', value: loginResponse.data['user']['admin'].toString());
 
-      Navigator.pushReplacement(context,
-          MaterialPageRoute(builder: (context) {
-            return HomePage(title: 'Argos Care', userName: userName);
-          },
-        )
+      final alarmResponse = await dio.get(
+        "/devices/get_alarm/$userID"
       );
+
+      final SharedPreferences pref = await SharedPreferences.getInstance();
+
+      pref.setBool("EntireAlarm", alarmResponse.data['entireAlarm']);
+
+      pref.setBool("HumidityAlarmEnable", alarmResponse.data['humidityAlarmEnable']);
+      pref.setString("HumidityStartTime", alarmResponse.data['humidityStartTime']);
+      pref.setString("HumidityEndTime", alarmResponse.data['humidityEndTime']);
+      pref.setInt("HumidityStartValue", alarmResponse.data['humidityStartValue']);
+      pref.setInt("HumidityEndValue", alarmResponse.data['humidityEndValue']);
+      pref.setInt("TemperatureStartValue", alarmResponse.data['temperatureStartValue']);
+      pref.setInt("TemperatureEndValue", alarmResponse.data['temperatureEndValue']);
+
+      pref.setBool("EmergencyAlarmEnable", alarmResponse.data['emergencyAlarmEnable']);
+      pref.setString("EmergencyStartTime", alarmResponse.data['emergencyStartTime']);
+      pref.setString("EmergencyEndTime", alarmResponse.data['emergencyEndTime']);
+
+      pref.setBool("MotionAlarmEnable", alarmResponse.data['motionAlarmEnable']);
+      pref.setString("MotionStartTime", alarmResponse.data['motionStartTime']);
+      pref.setString("MotionEndTime", alarmResponse.data['motionEndTime']);
+
+      pref.setBool("SmokeAlarmEnable", alarmResponse.data['smokeAlarmEnable']);
+      pref.setString("SmokeStartTime", alarmResponse.data['smokeStartTime']);
+      pref.setString("SmokeEndTime", alarmResponse.data['smokeEndTime']);
+
+      pref.setBool("IlluminanceAlarmEnable", alarmResponse.data['illuminanceAlarmEnable']);
+      pref.setString("IlluminanceStartTime", alarmResponse.data['illuminanceStartTime']);
+      pref.setString("IlluminanceEndTime", alarmResponse.data['illuminanceEndTime']);
+      pref.setInt("IlluminanceStartValue", alarmResponse.data['illuminanceStartValue']);
+      pref.setInt("IlluminanceEndValue", alarmResponse.data['illuminanceEndValue']);
+
+      pref.setBool("DoorAlarmEnable", alarmResponse.data['doorAlarmEnable']);
+      pref.setString("DoorStartTime", alarmResponse.data['doorStartTime']);
+      pref.setString("DoorEndTime", alarmResponse.data['doorEndTime']);
+
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) {
+          return HomePage(title: 'Argos Care', userName: userName);
+        },
+      ));
 
     } catch (e) {
       debugPrint(e.toString());
@@ -98,6 +135,12 @@ class _LoginPageState extends State<LoginPage> {
           }
       );
     }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    getDeviceFontSize(context);
   }
 
   @override
@@ -167,68 +210,73 @@ class _LoginPageState extends State<LoginPage> {
 
               // sign in button
               loginWidget(context),
+              // Expanded(child: SizedBox.shrink()),
+              // Spacer(),
+              Expanded(
+                child: Container(
+                  // color: Colors.yellow,
+                  width: double.infinity,
+                  height: double.infinity,
+                  alignment: Alignment.bottomCenter,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 25.0),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Divider(
+                                thickness: 0.5,
+                                color: Colors.grey[400],
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                              child: Text(
+                                'Or continue with',
+                                style: TextStyle(color: Colors.grey[700]),
+                              ),
+                            ),
+                            Expanded(
+                              child: Divider(
+                                thickness: 0.5,
+                                color: Colors.grey[400],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children:  [
+                          SquareTile(imagePath: 'lib/images/google.png'),
+                          SquareTile(imagePath: 'lib/images/facebook.png'),
+                          SquareTile(imagePath: 'lib/images/twitter.png'),
+                        ],
+                      ),
 
-              const SizedBox(height: 30),
-
-              // or continue with
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 25.0),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Divider(
-                        thickness: 0.5,
-                        color: Colors.grey[400],
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                      child: Text(
-                        'Or continue with',
-                        style: TextStyle(color: Colors.grey[700]),
-                      ),
-                    ),
-                    Expanded(
-                      child: Divider(
-                        thickness: 0.5,
-                        color: Colors.grey[400],
-                      ),
-                    ),
-                  ],
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            'Not a member?',
+                            style: TextStyle(color: Colors.grey[700]),
+                          ),
+                          const SizedBox(width: 4),
+                          const Text(
+                            'Register now',
+                            style: TextStyle(
+                              color: Colors.blue,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      )
+                    ],
+                  )
                 ),
               ),
-
-              const SizedBox(height: 10),
-              // google + apple sign in buttons
-              const Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children:  [
-                  SquareTile(imagePath: 'lib/images/google.png'),
-                  SquareTile(imagePath: 'lib/images/facebook.png'),
-                  SquareTile(imagePath: 'lib/images/twitter.png'),
-                ],
-              ),
-
-              const SizedBox(height: 20),
-
-              // not a member? register now
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    'Not a member?',
-                    style: TextStyle(color: Colors.grey[700]),
-                  ),
-                  const SizedBox(width: 4),
-                  const Text(
-                    'Register now',
-                    style: TextStyle(
-                      color: Colors.blue,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              )
             ],
           ),
         ),

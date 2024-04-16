@@ -56,9 +56,7 @@ class _SettingAlarmState extends ConsumerState<SettingAlarm> {
                     );
                   }
                 )
-
               )
-
             ],
           ),
         )

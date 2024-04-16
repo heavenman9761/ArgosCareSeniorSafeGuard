@@ -57,9 +57,13 @@ double deviceIconSize = 16.0;
 
 void getDeviceFontSize(BuildContext context) {
   if (DeviceScreen.isPhone(context)) {
+    print("isPhone()");
     deviceFontSize = 18.0;
   } else if (DeviceScreen.isTablet(context)) {
+    print("isTablet()");
     deviceFontSize = 20.0;
+  } else if (DeviceScreen.isSmallPhone(context)) {
+    print("isSmallPhone()");
   }
 }
 

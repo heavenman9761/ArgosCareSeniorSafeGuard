@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:argoscareseniorsafeguard/constants.dart';
 
 class MyTextField extends StatelessWidget {
   final controller;
@@ -16,9 +17,8 @@ class MyTextField extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 25.0),
-      // padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
       child: TextField(
-        style: const TextStyle(fontSize: 12),
+        style: TextStyle(fontSize: deviceFontSize),
         controller: controller,
         obscureText: obscureText,
         decoration: InputDecoration(
@@ -28,6 +28,8 @@ class MyTextField extends StatelessWidget {
             focusedBorder: OutlineInputBorder(
               borderSide: BorderSide(color: Colors.grey.shade400),
             ),
+            isDense: true,
+            contentPadding: const EdgeInsets.all(8),
             fillColor: Colors.grey.shade200,
             filled: true,
             hintText: hintText,

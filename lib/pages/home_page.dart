@@ -43,8 +43,6 @@ class _HomePageState extends ConsumerState<HomePage> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-
-    getDeviceFontSize(context);
   }
 
   @override
@@ -173,29 +171,6 @@ class _HomePageState extends ConsumerState<HomePage> {
     }
     return false;
   }
-
-  /*Future<void> getHubIdToPrefs() async {
-    try {
-      final SharedPreferences pref = await SharedPreferences.getInstance();
-
-      final deviceId = pref.getString('deviceID') ?? '';
-      if (deviceId != '') {
-        ref.read(resultTopicProvider.notifier).state = 'result/$deviceId';
-        ref.read(commandTopicProvider.notifier).state = 'command/$deviceId';
-        ref.read(requestTopicProvider.notifier).state = 'request/$deviceId';
-
-        // _manager.subScribeTo(ref.watch(resultTopicProvider));
-        // logger.i('subscribed to ${ref.watch(resultTopicProvider)}');
-        //
-        // _manager.subScribeTo(ref.watch(requestTopicProvider));
-        // logger.i('subscribed to ${ref.watch(requestTopicProvider)}');
-      } else {
-        logger.i('not hubID');
-      }
-    } catch (e) {
-      logger.e(e);
-    }
-  }*/
 
   void _mqttStartSubscribeTo() async {
     DBHelper sd = DBHelper();
