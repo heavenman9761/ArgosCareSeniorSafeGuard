@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:argoscareseniorsafeguard/mqtt/mqtt.dart';
+import 'package:argoscareseniorsafeguard/pages/register_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
@@ -11,6 +11,8 @@ import 'package:argoscareseniorsafeguard/pages/home_page.dart';
 import 'package:argoscareseniorsafeguard/constants.dart';
 import 'package:argoscareseniorsafeguard/auth/auth_dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:argoscareseniorsafeguard/utils/string_extensions.dart';
+
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -20,103 +22,113 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  final usernameController = TextEditingController(text: 'dn9318dn@gmail.com');
-  final passwordController = TextEditingController(text: '121212');
+  final _formKey = GlobalKey<FormState>();
+
+  String email = '';
+  String password = '';
 
   bool isLogging = false;
 
   // sign user in method
-  Future<void> signUserIn(BuildContext context) async {
+  void signUserIn(BuildContext context) async {
+    final isValid = _formKey.currentState!.validate();
+    if (isValid) {
+      setState(() {
+        isLogging = true;
+      });
 
-    setState(() {
-      isLogging = true;
-    });
+      _formKey.currentState!.save();
+      try {
 
-    try {
-      dio = await authDio();
-      final response = await dio.post(
-          "/auth/signin",
-          data: jsonEncode({
-            "email": usernameController.text,
-            "password": passwordController.text
-          })
-      );
+        dio = await authDio();
 
-      final token = response.data['token'];
-      const storage = FlutterSecureStorage(
-        iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock),
-        aOptions: AndroidOptions(encryptedSharedPreferences: true),
-      );
-      await storage.write(key: 'ACCESS_TOKEN', value: token);
+        print(email);
+        print(password);
 
-      final loginResponse = await dio.get(
-          "/auth/me"
-      );
+        final response = await dio.post(
+            "/auth/signin",
+            data: jsonEncode({
+              "email": email,
+              "password": password
+            })
+        );
 
-      final String userName = loginResponse.data['user']['name'];
-      final String userID = loginResponse.data['user']['id'];
+        final token = response.data['token'];
+        const storage = FlutterSecureStorage(
+          iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock),
+          aOptions: AndroidOptions(encryptedSharedPreferences: true),
+        );
+        await storage.write(key: 'ACCESS_TOKEN', value: token);
 
-      await storage.write(key: 'ID', value: loginResponse.data['user']['id']);
-      await storage.write(key: 'EMAIL', value: loginResponse.data['user']['email']);
-      await storage.write(key: 'PASSWORD', value: passwordController.text);
-      // await storage.write(key: 'NAME', value: loginResponse.data['user']['name']);
-      // await storage.write(key: 'ADDR_ZIP', value: loginResponse.data['user']['addr_zip']);
-      // await storage.write(key: 'ADDR', value: loginResponse.data['user']['addr']);
-      // await storage.write(key: 'MOBILE_PHONE', value: loginResponse.data['user']['mobilephone']);
-      // await storage.write(key: 'TEL', value: loginResponse.data['user']['tel']);
-      // await storage.write(key: 'SNS_ID', value: loginResponse.data['user']['snsId']);
-      // await storage.write(key: 'PROVIDER', value: loginResponse.data['user']['provider']);
-      // await storage.write(key: 'ADMiN', value: loginResponse.data['user']['admin'].toString());
+        final loginResponse = await dio.get(
+            "/auth/me"
+        );
 
-      final alarmResponse = await dio.get(
-        "/devices/get_alarm/$userID"
-      );
+        final String userName = loginResponse.data['user']['name'];
+        final String userID = loginResponse.data['user']['id'];
 
-      final SharedPreferences pref = await SharedPreferences.getInstance();
+        await storage.write(key: 'ID', value: loginResponse.data['user']['id']);
+        await storage.write(key: 'EMAIL', value: loginResponse.data['user']['email']);
+        await storage.write(key: 'PASSWORD', value: password);
+        // await storage.write(key: 'NAME', value: loginResponse.data['user']['name']);
+        // await storage.write(key: 'ADDR_ZIP', value: loginResponse.data['user']['addr_zip']);
+        // await storage.write(key: 'ADDR', value: loginResponse.data['user']['addr']);
+        // await storage.write(key: 'MOBILE_PHONE', value: loginResponse.data['user']['mobilephone']);
+        // await storage.write(key: 'TEL', value: loginResponse.data['user']['tel']);
+        // await storage.write(key: 'SNS_ID', value: loginResponse.data['user']['snsId']);
+        // await storage.write(key: 'PROVIDER', value: loginResponse.data['user']['provider']);
+        // await storage.write(key: 'ADMiN', value: loginResponse.data['user']['admin'].toString());
 
-      pref.setBool("EntireAlarm", alarmResponse.data['entireAlarm']);
+        final alarmResponse = await dio.get(
+            "/devices/get_alarm/$userID"
+        );
 
-      pref.setBool("HumidityAlarmEnable", alarmResponse.data['humidityAlarmEnable']);
-      pref.setString("HumidityStartTime", alarmResponse.data['humidityStartTime']);
-      pref.setString("HumidityEndTime", alarmResponse.data['humidityEndTime']);
-      pref.setInt("HumidityStartValue", alarmResponse.data['humidityStartValue']);
-      pref.setInt("HumidityEndValue", alarmResponse.data['humidityEndValue']);
-      pref.setInt("TemperatureStartValue", alarmResponse.data['temperatureStartValue']);
-      pref.setInt("TemperatureEndValue", alarmResponse.data['temperatureEndValue']);
+        final SharedPreferences pref = await SharedPreferences.getInstance();
 
-      pref.setBool("EmergencyAlarmEnable", alarmResponse.data['emergencyAlarmEnable']);
-      pref.setString("EmergencyStartTime", alarmResponse.data['emergencyStartTime']);
-      pref.setString("EmergencyEndTime", alarmResponse.data['emergencyEndTime']);
+        pref.setBool("EntireAlarm", alarmResponse.data['entireAlarm']);
 
-      pref.setBool("MotionAlarmEnable", alarmResponse.data['motionAlarmEnable']);
-      pref.setString("MotionStartTime", alarmResponse.data['motionStartTime']);
-      pref.setString("MotionEndTime", alarmResponse.data['motionEndTime']);
+        pref.setBool("HumidityAlarmEnable", alarmResponse.data['humidityAlarmEnable']);
+        pref.setString("HumidityStartTime", alarmResponse.data['humidityStartTime']);
+        pref.setString("HumidityEndTime", alarmResponse.data['humidityEndTime']);
+        pref.setInt("HumidityStartValue", alarmResponse.data['humidityStartValue']);
+        pref.setInt("HumidityEndValue", alarmResponse.data['humidityEndValue']);
+        pref.setInt("TemperatureStartValue", alarmResponse.data['temperatureStartValue']);
+        pref.setInt("TemperatureEndValue", alarmResponse.data['temperatureEndValue']);
 
-      pref.setBool("SmokeAlarmEnable", alarmResponse.data['smokeAlarmEnable']);
-      pref.setString("SmokeStartTime", alarmResponse.data['smokeStartTime']);
-      pref.setString("SmokeEndTime", alarmResponse.data['smokeEndTime']);
+        pref.setBool("EmergencyAlarmEnable", alarmResponse.data['emergencyAlarmEnable']);
+        pref.setString("EmergencyStartTime", alarmResponse.data['emergencyStartTime']);
+        pref.setString("EmergencyEndTime", alarmResponse.data['emergencyEndTime']);
 
-      pref.setBool("IlluminanceAlarmEnable", alarmResponse.data['illuminanceAlarmEnable']);
-      pref.setString("IlluminanceStartTime", alarmResponse.data['illuminanceStartTime']);
-      pref.setString("IlluminanceEndTime", alarmResponse.data['illuminanceEndTime']);
-      pref.setInt("IlluminanceStartValue", alarmResponse.data['illuminanceStartValue']);
-      pref.setInt("IlluminanceEndValue", alarmResponse.data['illuminanceEndValue']);
+        pref.setBool("MotionAlarmEnable", alarmResponse.data['motionAlarmEnable']);
+        pref.setString("MotionStartTime", alarmResponse.data['motionStartTime']);
+        pref.setString("MotionEndTime", alarmResponse.data['motionEndTime']);
 
-      pref.setBool("DoorAlarmEnable", alarmResponse.data['doorAlarmEnable']);
-      pref.setString("DoorStartTime", alarmResponse.data['doorStartTime']);
-      pref.setString("DoorEndTime", alarmResponse.data['doorEndTime']);
+        pref.setBool("SmokeAlarmEnable", alarmResponse.data['smokeAlarmEnable']);
+        pref.setString("SmokeStartTime", alarmResponse.data['smokeStartTime']);
+        pref.setString("SmokeEndTime", alarmResponse.data['smokeEndTime']);
 
-      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) {
+        pref.setBool("IlluminanceAlarmEnable", alarmResponse.data['illuminanceAlarmEnable']);
+        pref.setString("IlluminanceStartTime", alarmResponse.data['illuminanceStartTime']);
+        pref.setString("IlluminanceEndTime", alarmResponse.data['illuminanceEndTime']);
+        pref.setInt("IlluminanceStartValue", alarmResponse.data['illuminanceStartValue']);
+        pref.setInt("IlluminanceEndValue", alarmResponse.data['illuminanceEndValue']);
+
+        pref.setBool("DoorAlarmEnable", alarmResponse.data['doorAlarmEnable']);
+        pref.setString("DoorStartTime", alarmResponse.data['doorStartTime']);
+        pref.setString("DoorEndTime", alarmResponse.data['doorEndTime']);
+
+        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) {
           return HomePage(title: 'Argos Care', userName: userName);
         },
-      ));
+        ));
 
-    } catch (e) {
-      debugPrint(e.toString());
+      } catch (e) {
+        debugPrint(e.toString());
 
-      setState(() {
-        isLogging = false;
-      });
+        setState(() {
+          isLogging = false;
+        });
+      }
     }
   }
 
@@ -132,7 +144,8 @@ class _LoginPageState extends State<LoginPage> {
       return MyButton(
           onTap: () async {
             signUserIn(context);
-          }
+          },
+          text: "Sign in",
       );
     }
   }
@@ -149,135 +162,171 @@ class _LoginPageState extends State<LoginPage> {
       backgroundColor: Colors.grey[300],
       resizeToAvoidBottomInset: false,
       body: SafeArea(
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const SizedBox(height: 50),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: Center(
+            child: Form(
+              key: _formKey,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const SizedBox(height: 50),
 
-              // logo
-              const Icon(
-                Icons.lock,
-                size: 100,
-              ),
+                  // logo
+                  const Icon(
+                    Icons.lock,
+                    size: 100,
+                  ),
 
-              const SizedBox(height: 30),
+                  const SizedBox(height: 30),
 
-              // welcome back, you've been missed!
-              Text(
-                'Welcome back you\'ve been missed!',
-                style: TextStyle(
-                  color: Colors.grey[700],
-                  fontSize: 16,
-                ),
-              ),
-
-              const SizedBox(height: 25),
-
-              // username textfield
-              MyTextField(
-                controller: usernameController,
-                hintText: 'Username',
-                obscureText: false,
-              ),
-
-              const SizedBox(height: 10),
-
-              // password textfield
-              MyTextField(
-                controller: passwordController,
-                hintText: 'Password',
-                obscureText: true,
-              ),
-
-              const SizedBox(height: 10),
-
-              // forgot password?
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 25.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    Text(
-                      'Forgot Password?',
-                      style: TextStyle(color: Colors.grey[600]),
+                  // welcome back, you've been missed!
+                  Text(
+                    'Welcome back you\'ve been missed!',
+                    style: TextStyle(
+                      color: Colors.grey[700],
+                      fontSize: 16,
                     ),
-                  ],
-                ),
-              ),
+                  ),
 
-              const SizedBox(height: 25),
+                  const SizedBox(height: 25),
 
-              // sign in button
-              loginWidget(context),
-              // Expanded(child: SizedBox.shrink()),
-              // Spacer(),
-              Expanded(
-                child: Container(
-                  // color: Colors.yellow,
-                  width: double.infinity,
-                  height: double.infinity,
-                  alignment: Alignment.bottomCenter,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 25.0),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Divider(
-                                thickness: 0.5,
-                                color: Colors.grey[400],
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                              child: Text(
-                                'Or continue with',
-                                style: TextStyle(color: Colors.grey[700]),
-                              ),
-                            ),
-                            Expanded(
-                              child: Divider(
-                                thickness: 0.5,
-                                color: Colors.grey[400],
-                              ),
-                            ),
-                          ],
+                  renderTextFormField(
+                    context: context,
+                    label: '메일 주소',
+                    keyNumber: 1,
+                    icon: const Icon(Icons.mail, color: Colors.grey,),
+                    keyboardType: TextInputType.emailAddress,
+                    initialValue: 'dn9318dn@gmail.com',
+                    onSaved: (val) {
+                      setState(() {
+                        email = val;
+                      });
+
+                    },
+                    validator: (val) {
+                      if (val.length < 1) {
+                        return '이메일은 필수사항입니다.';
+                      }
+                      return (val as String).isValidEmailFormat() ? null : '이메일 형식이 아닙니다.';
+                    },
+                  ),
+
+                  const SizedBox(height: 10),
+
+                  renderTextFormField(
+                    context: context,
+                    label: '비밀 번호',
+                    keyNumber: 2,
+                    icon: const Icon(Icons.lock, color: Colors.grey,),
+                    keyboardType: TextInputType.text,
+                    obscureText: true,
+                    initialValue: '121212',
+                    onSaved: (val) {
+                      setState(() {
+                        password = val;
+                      });
+
+                    },
+                    validator: (val) {
+                      if (val.length < 6) {
+                        return '비밀번호는 6글자 이상 12글자 이하로 입력 해주셔야합니다.';
+                      }
+
+                      return (val as String).isValidPasswordFormatType1() ? null : '비밀번호는 영문(소문자, 대문자), 숫자, 특수문자로 이루어진 6 ~ 12 자리입니다.';
+                    },
+                  ),
+
+                  const SizedBox(height: 10),
+
+                  // forgot password?
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 25.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Text(
+                          'Forgot Password?',
+                          style: TextStyle(color: Colors.grey[600]),
                         ),
-                      ),
-                      const Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children:  [
-                          SquareTile(imagePath: 'lib/images/google.png'),
-                          SquareTile(imagePath: 'lib/images/facebook.png'),
-                          SquareTile(imagePath: 'lib/images/twitter.png'),
-                        ],
-                      ),
+                      ],
+                    ),
+                  ),
 
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
+                  const SizedBox(height: 25),
+
+                  // sign in button
+                  loginWidget(context),
+                  // Expanded(child: SizedBox.shrink()),
+                  // Spacer(),
+                  Expanded(
+                    child: Container(
+                      // color: Colors.yellow,
+                      width: double.infinity,
+                      height: double.infinity,
+                      alignment: Alignment.bottomCenter,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
                         children: [
-                          Text(
-                            'Not a member?',
-                            style: TextStyle(color: Colors.grey[700]),
-                          ),
-                          const SizedBox(width: 4),
-                          const Text(
-                            'Register now',
-                            style: TextStyle(
-                              color: Colors.blue,
-                              fontWeight: FontWeight.bold,
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 25.0),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Divider(
+                                    thickness: 0.5,
+                                    color: Colors.grey[400],
+                                  ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                                  child: Text(
+                                    'Or continue with',
+                                    style: TextStyle(color: Colors.grey[700]),
+                                  ),
+                                ),
+                                Expanded(
+                                  child: Divider(
+                                    thickness: 0.5,
+                                    color: Colors.grey[400],
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
+                          const Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children:  [
+                              SquareTile(imagePath: 'lib/images/google.png'),
+                              SquareTile(imagePath: 'lib/images/facebook.png'),
+                              SquareTile(imagePath: 'lib/images/twitter.png'),
+                            ],
+                          ),
+
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text('Not a member?', style: TextStyle(color: Colors.grey[700]), ),
+                              const SizedBox(width: 4),
+                              TextButton(
+                                child: const Text("Register now", style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold,)),
+                                onPressed: () {
+                                  Navigator.push(context,
+                                    MaterialPageRoute(builder: (context) {
+                                      return const RegisterPage();
+                                    })
+                                  );
+                                },
+                              ),
+                            ],
+                          )
                         ],
                       )
-                    ],
-                  )
-                ),
+                    ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ),

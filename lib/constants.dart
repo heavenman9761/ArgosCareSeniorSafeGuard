@@ -22,13 +22,11 @@ class Constants {
   static const DEVICE_TYPE_DOOR = 'door_sensor';
 
   static final ButtonStyle elevatedButtonStyle = ElevatedButton.styleFrom(
-      foregroundColor: Colors.white60,
-      backgroundColor: Colors.lightBlue, // text color
-      elevation: 5, //
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
+    foregroundColor: Colors.white60,
+    backgroundColor: Colors.lightBlue, // text color
+    elevation: 5, //
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
   );
-
-
 }
 
 late Dio dio;
