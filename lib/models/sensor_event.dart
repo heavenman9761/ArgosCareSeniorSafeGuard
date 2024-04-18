@@ -1,6 +1,7 @@
 class SensorEvent {
   final String? id;
   final String? hubID;
+  final String? userID;
   final String? deviceID;
   final String? deviceType;
   final String? event;
@@ -16,6 +17,10 @@ class SensorEvent {
 
   String? getHubID() {
     return hubID;
+  }
+
+  String? getUserID() {
+    return userID;
   }
 
   String? getDeviceID() {
@@ -50,7 +55,7 @@ class SensorEvent {
     return createdAt;
   }
 
-  SensorEvent({this.id, required this.deviceID, required this.hubID, required this.deviceType,
+  SensorEvent({this.id, required this.deviceID, required this.hubID, required this.userID, required this.deviceType,
     required this.event, required this.status, required this.humi, required this.temp, required this.updatedAt, required this.createdAt});
 
   Map<String, dynamic> toMap() {
@@ -58,6 +63,7 @@ class SensorEvent {
       'id': id ?? '',
       'deviceID': deviceID ?? '',
       'hubID': hubID ?? '',
+      'userID': userID ?? '',
       'deviceType': deviceType ?? '',
       'event': event ?? '',
       'status': status ?? '',
@@ -73,6 +79,7 @@ class SensorEvent {
       id: json['id'],
       deviceID: json['deviceID'],
       hubID: json['hubID'],
+      userID: json['userID'],
       deviceType: json['deviceType'],
       event: json['event'],
       status: json['status'],
@@ -89,6 +96,7 @@ class SensorEvent {
         'id: $id, '
         'sensorID: $deviceID, '
         'hubID: $hubID, '
+        'userID: $userID, '
         'deviceType: $deviceType, '
         'event: $event, '
         'status: $status, '

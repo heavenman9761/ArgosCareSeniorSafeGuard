@@ -4,6 +4,7 @@ class Hub {
   final String? id;
   final String? hubID;
   final String? name;
+  final String? userID;
   final int? displaySunBun;
   final String? category;
   final String? deviceType;
@@ -26,6 +27,10 @@ class Hub {
 
   String? getName() {
     return name;
+  }
+
+  String? getUserID() {
+    return userID;
   }
 
   int? getDisplaySunBun() {
@@ -72,7 +77,7 @@ class Hub {
     return updatedAt;
   }
 
-  Hub({this.id, this.hubID, required this.name,
+  Hub({this.id, this.hubID, required this.name, required this.userID,
     required this.displaySunBun, required this.category, required this.deviceType,
     required this.hasSubDevices,
     required this.modelName, required this.online, required this.status,
@@ -85,6 +90,7 @@ class Hub {
       'id': id ?? '',
       'hubID': hubID ?? '',
       'name': name ?? '',
+      'userID': userID ?? '',
       'displaySunBun': displaySunBun ?? 0,
       'category': category ?? '',
       'deviceType': deviceType ?? '',
@@ -104,6 +110,7 @@ class Hub {
       id: json['id'],
       hubID: json['hubID'],
       name: json['name'],
+      userID: json['userID'],
       displaySunBun: json['displaySunBun'],
       category: json['category'],
       deviceType: json['deviceType'],
@@ -124,6 +131,7 @@ class Hub {
         'id: $id, '
         'hubID: $hubID, '
         'name: $name, '
+        'userID: $userID, '
         'displaySunBun: $displaySunBun, '
         'category: $category, '
         'deviceType: $deviceType, '

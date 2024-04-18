@@ -7,7 +7,8 @@ import 'package:argoscareseniorsafeguard/models/sensor.dart';
 import 'package:argoscareseniorsafeguard/constants.dart';
 
 class ProfileWidget extends ConsumerWidget{
-  const ProfileWidget({super.key});
+  const ProfileWidget({super.key, required this.userID});
+  final String userID;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -183,7 +184,7 @@ class ProfileWidget extends ConsumerWidget{
 
   Future<List<Sensor>> _getSensorList() async {
     DBHelper sd = DBHelper();
-    return await sd.getSensors();
+    return await sd.getSensors(userID);
   }
 
   void _goSettingAlarm(BuildContext context) async {

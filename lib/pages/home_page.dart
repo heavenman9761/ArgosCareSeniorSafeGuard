@@ -27,10 +27,11 @@ import 'package:argoscareseniorsafeguard/components/profile_widget.dart';
 import 'package:argoscareseniorsafeguard/components/nofify_badge_widget.dart';
 
 class HomePage extends ConsumerStatefulWidget {
-  const HomePage({super.key, required this.title, required this.userName});
+  const HomePage({super.key, required this.title, required this.userName, required this.userID});
 
   final String title;
   final String userName;
+  final String userID;
 
   @override
   ConsumerState<HomePage> createState() => _HomePageState();
@@ -71,42 +72,42 @@ class _HomePageState extends ConsumerState<HomePage> {
   void _getLastEvent() async {
     DBHelper sd = DBHelper();
 
-    List<SensorEvent> es = await sd.findSensorLast(Constants.DEVICE_TYPE_ILLUMINANCE);
+    List<SensorEvent> es = await sd.findSensorLast(widget.userID, Constants.DEVICE_TYPE_ILLUMINANCE);
     if (es.isNotEmpty) {
       SensorEvent sensorEvent = es[0];
       String description = analysisSensorEvent(sensorEvent);
       ref.read(illuminanceSensorStateProvider.notifier).state = description;
     }
 
-    es = await sd.findSensorLast(Constants.DEVICE_TYPE_TEMPERATURE_HUMIDITY);
+    es = await sd.findSensorLast(widget.userID, Constants.DEVICE_TYPE_TEMPERATURE_HUMIDITY);
     if (es.isNotEmpty) {
       SensorEvent sensorEvent = es[0];
       String description = analysisSensorEvent(sensorEvent);
       ref.read(humiditySensorStateProvider.notifier).state = description;
     }
 
-    es = await sd.findSensorLast(Constants.DEVICE_TYPE_SMOKE);
+    es = await sd.findSensorLast(widget.userID, Constants.DEVICE_TYPE_SMOKE);
     if (es.isNotEmpty) {
       SensorEvent sensorEvent = es[0];
       String description = analysisSensorEvent(sensorEvent);
       ref.read(smokeSensorStateProvider.notifier).state = description;
     }
 
-    es = await sd.findSensorLast(Constants.DEVICE_TYPE_EMERGENCY);
+    es = await sd.findSensorLast(widget.userID, Constants.DEVICE_TYPE_EMERGENCY);
     if (es.isNotEmpty) {
       SensorEvent sensorEvent = es[0];
       String description = analysisSensorEvent(sensorEvent);
       ref.read(emergencySensorStateProvider.notifier).state = description;
     }
 
-    es = await sd.findSensorLast(Constants.DEVICE_TYPE_MOTION);
+    es = await sd.findSensorLast(widget.userID, Constants.DEVICE_TYPE_MOTION);
     if (es.isNotEmpty) {
       SensorEvent sensorEvent = es[0];
       String description = analysisSensorEvent(sensorEvent);
       ref.read(motionSensorStateProvider.notifier).state = description;
     }
 
-    es = await sd.findSensorLast(Constants.DEVICE_TYPE_DOOR);
+    es = await sd.findSensorLast(widget.userID, Constants.DEVICE_TYPE_DOOR);
     if (es.isNotEmpty) {
       SensorEvent sensorEvent = es[0];
       String description = analysisSensorEvent(sensorEvent);
@@ -200,7 +201,7 @@ class _HomePageState extends ConsumerState<HomePage> {
     String hubID = '';
     final mqttMsg = json.decode(message);
 
-    List<Device> deviceList = await sd.findDeviceBySensor(mqttMsg['device_type']);
+    List<Device> deviceList = await sd.findDeviceBySensor(widget.userID, mqttMsg['device_type']);
     if (deviceList.isEmpty) {
       return;
     }
@@ -215,6 +216,7 @@ class _HomePageState extends ConsumerState<HomePage> {
     SensorEvent sensorEvent = SensorEvent(
       id: mqttMsg['id'],
       hubID: mqttMsg['hubID'],
+      userID: mqttMsg['userID'],
       deviceID: mqttMsg['deviceID'],
       deviceType: mqttMsg['device_type'],
       event: mqttMsg['event'],
@@ -226,14 +228,14 @@ class _HomePageState extends ConsumerState<HomePage> {
     );
 
     await sd.insertSensorEvent(sensorEvent).then((value) async {
-      List<Device> deviceList = await sd.findDeviceBySensor(mqttMsg['device_type']);
+      List<Device> deviceList = await sd.findDeviceBySensor(widget.userID, mqttMsg['device_type']);
 
       Device d = Device(
           deviceID: deviceList[0].deviceID,
           deviceType: deviceList[0].deviceType,
           deviceName: deviceList[0].deviceName,
           displaySunBun: deviceList[0].displaySunBun,
-          accountID: deviceList[0].accountID,
+          userID: deviceList[0].userID,
           status: mqttMsg['sensorState'].toString(),
           updatedAt: DateTime.now().toString(),
           createdAt: deviceList[0].createdAt
@@ -287,12 +289,13 @@ class _HomePageState extends ConsumerState<HomePage> {
     final mqttMsg = json.decode(message);
 
     DBHelper sd = DBHelper();
-    List<Hub> lists = await sd.findHub(mqttMsg['deviceID']);
+    List<Hub> lists = await sd.findHub(widget.userID, mqttMsg['deviceID']);
     if (lists.isEmpty) {
        Hub hub = Hub(
          id: mqttMsg['id'],
          hubID: mqttMsg['deviceID'],
          name: mqttMsg['name'],
+         userID: mqttMsg['userID'],
          displaySunBun: mqttMsg['displaySunBun'],
          category: mqttMsg['category'],
          deviceType: mqttMsg['deviceType'],
@@ -311,6 +314,7 @@ class _HomePageState extends ConsumerState<HomePage> {
         id: mqttMsg['id'],
         hubID: mqttMsg['deviceID'],
         name: mqttMsg['name'],
+        userID: mqttMsg['userID'],
         displaySunBun: mqttMsg['displaySunBun'],
         category: mqttMsg['category'],
         deviceType: mqttMsg['deviceType'],
@@ -331,12 +335,13 @@ class _HomePageState extends ConsumerState<HomePage> {
     final mqttMsg = json.decode(message);
 
     DBHelper sd = DBHelper();
-    List<Sensor> lists = await sd.findSensor(mqttMsg['sensorID']);
+    List<Sensor> lists = await sd.findSensor(widget.userID, mqttMsg['sensorID']);
     if (lists.isEmpty) {
       Sensor sensor = Sensor(
         id: mqttMsg['id'],
         sensorID: mqttMsg['sensorID'],
         name: mqttMsg['name'],
+        userID: mqttMsg['userID'],
         displaySunBun: mqttMsg['displaySunBun'],
         category: mqttMsg['category'],
         deviceType: mqttMsg['deviceType'],
@@ -356,6 +361,7 @@ class _HomePageState extends ConsumerState<HomePage> {
           id: mqttMsg['id'],
           sensorID: mqttMsg['sensorID'],
           name: mqttMsg['name'],
+          userID: mqttMsg['userID'],
           displaySunBun: mqttMsg['displaySunBun'],
           category: mqttMsg['category'],
           deviceType: mqttMsg['deviceType'],
@@ -382,9 +388,9 @@ class _HomePageState extends ConsumerState<HomePage> {
 
   Future<void> _saveDevice(String deviceID, String deviceType) async {
     DBHelper sd = DBHelper();
-    int? count = await sd.getDeviceCountByType(deviceType);
+    int? count = await sd.getDeviceCountByType(widget.userID, deviceType);
     count = count! + 1;
-    int? displaySunBun = await sd.getDeviceCount();
+    int? displaySunBun = await sd.getDeviceCount(widget.userID);
     String deviceName = '';
 
     if (deviceType == Constants.DEVICE_TYPE_HUB) {
@@ -414,7 +420,7 @@ class _HomePageState extends ConsumerState<HomePage> {
       deviceType: deviceType,
       deviceName: deviceName,
       displaySunBun: displaySunBun,
-      accountID: email,
+      userID: email,
       status: "",
       updatedAt: DateTime.now().toString(),
       createdAt: DateTime.now().toString(),
@@ -602,16 +608,16 @@ class _HomePageState extends ConsumerState<HomePage> {
 
   Widget selectWidget() {
     if (_selectedIndex == 0) {
-      return HomeWidget(userName: widget.userName);
+      return HomeWidget(userName: widget.userName, userID: widget.userID);
 
     } else if (_selectedIndex == 1) {
-      return const MyDeviceWidget();
+      return MyDeviceWidget(userID: widget.userID);
 
     } else if (_selectedIndex == 2) {
-      return const ProfileWidget();
+      return ProfileWidget(userID: widget.userID);
 
     } else {
-      return HomeWidget(userName: widget.userName);
+      return HomeWidget(userName: widget.userName, userID: widget.userID);
     }
   }
 

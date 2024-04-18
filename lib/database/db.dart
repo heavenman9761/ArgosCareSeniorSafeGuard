@@ -38,7 +38,7 @@ class DBHelper {
         "deviceType TEXT, "
         "deviceName TEXT, "
         "displaySunBun INTEGER,"
-        "accountID TEXT, "
+        "userID TEXT, "
         "status TEXT, "
         "createdAt TEXT, "
         "updatedAt TEXT"
@@ -50,6 +50,7 @@ class DBHelper {
         "id TEXT PRIMARY KEY, "
         "hubID TEXT, "
         "name TEXT, "
+        "userID TEXT, "
         "displaySunBun INTEGER, "
         "category TEXT, "
         "deviceType TEXT, "
@@ -69,6 +70,7 @@ class DBHelper {
         "id TEXT PRIMARY KEY, "
         "sensorID TEXT, "
         "name TEXT, "
+        "userID TEXT, "
         "displaySunBun INTEGER, "
         "category TEXT,"
         "deviceType TEXT, "
@@ -87,6 +89,7 @@ class DBHelper {
       "CREATE TABLE $tableNameSensorEvents ("
         "id TEXT PRIMARY KEY, "
         "hubID TEXT, "
+        "userID TEXT, "
         "deviceID TEXT, "
         "deviceType TEXT, "
         "event TEXT, "
@@ -102,6 +105,7 @@ class DBHelper {
       "CREATE TABLE $tableNameLocations ("
         "id TEXT PRIMARY KEY, "
         "name TEXT, "
+        "userID TEXT, "
         "sensorID TEXT, "
         "createdAt TEXT, "
         "updatedAt TEXT"
@@ -112,6 +116,7 @@ class DBHelper {
       "CREATE TABLE $tableNameRooms ("
         "id TEXT PRIMARY KEY, "
         "name TEXT, "
+        "userID TEXT, "
         "locationID TEXT, "
         "createdAt TEXT, "
         "updatedAt TEXT"
@@ -130,10 +135,10 @@ class DBHelper {
     );
   }
 
-  Future<List<Device>> getDevices() async {
+  Future<List<Device>> getDevices(String userID) async {
     final db = await database;
 
-    final List<Map<String, dynamic>> maps = await db.query(tableNameDevices, orderBy: 'displaySunBun ASC');
+    final List<Map<String, dynamic>> maps = await db.query(tableNameDevices, where: 'userID = ?', whereArgs:[userID], orderBy: 'displaySunBun ASC');
 
     return List.generate(maps.length, (i) {
       return Device(
@@ -141,7 +146,7 @@ class DBHelper {
         deviceType: maps[i]['deviceType'],
         deviceName: maps[i]['deviceName'],
         displaySunBun: maps[i]['displaySunBun'],
-        accountID: maps[i]['accountID'],
+        userID: maps[i]['userID'],
         status: maps[i]['status'],
         updatedAt: maps[i]['updatedAt'],
         createdAt: maps[i]['createdAt'],
@@ -149,10 +154,10 @@ class DBHelper {
     });
   }
 
-  Future<List<Device>> getDeviceOfHubs() async {
+  Future<List<Device>> getDeviceOfHubs(String userID) async {
     final db = await database;
 
-    final List<Map<String, dynamic>> maps = await db.query(tableNameDevices, where: 'deviceType = ?', whereArgs: [Constants.DEVICE_TYPE_HUB]);
+    final List<Map<String, dynamic>> maps = await db.query(tableNameDevices, where: 'userID = ? AND deviceType = ?', whereArgs: [userID, Constants.DEVICE_TYPE_HUB]);
 
     return List.generate(maps.length, (i) {
       return Device(
@@ -160,7 +165,7 @@ class DBHelper {
         deviceType: maps[i]['deviceType'],
         deviceName: maps[i]['deviceName'],
         displaySunBun: maps[i]['displaySunBun'],
-        accountID: maps[i]['accountID'],
+        userID: maps[i]['userID'],
         status: maps[i]['status'],
         updatedAt: maps[i]['updatedAt'],
         createdAt: maps[i]['createdAt'],
@@ -168,10 +173,10 @@ class DBHelper {
     });
   }
 
-  Future<List<Device>> getDeviceExpectHubs() async {
+  Future<List<Device>> getDeviceExpectHubs(String userID) async {
     final db = await database;
 
-    final List<Map<String, dynamic>> maps = await db.query(tableNameDevices, where: 'deviceType <> ?', whereArgs: [Constants.DEVICE_TYPE_HUB]);
+    final List<Map<String, dynamic>> maps = await db.query(tableNameDevices, where: 'userID = ? AND deviceType <> ?', whereArgs: [userID, Constants.DEVICE_TYPE_HUB]);
 
     return List.generate(maps.length, (i) {
       return Device(
@@ -179,7 +184,7 @@ class DBHelper {
         deviceType: maps[i]['deviceType'],
         deviceName: maps[i]['deviceName'],
         displaySunBun: maps[i]['displaySunBun'],
-        accountID: maps[i]['accountID'],
+        userID: maps[i]['userID'],
         status: maps[i]['status'],
         updatedAt: maps[i]['updatedAt'],
         createdAt: maps[i]['createdAt'],
@@ -208,11 +213,11 @@ class DBHelper {
     );
   }
 
-  Future<List<Device>> findDevice(String deviceID) async {
+  Future<List<Device>> findDevice(String userID, String deviceID) async {
     final db = await database;
 
     final List<Map<String, dynamic>> maps =
-    await db.query(tableNameDevices, where: 'deviceID = ?', whereArgs: [deviceID]);
+    await db.query(tableNameDevices, where: 'userID = ? AND deviceID = ?', whereArgs: [userID, deviceID]);
 
     return List.generate(maps.length, (i) {
       return Device(
@@ -220,7 +225,7 @@ class DBHelper {
         deviceType: maps[i]['deviceType'],
         deviceName: maps[i]['deviceName'],
         displaySunBun: maps[i]['displaySunBun'],
-        accountID: maps[i]['accountID'],
+        userID: maps[i]['userID'],
         status: maps[i]['status'],
         updatedAt: maps[i]['updatedAt'],
         createdAt: maps[i]['createdAt'],
@@ -228,11 +233,11 @@ class DBHelper {
     });
   }
 
-  Future<List<Device>> findDeviceBySensor(String deviceType) async {
+  Future<List<Device>> findDeviceBySensor(String userID, String deviceType) async {
     final db = await database;
 
     final List<Map<String, dynamic>> maps =
-    await db.query(tableNameDevices, where: 'deviceType = ?', whereArgs: [deviceType]);
+    await db.query(tableNameDevices, where: 'userID = ? AND deviceType = ?', whereArgs: [userID, deviceType]);
 
     return List.generate(maps.length, (i) {
       return Device(
@@ -240,7 +245,7 @@ class DBHelper {
         deviceType: maps[i]['deviceType'],
         deviceName: maps[i]['deviceName'],
         displaySunBun: maps[i]['displaySunBun'],
-        accountID: maps[i]['accountID'],
+        userID: maps[i]['userID'],
         status: maps[i]['status'],
         updatedAt: maps[i]['updatedAt'],
         createdAt: maps[i]['createdAt'],
@@ -248,25 +253,25 @@ class DBHelper {
     });
   }
 
-  Future<List<Map<String, dynamic>>> getDeviceByGroup() async {
+  Future<List<Map<String, dynamic>>> getDeviceByGroup(String userID) async {
     final db = await database;
 
     final List<Map<String, dynamic>> maps =
-    await db.query(tableNameDevices, columns: ['deviceType'], groupBy: 'deviceType', orderBy: 'createdAt ASC');
+    await db.query(tableNameDevices, where: 'userID = ?', whereArgs:[userID], columns: ['deviceType'], groupBy: 'deviceType', orderBy: 'createdAt ASC');
 
     return maps;
   }
 
-  Future<int?> getDeviceCountByType(String deviceType) async {
+  Future<int?> getDeviceCountByType(String userID, String deviceType) async {
     final db = await database;
-    var x = await db.rawQuery("SELECT COUNT (*) from $tableNameDevices WHERE deviceType = '$deviceType'");
+    var x = await db.rawQuery("SELECT COUNT (*) from $tableNameDevices WHERE userID = '$userID' AND deviceType = '$deviceType'");
     int? count = Sqflite.firstIntValue(x);
     return count;
   }
 
-  Future<int?> getDeviceCount() async {
+  Future<int?> getDeviceCount(String userID) async {
     final db = await database;
-    var x = await db.rawQuery('SELECT COUNT (*) from $tableNameDevices');
+    var x = await db.rawQuery("SELECT COUNT (*) from $tableNameDevices WHERE userID = '$userID'");
     int? count = Sqflite.firstIntValue(x);
     return count;
   }
@@ -293,6 +298,7 @@ class DBHelper {
         id: maps[i]['id'],
         hubID: maps[i]['hubID'],
         name: maps[i]['name'],
+        userID: maps[i]['userID'],
         displaySunBun: maps[i]['displaySunBun'],
         category: maps[i]['category'],
         deviceType: maps[i]['deviceType'],
@@ -330,17 +336,18 @@ class DBHelper {
     );
   }
 
-  Future<List<Hub>> findHub(String hubID) async {
+  Future<List<Hub>> findHub(String userID, String hubID) async {
     final db = await database;
 
     final List<Map<String, dynamic>> maps =
-    await db.query(tableNameHubs, where: 'hubID = ?', whereArgs: [hubID]);
+    await db.query(tableNameHubs, where: 'hubID = ? AND userID = ?', whereArgs: [hubID, userID]);
 
     return List.generate(maps.length, (i) {
       return Hub(
         id: maps[i]['id'],
         hubID: maps[i]['hubID'],
         name: maps[i]['name'],
+        userID: maps[i]['userID'],
         displaySunBun: maps[i]['displaySunBun'],
         category: maps[i]['category'],
         deviceType: maps[i]['deviceType'],
@@ -368,16 +375,17 @@ class DBHelper {
     );
   }
 
-  Future<List<Sensor>> getSensors() async {
+  Future<List<Sensor>> getSensors(String userID) async {
     final db = await database;
 
-    final List<Map<String, dynamic>> maps = await db.query(tableNameSensors);
+    final List<Map<String, dynamic>> maps = await db.query(tableNameSensors, where: 'userID = ?', whereArgs: [userID]);
 
     return List.generate(maps.length, (i) {
       return Sensor(
         id: maps[i]['id'],
         sensorID: maps[i]['sensorID'],
         name: maps[i]['name'],
+        userID: maps[i]['userID'],
         displaySunBun: maps[i]['displaySunBun'],
         category: maps[i]['category'],
         deviceType: maps[i]['deviceType'],
@@ -414,17 +422,18 @@ class DBHelper {
     );
   }
 
-  Future<List<Sensor>> findSensor(String sensorID) async {
+  Future<List<Sensor>> findSensor(String userID, String sensorID) async {
     final db = await database;
 
     final List<Map<String, dynamic>> maps =
-    await db.query(tableNameSensors, where: 'sensorID = ?', whereArgs: [sensorID]);
+    await db.query(tableNameSensors, where: 'userID = ? AND sensorID = ?', whereArgs: [userID, sensorID]);
 
     return List.generate(maps.length, (i) {
       return Sensor(
         id: maps[i]['id'],
         sensorID: maps[i]['sensorID'],
         name: maps[i]['name'],
+        userID: maps[i]['userID'],
         displaySunBun: maps[i]['displaySunBun'],
         category: maps[i]['category'],
         deviceType: maps[i]['deviceType'],
@@ -452,15 +461,16 @@ class DBHelper {
     );
   }
 
-  Future<List<SensorEvent>> getSensorEvents() async {
+  Future<List<SensorEvent>> getSensorEvents(String userID) async {
     final db = await database;
 
-    final List<Map<String, dynamic>> maps = await db.query(tableNameSensorEvents);
+    final List<Map<String, dynamic>> maps = await db.query(tableNameSensorEvents, where: 'userID = ? ', whereArgs: [userID]);
 
     return List.generate(maps.length, (i) {
       return SensorEvent(
         id: maps[i]['id'],
         hubID: maps[i]['hubID'],
+        userID: maps[i]['userID'],
         deviceID: maps[i]['deviceID'],
         deviceType: maps[i]['deviceType'],
         event: maps[i]['event'],
@@ -473,19 +483,20 @@ class DBHelper {
     });
   }
 
-  Future<List<SensorEvent>> getSensorEventsByDeviceType(String deviceType, String date) async {
+  Future<List<SensorEvent>> getSensorEventsByDeviceType(String userID, String deviceType, String date) async {
     final db = await database;
 
     String start = '$date 00:00:00.000000';
     String end = '$date 23:59:59.999999';
 
     final List<Map<String, dynamic>> maps =
-    await db.query(tableNameSensorEvents, where: 'deviceType = ? AND createdAt >= ? AND createdAt <= ?', whereArgs: [deviceType, start, end], orderBy: 'createdAt DESC');
+    await db.query(tableNameSensorEvents, where: 'userID = ? AND deviceType = ? AND createdAt >= ? AND createdAt <= ?', whereArgs: [userID, deviceType, start, end], orderBy: 'createdAt DESC');
 
     return List.generate(maps.length, (i) {
       return SensorEvent(
         id: maps[i]['id'],
         hubID: maps[i]['hubID'],
+        userID: maps[i]['userID'],
         deviceID: maps[i]['deviceID'],
         deviceType: maps[i]['deviceType'],
         event: maps[i]['event'],
@@ -498,19 +509,20 @@ class DBHelper {
     });
   }
 
-  Future<List<SensorEvent>> getSensorEventsByDate(String date) async {
+  Future<List<SensorEvent>> getSensorEventsByDate(String userID, String date) async {
     final db = await database;
 
     String start = '$date 00:00:00.000000';
     String end = '$date 23:59:59.999999';
 
     final List<Map<String, dynamic>> maps =
-    await db.query(tableNameSensorEvents, where: 'createdAt >= ? AND createdAt <= ?', whereArgs: [start, end], orderBy: 'createdAt DESC');
+    await db.query(tableNameSensorEvents, where: 'userID = ? AND createdAt >= ? AND createdAt <= ?', whereArgs: [userID, start, end], orderBy: 'createdAt DESC');
 
     return List.generate(maps.length, (i) {
       return SensorEvent(
         id: maps[i]['id'],
         hubID: maps[i]['hubID'],
+        userID: maps[i]['userID'],
         deviceID: maps[i]['deviceID'],
         deviceType: maps[i]['deviceType'],
         event: maps[i]['event'],
@@ -544,16 +556,17 @@ class DBHelper {
     );
   }
 
-  Future<List<SensorEvent>> findSensorEvent(Int id) async {
+  Future<List<SensorEvent>> findSensorEvent(Int id, String userID) async {
     final db = await database;
 
     final List<Map<String, dynamic>> maps =
-    await db.query(tableNameSensorEvents, where: 'id = ?', whereArgs: [id]);
+    await db.query(tableNameSensorEvents, where: 'id = ? AND userID = ?', whereArgs: [id, userID]);
 
     return List.generate(maps.length, (i) {
       return SensorEvent(
         id: maps[i]['id'],
         hubID: maps[i]['hubID'],
+        userID: maps[i]['userID'],
         deviceID: maps[i]['deviceID'],
         deviceType: maps[i]['deviceType'],
         event: maps[i]['event'],
@@ -566,16 +579,17 @@ class DBHelper {
     });
   }
 
-  Future <List<SensorEvent>> findSensorLast(String deviceType) async {
+  Future <List<SensorEvent>> findSensorLast(String userID, String deviceType) async {
     final db = await database;
 
     final List<Map<String, dynamic>> maps =
-    await db.query(tableNameSensorEvents, where: 'deviceType = ?', whereArgs: [deviceType], limit: 1);
+    await db.query(tableNameSensorEvents, where: 'userID = ? AND deviceType = ?', whereArgs: [userID, deviceType], limit: 1);
 
     return List.generate(maps.length, (i) {
       return SensorEvent(
         id: maps[i]['id'],
         hubID: maps[i]['hubID'],
+        userID: maps[i]['userID'],
         deviceID: maps[i]['deviceID'],
         deviceType: maps[i]['deviceType'],
         event: maps[i]['event'],
@@ -601,15 +615,16 @@ class DBHelper {
     );
   }
 
-  Future<List<Location>> getLocations() async {
+  Future<List<Location>> getLocations(String userID) async {
     final db = await database;
 
-    final List<Map<String, dynamic>> maps = await db.query(tableNameLocations);
+    final List<Map<String, dynamic>> maps = await db.query(tableNameLocations, where: 'userID = ?', whereArgs: [userID]);
 
     return List.generate(maps.length, (i) {
       return Location(
         id: maps[i]['id'],
         name: maps[i]['name'],
+        userID: maps[i]['userID'],
         sensorID: maps[i]['sensorID'],
         updatedAt: maps[i]['updatedAt'],
         createdAt: maps[i]['createdAt'],
@@ -638,16 +653,17 @@ class DBHelper {
     );
   }
 
-  Future<List<Location>> findLocation(Int id) async {
+  Future<List<Location>> findLocation(Int id, String userID) async {
     final db = await database;
 
     final List<Map<String, dynamic>> maps =
-    await db.query(tableNameLocations, where: 'id = ?', whereArgs: [id]);
+    await db.query(tableNameLocations, where: 'id = ? AND userID = ?', whereArgs: [id, userID]);
 
     return List.generate(maps.length, (i) {
       return Location(
           id: maps[i]['id'],
           name: maps[i]['name'],
+          userID: maps[i]['userID'],
           sensorID: maps[i]['sensorID'],
           createdAt: maps[i]['createdAt'],
           updatedAt: maps[i]['updatedAt']
@@ -667,15 +683,16 @@ class DBHelper {
     );
   }
 
-  Future<List<Room>> getRoom() async {
+  Future<List<Room>> getRoom(String userID) async {
     final db = await database;
 
-    final List<Map<String, dynamic>> maps = await db.query(tableNameRooms);
+    final List<Map<String, dynamic>> maps = await db.query(tableNameRooms, where: 'userID = ?', whereArgs: [userID]);
 
     return List.generate(maps.length, (i) {
       return Room(
         id: maps[i]['id'],
         name: maps[i]['name'],
+        userID: maps[i]['userID'],
         locationID: maps[i]['locationID'],
         updatedAt: maps[i]['updatedAt'],
         createdAt: maps[i]['createdAt'],
@@ -704,16 +721,17 @@ class DBHelper {
     );
   }
 
-  Future<List<Room>> findRoom(Int id) async {
+  Future<List<Room>> findRoom(Int id, String userID) async {
     final db = await database;
 
     final List<Map<String, dynamic>> maps =
-    await db.query(tableNameRooms, where: 'id = ?', whereArgs: [id]);
+    await db.query(tableNameRooms, where: 'id = ? AND userID = ?', whereArgs: [id, userID]);
 
     return List.generate(maps.length, (i) {
       return Room(
           id: maps[i]['id'],
           name: maps[i]['name'],
+          userID: maps[i]['userID'],
           locationID: maps[i]['locationID'],
           createdAt: maps[i]['createdAt'],
           updatedAt: maps[i]['updatedAt']
@@ -723,7 +741,7 @@ class DBHelper {
 
   //=====================================
 
-  Future<List<EventList>> getEventList(String date) async {
+  Future<List<EventList>> getEventList(String date, String userID) async {
     final db = await database;
 
     String start = '$date 00:00:00.000000';
@@ -731,15 +749,16 @@ class DBHelper {
 
     List<Map<String, dynamic>> maps = await db.rawQuery(
       "SELECT "
-          "sensorEvents.hubID, sensorEvents.deviceID, sensorEvents.deviceType, sensorEvents.event, sensorEvents.status, sensorEvents.createdAt, sensors.Name FROM sensorEvents "
+          "sensorEvents.userID, sensorEvents.hubID, sensorEvents.deviceID, sensorEvents.deviceType, sensorEvents.event, sensorEvents.status, sensorEvents.createdAt, sensors.Name FROM sensorEvents "
           "INNER JOIN sensors ON sensorEvents.deviceID = sensors.sensorID "
-          "WHERE sensorEvents.createdAt >= '$start' AND sensorEvents.createdAt <= '$end' "
+          "WHERE sensorEvents.createdAt >= '$start' AND sensorEvents.createdAt <= '$end' AND sensorEvents.userID = '$userID' "
           "ORDER BY sensorEvents.createdAt DESC"
     );
 
     return List.generate(maps.length, (i) {
       return EventList(
         hubID: maps[i]['hubID'],
+        userID: maps[i]['userID'],
         deviceID: maps[i]['deviceID'],
         deviceType: maps[i]['deviceType'],
         event: maps[i]['event'],

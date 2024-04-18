@@ -7,17 +7,16 @@ import 'package:argoscareseniorsafeguard/components/illuminance_card_widget.dart
 import 'package:argoscareseniorsafeguard/components/humidity_card_widget.dart';
 import 'package:argoscareseniorsafeguard/components/smoke_card_widget.dart';
 import 'package:argoscareseniorsafeguard/components/emergency_card_widget.dart';
-import 'package:argoscareseniorsafeguard/components/card_widget.dart';
 import 'package:argoscareseniorsafeguard/constants.dart';
 import 'package:argoscareseniorsafeguard/database/db.dart';
-import 'package:argoscareseniorsafeguard/models/device.dart';
 import 'package:argoscareseniorsafeguard/models/sensor.dart';
 import 'package:argoscareseniorsafeguard/models/hub.dart';
 
 class HomeWidget extends ConsumerWidget{
-  HomeWidget({super.key, required this.userName});
+  HomeWidget({super.key, required this.userName, required this.userID});
 
   final String userName;
+  final String userID;
 
   final List<Hub> _hubList = [];
 
@@ -39,7 +38,7 @@ class HomeWidget extends ConsumerWidget{
   Future<List<Sensor>> _getSensorList() async {
     DBHelper sd = DBHelper();
 
-    List<Sensor> sensorList = await sd.getSensors();
+    List<Sensor> sensorList = await sd.getSensors(userID);
 
     return sensorList;
   }

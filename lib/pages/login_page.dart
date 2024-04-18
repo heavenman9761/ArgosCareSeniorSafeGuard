@@ -26,8 +26,17 @@ class _LoginPageState extends State<LoginPage> {
 
   String email = '';
   String password = '';
-
   bool isLogging = false;
+  bool passwordVisible = true;
+  late String userID;
+
+  final _mailController = TextEditingController(text: "dn9318dn@gmail.com");
+
+  @override
+  void dispose() {
+    super.dispose();
+    _mailController.dispose();
+  }
 
   // sign user in method
   void signUserIn(BuildContext context) async {
@@ -41,9 +50,6 @@ class _LoginPageState extends State<LoginPage> {
       try {
 
         dio = await authDio();
-
-        print(email);
-        print(password);
 
         final response = await dio.post(
             "/auth/signin",
@@ -65,7 +71,7 @@ class _LoginPageState extends State<LoginPage> {
         );
 
         final String userName = loginResponse.data['user']['name'];
-        final String userID = loginResponse.data['user']['id'];
+        userID = loginResponse.data['user']['id'];
 
         await storage.write(key: 'ID', value: loginResponse.data['user']['id']);
         await storage.write(key: 'EMAIL', value: loginResponse.data['user']['email']);
@@ -118,18 +124,42 @@ class _LoginPageState extends State<LoginPage> {
         pref.setString("DoorEndTime", alarmResponse.data['doorEndTime']);
 
         Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) {
-          return HomePage(title: 'Argos Care', userName: userName);
+          return HomePage(title: 'Argos Care', userName: userName, userID: userID);
         },
         ));
 
       } catch (e) {
         debugPrint(e.toString());
-
+        _failureDialog(context);
         setState(() {
           isLogging = false;
         });
       }
     }
+  }
+
+  void _failureDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setDialogState) {
+            return AlertDialog(
+              title: const Text("로그인"),
+              content: const Text("로그인에 실패했습니다.\n계정을 확인바랍니다."),
+              actions: <Widget>[
+                TextButton(
+                  child: const Text("OK"),
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
   }
 
   void _iostest() async {
@@ -196,8 +226,20 @@ class _LoginPageState extends State<LoginPage> {
                     label: '메일 주소',
                     keyNumber: 1,
                     icon: const Icon(Icons.mail, color: Colors.grey,),
+                    suffixIcon: _mailController.text.isNotEmpty ?
+                    IconButton(
+                      icon: const Icon(Icons.clear),
+                      onPressed: () {
+                        _mailController.clear();
+                        setState(() { });
+                      },
+                    ) : null,
+                    controller: _mailController,
                     keyboardType: TextInputType.emailAddress,
-                    initialValue: 'dn9318dn@gmail.com',
+                    // initialValue: 'dn9318dn@gmail.com',
+                    onChanged: (val) {
+                      setState(() { });
+                    },
                     onSaved: (val) {
                       setState(() {
                         email = val;
@@ -219,8 +261,18 @@ class _LoginPageState extends State<LoginPage> {
                     label: '비밀 번호',
                     keyNumber: 2,
                     icon: const Icon(Icons.lock, color: Colors.grey,),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        passwordVisible ? Icons.visibility : Icons.visibility_off,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          passwordVisible = !passwordVisible;
+                        });
+                      },
+                    ),
                     keyboardType: TextInputType.text,
-                    obscureText: true,
+                    obscureText: passwordVisible,
                     initialValue: '121212',
                     onSaved: (val) {
                       setState(() {
@@ -233,7 +285,8 @@ class _LoginPageState extends State<LoginPage> {
                         return '비밀번호는 6글자 이상 12글자 이하로 입력 해주셔야합니다.';
                       }
 
-                      return (val as String).isValidPasswordFormatType1() ? null : '비밀번호는 영문(소문자, 대문자), 숫자, 특수문자로 이루어진 6 ~ 12 자리입니다.';
+                      //return (val as String).isValidPasswordFormatType1() ? null : '비밀번호는 영문(소문자, 대문자), 숫자, 특수문자로 이루어진 6 ~ 12 자리입니다.';
+                      return (val as String).isValidOnlyNumber() ? null : '비밀번호는 숫자로 이루어진 6 ~ 12 자리입니다.';
                     },
                   ),
 

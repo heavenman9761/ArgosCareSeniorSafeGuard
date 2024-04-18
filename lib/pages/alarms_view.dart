@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:timeline_tile/timeline_tile.dart';
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import 'package:argoscareseniorsafeguard/database/db.dart';
 import 'package:argoscareseniorsafeguard/models/event_list.dart';
@@ -48,7 +49,14 @@ class _AlarmsViewState extends State<AlarmsView> {
     String date = DateFormat('yyyy-MM-dd').format(_selectedDate);
     DBHelper sd = DBHelper();
 
-    return await sd.getEventList(date);
+    const storage = FlutterSecureStorage(
+      iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock),
+      aOptions: AndroidOptions(encryptedSharedPreferences: true),
+    );
+
+    final userID = await storage.read(key:'ID');
+
+    return await sd.getEventList(date, userID!);
   }
 
   Future _selectDate(BuildContext context) async {

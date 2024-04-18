@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 class Location {
   final String? id;
   final String? name;
+  final String? userID;
   final String? createdAt;
   final String? updatedAt;
   final String? sensorID;
@@ -13,6 +14,10 @@ class Location {
 
   String? getName() {
     return name;
+  }
+
+  String? getUserID() {
+    return userID;
   }
 
   String? getCreatedTime() {
@@ -27,7 +32,7 @@ class Location {
     return sensorID;
   }
 
-  Location({required this.id, required this.name, this.sensorID,
+  Location({required this.id, required this.name, required this.userID, this.sensorID,
     required this.createdAt, required this.updatedAt
   });
 
@@ -35,6 +40,7 @@ class Location {
     return {
       'id': id ?? '',
       'name': name ?? '',
+      'userID': userID ?? '',
       'createdAt': createdAt ?? '',
       'updatedAt': updatedAt ?? '',
       'sensorID': sensorID ?? '',
@@ -45,6 +51,7 @@ class Location {
     return Location(
       id: json['id'],
       name: json['name'],
+      userID: json['userID'],
       sensorID: json['sensorID'],
       createdAt: json['createdAt'],
       updatedAt: json['updatedAt'],
@@ -56,6 +63,7 @@ class Location {
     return 'Location {'
         'id: $id, '
         'name: $name, '
+        'userID: $userID, '
         'sensorID: $sensorID, '
         'createdAt: $createdAt, '
         'updatedAt: $updatedAt'

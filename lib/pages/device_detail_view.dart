@@ -15,8 +15,9 @@ import 'package:argoscareseniorsafeguard/components/humi_temp_chart.dart';
 import 'package:argoscareseniorsafeguard/constants.dart';
 
 class DeviceDetailView extends StatefulWidget {
-  const DeviceDetailView({super.key, required this.device});
+  const DeviceDetailView({super.key, required this.device, required this.userID});
 
+  final String userID;
   final Device device;
 
   @override
@@ -168,7 +169,7 @@ class _DeviceDetailViewState extends State<DeviceDetailView> {
   Future<List<Sensor>> _getSensorList() async {
     DBHelper sd = DBHelper();
 
-    List<Sensor> sensorList = await sd.getSensors();
+    List<Sensor> sensorList = await sd.getSensors(widget.userID);
 
     return sensorList;
   }
@@ -272,7 +273,7 @@ class _DeviceDetailViewState extends State<DeviceDetailView> {
     DBHelper sd = DBHelper();
 
     String date = DateFormat('yyyy-MM-dd').format(_selectedDate);
-    List<SensorEvent> sensorEventList = await sd.getSensorEventsByDeviceType(widget.device.getDeviceType()!, date);
+    List<SensorEvent> sensorEventList = await sd.getSensorEventsByDeviceType(widget.userID, widget.device.getDeviceType()!, date);
 
     return sensorEventList;
   }
@@ -566,12 +567,13 @@ class _DeviceDetailViewState extends State<DeviceDetailView> {
     DBHelper sd = DBHelper();
 
     if (widget.device.getDeviceType() == Constants.DEVICE_TYPE_HUB) {
-      List<Hub> hubList = await sd.findHub(widget.device.getDeviceID()!);
+      List<Hub> hubList = await sd.findHub(widget.userID, widget.device.getDeviceID()!);
       if (hubList.isNotEmpty) {
         Hub hub = Hub(
           id: hubList[0].getID(),
           hubID: hubList[0].getHubID(),
           name: newName,
+          userID: hubList[0].getUserID(),
           displaySunBun: hubList[0].getDisplaySunBun(),
           category: hubList[0].getCategory(),
           deviceType: hubList[0].getDeviceType(),
@@ -592,12 +594,13 @@ class _DeviceDetailViewState extends State<DeviceDetailView> {
       }
 
     } else {
-      List<Sensor> sensorList = await sd.findSensor(widget.device.getDeviceID()!);
+      List<Sensor> sensorList = await sd.findSensor(widget.userID, widget.device.getDeviceID()!);
       if (sensorList.isNotEmpty) {
         Sensor sensor = Sensor(
           id: sensorList[0].getID(),
           sensorID: sensorList[0].getSensorID(),
           name: newName,
+          userID: sensorList[0].getUserID(),
           displaySunBun: sensorList[0].getDisplaySunBun(),
           category: sensorList[0].getCategory(),
           deviceType: sensorList[0].getDeviceType(),

@@ -8,9 +8,12 @@ renderTextFormField({
   FormFieldValidator? validator,
   required int keyNumber,
   Icon? icon,
+  IconButton? suffixIcon,
   TextInputType? keyboardType,
   bool? obscureText,
   String? initialValue,
+  ValueChanged<String>? onChanged,
+  TextEditingController? controller,
 }) {
 /*  assert(onSaved != null);
   assert(validator != null);*/
@@ -18,6 +21,7 @@ renderTextFormField({
     key: ValueKey(keyNumber),
     decoration: InputDecoration(
         prefixIcon: icon,
+        suffixIcon: suffixIcon,
         enabledBorder: const OutlineInputBorder(
           borderSide: BorderSide(color: Colors.white),
         ),
@@ -31,6 +35,8 @@ renderTextFormField({
         hintText: label,
         hintStyle: TextStyle(color: Colors.grey[500]),
     ),
+    onChanged: onChanged,
+    controller: controller,
     keyboardType: keyboardType,
     initialValue: initialValue,
     // autovalidateMode: AutovalidateMode.always,

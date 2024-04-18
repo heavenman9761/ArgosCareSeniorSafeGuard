@@ -1,5 +1,6 @@
 class EventList {
   final String? hubID;
+  final String? userID;
   final String? deviceID;
   final String? deviceType;
   final String? event;
@@ -9,6 +10,10 @@ class EventList {
 
   String? getHubID() {
     return hubID;
+  }
+
+  String? getUserID() {
+    return userID;
   }
 
   String? getDeviceID() {
@@ -35,13 +40,14 @@ class EventList {
     return name;
   }
 
-  EventList({required this.hubID, required this.deviceID, required this.deviceType,
+  EventList({required this.hubID, required this.userID, required this.deviceID, required this.deviceType,
     required this.event, required this.status, required this.createdAt, required this.name});
 
   Map<String, dynamic> toMap() {
     return {
-      'deviceID': deviceID ?? '',
       'hubID': hubID ?? '',
+      'userID': userID ?? '',
+      'deviceID': deviceID ?? '',
       'deviceType': deviceType ?? '',
       'event': event ?? '',
       'status': status ?? '',
@@ -53,6 +59,7 @@ class EventList {
   factory EventList.fromJson(Map<String, dynamic> json) {
     return EventList(
       hubID: json['hubID'],
+      userID: json['userID'],
       deviceID: json['deviceID'],
       deviceType: json['deviceType'],
       event: json['event'],

@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:argoscareseniorsafeguard/utils/string_extensions.dart';
 import 'package:argoscareseniorsafeguard/components/my_button.dart';
 import 'package:argoscareseniorsafeguard/components/my_textfield.dart';
-import 'package:argoscareseniorsafeguard/constants.dart';
+import 'package:dio/dio.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -14,18 +14,35 @@ class RegisterPage extends StatefulWidget {
 
 class _RegisterPageState extends State<RegisterPage> {
   final _formKey = GlobalKey<FormState>();  // DECLARE a formKey
-  String name = '';
-  String email = '';
-  String password = '';
-  String nickname = '';
-  String mobilephone = '';
-  String addrzip = '';
-  String addr = '';
+  String _name = '';
+  String _email = '';
+  String _password = '';
+  String _confirmPassword = '';
+  String _mobilephone = '';
+  String _addrzip = '';
+  String _addr = '';
+  bool _passwordVisible = true;
+  bool _confirmPasswordVisible = true;
+  final _nameController = TextEditingController();
+  final _mailController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _zipController = TextEditingController();
+  final _addrController = TextEditingController();
 
   @override
   void initState(){
     super.initState();
     // _formKey = GlobalKey(); // INSTANTIATE the key here
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _nameController.dispose();
+    _mailController.dispose();
+    _phoneController.dispose();
+    _zipController.dispose();
+    _addrController.dispose();
   }
 
   void _register(BuildContext context) async {
@@ -34,14 +51,20 @@ class _RegisterPageState extends State<RegisterPage> {
       _formKey.currentState!.save();
       print("validateController() true");
       try {
+        var uri = "http://14.42.209.174:6008/api";
+        BaseOptions options = BaseOptions(
+          baseUrl: uri,
+        );
+        var dio = Dio(options);
+
         final response = await dio.post('/auth/signup',
             data: jsonEncode({
-              "email": email,
-              "name": name,
-              "password": password,
-              "mobilephone": mobilephone,
-              "addr_zip": addrzip,
-              "addr": addr,
+              "email": _email,
+              "name": _name,
+              "password": _password,
+              "mobilephone": _mobilephone,
+              "addr_zip": _addrzip,
+              "addr": _addr,
               "admin": false
             })
         );
@@ -148,11 +171,23 @@ class _RegisterPageState extends State<RegisterPage> {
                           label: '이름',
                           keyNumber: 1,
                           icon: const Icon(Icons.account_circle, color: Colors.grey,),
+                          suffixIcon: _nameController.text.isNotEmpty ?
+                            IconButton(
+                              icon: const Icon(Icons.clear),
+                              onPressed: () {
+                                _nameController.clear();
+                                setState(() { });
+                              },
+                            ) : null,
+                          controller: _nameController,
                           keyboardType: TextInputType.name,
                           obscureText: false,
+                          onChanged: (val) {
+                              setState(() { });
+                          },
                           onSaved: (val) {
                               setState(() {
-                                name = val;
+                                _name = val;
                               });
                           },
                           validator: (val) {
@@ -161,7 +196,7 @@ class _RegisterPageState extends State<RegisterPage> {
                             }
               
                             if (val.length < 2) {
-                              return '이름은 두글자 이상 입력 해주셔야합니다.';
+                              return '이름은 두글자 이상 입력해 주셔야합니다.';
                             }
               
                             return null;
@@ -175,11 +210,23 @@ class _RegisterPageState extends State<RegisterPage> {
                           label: '메일 주소',
                           keyNumber: 2,
                           icon: const Icon(Icons.mail, color: Colors.grey,),
+                          suffixIcon: _mailController.text.isNotEmpty ?
+                          IconButton(
+                            icon: const Icon(Icons.clear),
+                            onPressed: () {
+                              _mailController.clear();
+                              setState(() { });
+                            },
+                          ) : null,
+                          controller: _mailController,
                           keyboardType: TextInputType.emailAddress,
                           obscureText: false,
+                          onChanged: (val) {
+                            setState(() { });
+                          },
                           onSaved: (val) {
                             setState(() {
-                              email = val;
+                              _email = val;
                             });
 
                           },
@@ -199,21 +246,34 @@ class _RegisterPageState extends State<RegisterPage> {
                           label: '비밀 번호',
                           keyNumber: 3,
                           icon: const Icon(Icons.lock, color: Colors.grey,),
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              _passwordVisible ? Icons.visibility : Icons.visibility_off,
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                _passwordVisible = !_passwordVisible;
+                              });
+                            },
+                          ),
                           keyboardType: TextInputType.text,
-                          obscureText: true,
+                          obscureText: _passwordVisible,
+                          onChanged: (val) {
+                            _confirmPassword = val;
+                          },
                           onSaved: (val) {
                             setState(() {
-                              password = val;
+                              _password = val;
                             });
 
                           },
                           validator: (val) {
-                            if (val.length < 6) {
-                              return '비밀번호는 6글자 이상 12글자 이하로 입력 해주셔야합니다.';
+                            if (val.length < 6 || val.length > 12) {
+                              return '비밀번호는 6글자 이상 12글자 이하로 입력해 주셔야합니다.';
                             }
 
-                            String value = val as String;
-                            return val.isValidPasswordFormatType1() ? null : '비밀번호는 영문(소문자, 대문자), 숫자, 특수문자로 이루어진 6 ~ 12 자리입니다.';
+                            //return val.isValidPasswordFormatType1() ? null : '비밀번호는 영문(소문자, 대문자), 숫자, 특수문자로 이루어진 6 ~ 12 자리입니다.';
+                            return (val as String).isValidOnlyNumber() ? null : '비밀번호는 숫자로 이루어진 6 ~ 12 자리입니다.';
                           },
                         ),
               
@@ -224,21 +284,36 @@ class _RegisterPageState extends State<RegisterPage> {
                           label: '비밀 번호 확인',
                           keyNumber: 4,
                           icon: const Icon(Icons.lock, color: Colors.grey,),
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              _confirmPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                _confirmPasswordVisible = !_confirmPasswordVisible;
+                              });
+                            },
+                          ),
                           keyboardType: TextInputType.text,
-                          obscureText: true,
+                          obscureText: _confirmPasswordVisible,
                           onSaved: (val) {},
                           validator: (val) {
-                            if (val.length < 6) {
-                              return '비밀번호확인은 필수사항입니다.';
+                            if (val.length < 6 || val.length > 12) {
+                              return '비밀번호확인은 6글자 이상 12글자 이하로 입력해 주셔야합니다.';
                             }
 
-                            return null;
+                            String value = val as String;
+                            if (_confirmPassword != value) {
+                              return "패스워드확인이 올바르지 않습니다.";
+                            } else {
+                              return null;
+                            }
                           },
                         ),
               
                         const SizedBox(height: 10),
 
-                        renderTextFormField(
+                        /*renderTextFormField(
                           context: context,
                           label: '닉네임',
                           keyNumber: 5,
@@ -256,18 +331,30 @@ class _RegisterPageState extends State<RegisterPage> {
                           },
                         ),
 
-                        const SizedBox(height: 10),
+                        const SizedBox(height: 10),*/
               
                         renderTextFormField(
                           context: context,
                           label: '휴대폰',
-                          keyNumber: 6,
+                          keyNumber: 5,
                           icon: const Icon(Icons.phone_android, color: Colors.grey,),
+                          suffixIcon: _phoneController.text.isNotEmpty ?
+                          IconButton(
+                            icon: const Icon(Icons.clear),
+                            onPressed: () {
+                              _phoneController.clear();
+                              setState(() { });
+                            },
+                          ) : null,
+                          controller: _phoneController,
                           keyboardType: TextInputType.phone,
                           obscureText: false,
+                          onChanged: (val) {
+                            setState(() { });
+                          },
                           onSaved: (val) {
                             setState(() {
-                              mobilephone = val;
+                              _mobilephone = val;
                             });
 
                           },
@@ -285,13 +372,25 @@ class _RegisterPageState extends State<RegisterPage> {
                         renderTextFormField(
                           context: context,
                           label: '우편번호',
-                          keyNumber: 7,
+                          keyNumber: 6,
                           icon: const Icon(Icons.home_work_outlined, color: Colors.grey,),
+                          suffixIcon: _zipController.text.isNotEmpty ?
+                          IconButton(
+                            icon: const Icon(Icons.clear),
+                            onPressed: () {
+                              _zipController.clear();
+                              setState(() { });
+                            },
+                          ) : null,
+                          controller: _zipController,
                           keyboardType: TextInputType.number,
                           obscureText: false,
+                          onChanged: (val) {
+                            setState(() { });
+                          },
                           onSaved: (val) {
                             setState(() {
-                              addrzip = val;
+                              _addrzip = val;
                             });
 
                           },
@@ -305,13 +404,25 @@ class _RegisterPageState extends State<RegisterPage> {
                         renderTextFormField(
                           context: context,
                           label: '주소',
-                          keyNumber: 8,
+                          keyNumber: 7,
                           icon: const Icon(Icons.home_work_outlined, color: Colors.grey,),
+                          suffixIcon: _addrController.text.isNotEmpty ?
+                          IconButton(
+                            icon: const Icon(Icons.clear),
+                            onPressed: () {
+                              _addrController.clear();
+                              setState(() { });
+                            },
+                          ) : null,
+                          controller: _addrController,
                           keyboardType: TextInputType.streetAddress,
                           obscureText: false,
+                          onChanged: (val) {
+                            setState(() { });
+                          },
                           onSaved: (val) {
                             setState(() {
-                              addr = val;
+                              _addr = val;
                             });
 
                           },

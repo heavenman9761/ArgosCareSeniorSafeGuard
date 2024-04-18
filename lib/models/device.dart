@@ -3,7 +3,7 @@ class Device {
   final String? deviceType;
   final String? deviceName;
   final int? displaySunBun;
-  final String? accountID;
+  final String? userID;
   final String? status;
   final String? updatedAt;
   final String? createdAt;
@@ -24,8 +24,8 @@ class Device {
     return displaySunBun;
   }
 
-  String? getAccountID() {
-    return accountID;
+  String? getUserID() {
+    return userID;
   }
 
   String? getStatus() {
@@ -40,7 +40,7 @@ class Device {
     return createdAt;
   }
 
-  Device({required this.deviceID, required this.deviceType, required this.deviceName, required this.displaySunBun, required this.accountID,
+  Device({required this.deviceID, required this.deviceType, required this.deviceName, required this.displaySunBun, required this.userID,
     required this.status, required this.updatedAt, required this.createdAt});
 
   Map<String, dynamic> toMap() {
@@ -49,7 +49,7 @@ class Device {
       'deviceType': deviceType ?? '',
       'deviceName': deviceName ?? '',
       'displaySunBun': displaySunBun ?? 0,
-      'accountID': accountID ?? '',
+      'userID': userID ?? '',
       'status': status ?? '',
       'updatedAt' : updatedAt ?? '',
       'createdAt': createdAt ?? '',
@@ -63,7 +63,7 @@ class Device {
         'deviceType: $deviceType, '
         'deviceName: $deviceName, '
         'displaySunBun: $displaySunBun, '
-        'accountID: $accountID, '
+        'userID: $userID, '
         'status: $status, '
         'updatedAt: $updatedAt, '
         'createdAt: $createdAt, '

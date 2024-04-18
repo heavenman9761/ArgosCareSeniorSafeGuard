@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
 
@@ -14,6 +14,11 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // await SystemChrome.setPreferredOrientations([
+  //   DeviceOrientation.portraitUp,
+  //   DeviceOrientation.portraitDown,
+  // ]);
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
@@ -70,8 +75,9 @@ class MyApp extends StatelessWidget {
     if (snapshot.hasError) {
       return const Text("Error!!");
     } else if (snapshot.hasData) {
+
       return isLogin()
-          ? const HomePage(title: 'SCT Senior Care', userName: "게스트")
+          ? const HomePage(title: 'SCT Senior Care', userName: "게스트", userID: '')
           : const LoginPage();
     } else {
       return const IntroScreen();

@@ -10,10 +10,10 @@ import 'package:argoscareseniorsafeguard/providers/providers.dart';
 import 'package:argoscareseniorsafeguard/models/device.dart';
 import 'package:argoscareseniorsafeguard/models/hub.dart';
 import 'package:argoscareseniorsafeguard/models/sensor.dart';
-import 'package:argoscareseniorsafeguard/constants.dart';
 
 class MyDeviceWidget extends ConsumerStatefulWidget {
-  const MyDeviceWidget({super.key});
+  const MyDeviceWidget({super.key, required this.userID});
+  final String userID;
 
   @override
   ConsumerState<MyDeviceWidget> createState() => _MyDeviceWidgetState();
@@ -31,7 +31,7 @@ class _MyDeviceWidgetState extends ConsumerState<MyDeviceWidget> {
     _hubList.clear();
 
     List<Hub> hubList = await sd.getHubs();
-    List<Sensor> sensorList = await sd.getSensors();
+    List<Sensor> sensorList = await sd.getSensors(widget.userID);
     List<Device> deviceList = [];
 
     for (Hub hub in hubList) {
@@ -40,7 +40,7 @@ class _MyDeviceWidgetState extends ConsumerState<MyDeviceWidget> {
           deviceType: hub.getDeviceType(),
           deviceName: hub.getName(),
           displaySunBun: hub.getDisplaySunBun(),
-          accountID: "",
+          userID: "",
           status: "",
           updatedAt: hub.getUpdatedAt(),
           createdAt: hub.getCreatedAt()
@@ -55,7 +55,7 @@ class _MyDeviceWidgetState extends ConsumerState<MyDeviceWidget> {
           deviceType: sensor.getDeviceType(),
           deviceName: sensor.getName(),
           displaySunBun: sensor.getDisplaySunBun(),
-          accountID: "",
+          userID: "",
           status: "",
           updatedAt: sensor.getUpdatedAt(),
           createdAt: sensor.getCreatedAt()
@@ -189,7 +189,7 @@ class _MyDeviceWidgetState extends ConsumerState<MyDeviceWidget> {
 
   void _goDeviceDetailView(BuildContext context, Device device) {
     Navigator.push(context, MaterialPageRoute(builder: (context) {
-      return DeviceDetailView(device: device);
+      return DeviceDetailView(device: device, userID: widget.userID);
     })).then((value) {
       setState(() {
 

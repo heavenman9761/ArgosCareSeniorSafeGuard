@@ -4,6 +4,7 @@ class Sensor {
   final String? id;
   final String? sensorID;
   final String? name;
+  final String? userID;
   final int? displaySunBun;
   final String? category;
   final String? deviceType;
@@ -26,6 +27,10 @@ class Sensor {
 
   String? getName() {
     return name;
+  }
+
+  String? getUserID() {
+    return userID;
   }
 
   int? getDisplaySunBun() {
@@ -73,7 +78,7 @@ class Sensor {
   }
 
   Sensor({
-    this.id, required this.sensorID, required this.name,
+    this.id, required this.sensorID, required this.name, required this.userID,
     required this.displaySunBun, required this.category, required this.deviceType,
     required this.modelName,
     required this.online, required this.status, required this.battery,
@@ -86,6 +91,7 @@ class Sensor {
       'id': id ?? '',
       'sensorID': sensorID ?? '',
       'name': name ?? '',
+      'userID': userID ?? '',
       'displaySunBun': displaySunBun ?? 0,
       'category': category ?? '',
       'deviceType': deviceType ?? '',
@@ -106,6 +112,7 @@ class Sensor {
       id: json['id'],
       sensorID: json['sensorID'],
       name: json['name'],
+      userID: json['userID'],
       displaySunBun: json['displaySunBun'],
       category: json['category'],
       deviceType: json['deviceType'],
@@ -126,6 +133,7 @@ class Sensor {
         'id: $id, '
         'sensorID: $sensorID, '
         'name: $name, '
+        'userID: $userID, '
         'displaySunBun: $displaySunBun, '
         'category: $category, '
         'deviceType: $deviceType, '
