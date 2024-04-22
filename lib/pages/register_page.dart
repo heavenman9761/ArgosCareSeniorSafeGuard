@@ -4,6 +4,7 @@ import 'package:argoscareseniorsafeguard/utils/string_extensions.dart';
 import 'package:argoscareseniorsafeguard/components/my_button.dart';
 import 'package:argoscareseniorsafeguard/components/my_textfield.dart';
 import 'package:dio/dio.dart';
+import 'package:argoscareseniorsafeguard/constants.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -51,7 +52,7 @@ class _RegisterPageState extends State<RegisterPage> {
       _formKey.currentState!.save();
       print("validateController() true");
       try {
-        var uri = "http://14.42.209.174:6008/api";
+        var uri = Constants.BASE_URL;
         BaseOptions options = BaseOptions(
           baseUrl: uri,
         );

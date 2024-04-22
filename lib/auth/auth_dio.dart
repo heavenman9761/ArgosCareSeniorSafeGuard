@@ -4,9 +4,10 @@ import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:cookie_jar/cookie_jar.dart';
 import 'package:dio_cookie_manager/dio_cookie_manager.dart';
+import 'package:argoscareseniorsafeguard/constants.dart';
 
 Future<Dio> authDio() async {
-  var uri = "http://14.42.209.174:6008/api";
+  var uri = Constants.BASE_URL;
   BaseOptions options = BaseOptions(
       baseUrl: uri,
   );

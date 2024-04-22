@@ -156,10 +156,10 @@ class _AddHubPage2State extends ConsumerState<AddHubPage2> {
           await Constants.platform.invokeMethod('settingHub', <String, dynamic>{
         "hubName": hubName,
         "accountID": email,
-        "serverIp": "14.42.209.174",
-        "serverPort": "6002",
-        "userID": "mings", //mqtt 계정
-        "userPw": "Sct91234!"
+        "serverIp": Constants.MQTT_HOST,
+        "serverPort": Constants.MQTT_PORT.toString(),
+        "userID": Constants.MQTT_ID, //mqtt 계정
+        "userPw": Constants.MQTT_PASSWORD
       });
 
       debugPrint('received from java [hubID]: $result');

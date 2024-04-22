@@ -54,7 +54,12 @@ class _HomePageState extends ConsumerState<HomePage> {
 
     // _downDeviceListFromServer();
 
-    mqttInit(ref, '14.42.209.174', 6002, 'ArgosCareSeniorSafeGuard', 'mings', 'Sct91234!');
+    mqttInit(ref,
+        Constants.MQTT_HOST,
+        Constants.MQTT_PORT,
+        Constants.MQTT_IDENTIFIER,
+        Constants.MQTT_ID,
+        Constants.MQTT_PASSWORD);
 
     _fcmSetListener();
 

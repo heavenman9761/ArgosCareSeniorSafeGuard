@@ -1,18 +1,22 @@
 import 'dart:convert';
+
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:logger/logger.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:dio/dio.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter/material.dart';
-import 'package:argoscareseniorsafeguard/models/sensor_event.dart';
 import 'package:intl/intl.dart';
+
 import 'package:argoscareseniorsafeguard/utils/device_info.dart';
+import 'package:argoscareseniorsafeguard/models/sensor_event.dart';
 
 class Constants {
   static const platform = MethodChannel('est.co.kr/IoT_Hub');
+
   static const DEVICE_TYPE_HUB = 'hub';
   static const DEVICE_TYPE_ILLUMINANCE = 'illuminance_sensor';
   static const DEVICE_TYPE_TEMPERATURE_HUMIDITY = 'temperature_humidity';
@@ -20,6 +24,14 @@ class Constants {
   static const DEVICE_TYPE_EMERGENCY = 'emergency_button';
   static const DEVICE_TYPE_MOTION = 'motion_sensor';
   static const DEVICE_TYPE_DOOR = 'door_sensor';
+
+  static const MQTT_HOST = '14.42.209.174';
+  static const MQTT_PORT = 6002;
+  static const MQTT_IDENTIFIER = 'ArgosCareSeniorSafeGuard';
+  static const MQTT_ID = 'mings';
+  static const MQTT_PASSWORD = 'Sct91234!';
+
+  static const BASE_URL = 'http://14.42.209.174:6008/api';
 
   static final ButtonStyle elevatedButtonStyle = ElevatedButton.styleFrom(
     foregroundColor: Colors.white60,
