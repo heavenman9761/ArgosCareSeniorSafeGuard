@@ -221,7 +221,7 @@ class _HomePageState extends ConsumerState<HomePage> {
     SensorEvent sensorEvent = SensorEvent(
       id: mqttMsg['id'],
       hubID: mqttMsg['hubID'],
-      userID: mqttMsg['userID'],
+      userID: widget.userID,
       deviceID: mqttMsg['deviceID'],
       deviceType: mqttMsg['device_type'],
       event: mqttMsg['event'],
@@ -300,7 +300,7 @@ class _HomePageState extends ConsumerState<HomePage> {
          id: mqttMsg['id'],
          hubID: mqttMsg['deviceID'],
          name: mqttMsg['name'],
-         userID: mqttMsg['userID'],
+         userID: widget.userID,
          displaySunBun: mqttMsg['displaySunBun'],
          category: mqttMsg['category'],
          deviceType: mqttMsg['deviceType'],
@@ -319,7 +319,7 @@ class _HomePageState extends ConsumerState<HomePage> {
         id: mqttMsg['id'],
         hubID: mqttMsg['deviceID'],
         name: mqttMsg['name'],
-        userID: mqttMsg['userID'],
+        userID: widget.userID,
         displaySunBun: mqttMsg['displaySunBun'],
         category: mqttMsg['category'],
         deviceType: mqttMsg['deviceType'],
@@ -346,7 +346,7 @@ class _HomePageState extends ConsumerState<HomePage> {
         id: mqttMsg['id'],
         sensorID: mqttMsg['sensorID'],
         name: mqttMsg['name'],
-        userID: mqttMsg['userID'],
+        userID: widget.userID,//mqttMsg['userID'],
         displaySunBun: mqttMsg['displaySunBun'],
         category: mqttMsg['category'],
         deviceType: mqttMsg['deviceType'],
@@ -360,13 +360,12 @@ class _HomePageState extends ConsumerState<HomePage> {
         hubID: mqttMsg['hubID']
       );
       await sd.insertSensor(sensor);
-      print('sd.insertSensor');
     } else {
       Sensor sensor = Sensor(
           id: mqttMsg['id'],
           sensorID: mqttMsg['sensorID'],
           name: mqttMsg['name'],
-          userID: mqttMsg['userID'],
+          userID: widget.userID,//mqttMsg['userID'],
           displaySunBun: mqttMsg['displaySunBun'],
           category: mqttMsg['category'],
           deviceType: mqttMsg['deviceType'],
@@ -380,7 +379,6 @@ class _HomePageState extends ConsumerState<HomePage> {
           hubID: mqttMsg['hubID']
       );
       await sd.updateSensor(sensor);
-      print('sd.updateSensor');
     }
   }
 
@@ -414,18 +412,12 @@ class _HomePageState extends ConsumerState<HomePage> {
       deviceName = 'door $count';
     }
 
-    const storage = FlutterSecureStorage(
-      iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock),
-      aOptions: AndroidOptions(encryptedSharedPreferences: true),
-    );
-    final email = await storage.read(key: 'EMAIL');
-
     Device device = Device(
       deviceID: deviceID,
       deviceType: deviceType,
       deviceName: deviceName,
       displaySunBun: displaySunBun,
-      userID: email,
+      userID: widget.userID,
       status: "",
       updatedAt: DateTime.now().toString(),
       createdAt: DateTime.now().toString(),
@@ -625,5 +617,4 @@ class _HomePageState extends ConsumerState<HomePage> {
       return HomeWidget(userName: widget.userName, userID: widget.userID);
     }
   }
-
 }
