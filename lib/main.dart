@@ -7,6 +7,7 @@ import 'package:argoscareseniorsafeguard/utils/firebase_options.dart';
 import 'package:argoscareseniorsafeguard/pages/login_page.dart';
 import 'package:argoscareseniorsafeguard/pages/Intro_page.dart';
 import 'package:argoscareseniorsafeguard/pages/home_page.dart';
+import 'package:argoscareseniorsafeguard/constants.dart';
 
 import 'package:argoscareseniorsafeguard/utils/fcm.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -42,7 +43,7 @@ class MyApp extends StatelessWidget {
         supportedLocales: const [
           Locale('ko', ''), // Korean, no country code
         ],
-        title: 'Flutter Demo',
+        title: Constants.APP_TITLE,
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
           // colorScheme: ColorScheme.fromSeed(seedColor: seedColor),
@@ -76,7 +77,7 @@ class MyApp extends StatelessWidget {
     } else if (snapshot.hasData) {
 
       return isLogin()
-          ? const HomePage(title: 'SCT Senior Care', userName: "게스트", userID: '')
+          ? const HomePage(title: Constants.APP_TITLE, userName: "guest", userID: '')
           : const LoginPage();
     } else {
       return const IntroScreen();

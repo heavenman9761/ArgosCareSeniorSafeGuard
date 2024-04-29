@@ -563,7 +563,7 @@ class _HomePageState extends ConsumerState<HomePage> {
       backgroundColor: Colors.grey[300],
       appBar: AppBar(
         backgroundColor: Colors.white,
-        title: const Text('Argos Care'),
+        title: const Text(Constants.APP_TITLE),
         centerTitle: true,
         actions: const [
           NotifyBadgeWidget(),

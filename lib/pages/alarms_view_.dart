@@ -10,7 +10,9 @@ import 'package:intl/intl.dart';
 import 'package:timeline_tile/timeline_tile.dart';
 
 class AlarmsView extends StatefulWidget {
-  const AlarmsView({super.key});
+  const AlarmsView({super.key, required this.userID});
+
+  final String userID;
 
   @override
   State<AlarmsView> createState() => _NotisViewState();
@@ -21,7 +23,7 @@ class _NotisViewState extends State<AlarmsView> {
     DBHelper sd = DBHelper();
 
     List<Hub> hubList = await sd.getHubs();
-    List<Sensor> sensorList = await sd.getSensors();
+    List<Sensor> sensorList = await sd.getSensors(widget.userID);
     List<Device> deviceList = [];
 
     for (Hub hub in hubList) {
@@ -30,7 +32,7 @@ class _NotisViewState extends State<AlarmsView> {
           deviceType: hub.getDeviceType(),
           deviceName: hub.getName(),
           displaySunBun: hub.getDisplaySunBun(),
-          accountID: "",
+          userID: "",
           status: "",
           updatedAt: "",
           createdAt: ""
@@ -44,7 +46,7 @@ class _NotisViewState extends State<AlarmsView> {
           deviceType: sensor.getDeviceType(),
           deviceName: sensor.getName(),
           displaySunBun: sensor.getDisplaySunBun(),
-          accountID: "",
+          userID: "",
           status: "",
           updatedAt: "",
           createdAt: ""
@@ -79,7 +81,7 @@ class _NotisViewState extends State<AlarmsView> {
     String formattedDate = formatter.format(now);
 
     Navigator.push(context, MaterialPageRoute(builder: (context) {
-      return AlarmDetailView(device: device, date: formattedDate);
+      return AlarmDetailView(userID: widget.userID, device: device, date: formattedDate);
     }));
   }
 
@@ -89,7 +91,7 @@ class _NotisViewState extends State<AlarmsView> {
         backgroundColor: Colors.grey[300],
         appBar: AppBar(
           backgroundColor: Colors.white,
-          title: const Text('Argos Care'),
+          title: const Text(Constants.APP_TITLE),
           centerTitle: true,
         ),
         body: Column(

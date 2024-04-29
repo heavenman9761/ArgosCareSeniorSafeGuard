@@ -124,7 +124,7 @@ class _LoginPageState extends State<LoginPage> {
         pref.setString("DoorEndTime", alarmResponse.data['doorEndTime']);
 
         Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) {
-          return HomePage(title: 'Argos Care', userName: userName, userID: userID);
+          return HomePage(title: Constants.APP_TITLE, userName: userName, userID: userID);
         },
         ));
 
@@ -241,13 +241,13 @@ class _LoginPageState extends State<LoginPage> {
                             keyNumber: 1,
                             icon: const Icon(Icons.mail, color: Colors.grey,),
                             suffixIcon: _mailController.text.isNotEmpty ?
-                            IconButton(
-                              icon: const Icon(Icons.clear),
-                              onPressed: () {
-                                _mailController.clear();
-                                setState(() { });
-                              },
-                            ) : null,
+                              IconButton(
+                                icon: const Icon(Icons.clear),
+                                onPressed: () {
+                                  _mailController.clear();
+                                  setState(() { });
+                                },
+                              ) : null,
                             controller: _mailController,
                             keyboardType: TextInputType.emailAddress,
                             // initialValue: 'dn9318dn@gmail.com',
@@ -276,9 +276,7 @@ class _LoginPageState extends State<LoginPage> {
                             keyNumber: 2,
                             icon: const Icon(Icons.lock, color: Colors.grey,),
                             suffixIcon: IconButton(
-                              icon: Icon(
-                                passwordVisible ? Icons.visibility : Icons.visibility_off,
-                              ),
+                              icon: Icon( passwordVisible ? Icons.visibility : Icons.visibility_off, ),
                               onPressed: () {
                                 setState(() {
                                   passwordVisible = !passwordVisible;

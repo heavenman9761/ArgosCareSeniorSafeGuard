@@ -33,6 +33,8 @@ class Constants {
 
   static const BASE_URL = 'http://14.42.209.174:6008/api';
 
+  static const APP_TITLE = 'Argos Care';
+
   static final ButtonStyle elevatedButtonStyle = ElevatedButton.styleFrom(
     foregroundColor: Colors.white60,
     backgroundColor: Colors.lightBlue, // text color

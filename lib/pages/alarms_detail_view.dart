@@ -8,8 +8,9 @@ import 'package:argoscareseniorsafeguard/constants.dart';
 import 'package:intl/intl.dart';
 
 class AlarmDetailView extends StatefulWidget {
-  const AlarmDetailView({super.key, required this.device, required this.date});
+  const AlarmDetailView({super.key, required this.userID, required this.device, required this.date});
 
+  final String userID;
   final Device device;
   final String date;
 
@@ -20,7 +21,7 @@ class AlarmDetailView extends StatefulWidget {
 class _AlarmDetailViewState extends State<AlarmDetailView> {
   Future<List<SensorEvent>> _getEventList() async {
     DBHelper sd = DBHelper();
-    List<SensorEvent> sensorEventList = await sd.getSensorEventsByDeviceType(widget.device.getDeviceType()!, widget.date);
+    List<SensorEvent> sensorEventList = await sd.getSensorEventsByDeviceType(widget.userID, widget.device.getDeviceType()!, widget.date);
 
     return sensorEventList;
   }
@@ -36,7 +37,7 @@ class _AlarmDetailViewState extends State<AlarmDetailView> {
         backgroundColor: Colors.grey[300],
         appBar: AppBar(
           backgroundColor: Colors.white,
-          title: const Text('Argos Care'),
+          title: const Text(Constants.APP_TITLE),
           centerTitle: true,
         ),
         body: Column(

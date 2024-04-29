@@ -147,7 +147,7 @@ class _RegisterPageState extends State<RegisterPage> {
         backgroundColor: Colors.grey[300],
         appBar: AppBar(
           backgroundColor: Colors.white,
-          title: const Text('Argos Care'),
+          title: const Text(Constants.APP_TITLE),
           centerTitle: true,
         ),
         body: SingleChildScrollView (
@@ -212,13 +212,13 @@ class _RegisterPageState extends State<RegisterPage> {
                           keyNumber: 2,
                           icon: const Icon(Icons.mail, color: Colors.grey,),
                           suffixIcon: _mailController.text.isNotEmpty ?
-                          IconButton(
-                            icon: const Icon(Icons.clear),
-                            onPressed: () {
-                              _mailController.clear();
-                              setState(() { });
-                            },
-                          ) : null,
+                            IconButton(
+                              icon: const Icon(Icons.clear),
+                              onPressed: () {
+                                _mailController.clear();
+                                setState(() { });
+                              },
+                            ) : null,
                           controller: _mailController,
                           keyboardType: TextInputType.emailAddress,
                           obscureText: false,
@@ -248,9 +248,7 @@ class _RegisterPageState extends State<RegisterPage> {
                           keyNumber: 3,
                           icon: const Icon(Icons.lock, color: Colors.grey,),
                           suffixIcon: IconButton(
-                            icon: Icon(
-                              _passwordVisible ? Icons.visibility : Icons.visibility_off,
-                            ),
+                            icon: Icon( _passwordVisible ? Icons.visibility : Icons.visibility_off, ),
                             onPressed: () {
                               setState(() {
                                 _passwordVisible = !_passwordVisible;
@@ -286,9 +284,7 @@ class _RegisterPageState extends State<RegisterPage> {
                           keyNumber: 4,
                           icon: const Icon(Icons.lock, color: Colors.grey,),
                           suffixIcon: IconButton(
-                            icon: Icon(
-                              _confirmPasswordVisible ? Icons.visibility : Icons.visibility_off,
-                            ),
+                            icon: Icon( _confirmPasswordVisible ? Icons.visibility : Icons.visibility_off, ),
                             onPressed: () {
                               setState(() {
                                 _confirmPasswordVisible = !_confirmPasswordVisible;
@@ -340,13 +336,13 @@ class _RegisterPageState extends State<RegisterPage> {
                           keyNumber: 5,
                           icon: const Icon(Icons.phone_android, color: Colors.grey,),
                           suffixIcon: _phoneController.text.isNotEmpty ?
-                          IconButton(
-                            icon: const Icon(Icons.clear),
-                            onPressed: () {
-                              _phoneController.clear();
-                              setState(() { });
-                            },
-                          ) : null,
+                            IconButton(
+                              icon: const Icon(Icons.clear),
+                              onPressed: () {
+                                _phoneController.clear();
+                                setState(() { });
+                              },
+                            ) : null,
                           controller: _phoneController,
                           keyboardType: TextInputType.phone,
                           obscureText: false,
@@ -376,13 +372,13 @@ class _RegisterPageState extends State<RegisterPage> {
                           keyNumber: 6,
                           icon: const Icon(Icons.home_work_outlined, color: Colors.grey,),
                           suffixIcon: _zipController.text.isNotEmpty ?
-                          IconButton(
-                            icon: const Icon(Icons.clear),
-                            onPressed: () {
-                              _zipController.clear();
-                              setState(() { });
-                            },
-                          ) : null,
+                            IconButton(
+                              icon: const Icon(Icons.clear),
+                              onPressed: () {
+                                _zipController.clear();
+                                setState(() { });
+                              },
+                            ) : null,
                           controller: _zipController,
                           keyboardType: TextInputType.number,
                           obscureText: false,
@@ -408,13 +404,13 @@ class _RegisterPageState extends State<RegisterPage> {
                           keyNumber: 7,
                           icon: const Icon(Icons.home_work_outlined, color: Colors.grey,),
                           suffixIcon: _addrController.text.isNotEmpty ?
-                          IconButton(
-                            icon: const Icon(Icons.clear),
-                            onPressed: () {
-                              _addrController.clear();
-                              setState(() { });
-                            },
-                          ) : null,
+                            IconButton(
+                              icon: const Icon(Icons.clear),
+                              onPressed: () {
+                                _addrController.clear();
+                                setState(() { });
+                              },
+                            ) : null,
                           controller: _addrController,
                           keyboardType: TextInputType.streetAddress,
                           obscureText: false,

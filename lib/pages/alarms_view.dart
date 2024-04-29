@@ -80,7 +80,7 @@ class _AlarmsViewState extends State<AlarmsView> {
         backgroundColor: Colors.grey[300],
         appBar: AppBar(
           backgroundColor: Colors.white,
-          title: const Text('Argos Care'),
+          title: const Text(Constants.APP_TITLE),
           centerTitle: true,
         ),
         body: Column(
