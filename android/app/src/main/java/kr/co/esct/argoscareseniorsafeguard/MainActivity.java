@@ -202,13 +202,16 @@ public class MainActivity extends FlutterActivity {
                         switch (failureReason) {
                             case AUTH_FAILED:
                                 Log.d(TAG,"Wi-Fi Authentication failed.");
+                                closeErrorActivity("Wi-Fi Authentication failed.");
                                 break;
                             case NETWORK_NOT_FOUND:
                                 Log.d(TAG,"Network not found.");
+                                closeErrorActivity("Network not found.");
                                 break;
                             case DEVICE_DISCONNECTED:
                             case UNKNOWN:
                                 Log.d(TAG, "Failed to provisioning device");
+                                closeErrorActivity("Failed to provisioning device");
                                 break;
                         }
                     }
@@ -234,7 +237,8 @@ public class MainActivity extends FlutterActivity {
 
                     @Override
                     public void run() {
-                        mainActivityResult.success("Failed to provisioning device");
+                        Log.d(TAG, "Failed to provisioning device");
+                        closeErrorActivity("Failed to provisioning device");
                     }
                 });
             }
@@ -538,8 +542,8 @@ public class MainActivity extends FlutterActivity {
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         byte[] result = gson.toJson(idConfig).getBytes(StandardCharsets.UTF_8);
 
-//        Log.i(TAG, "1 " + Arrays.toString(result));
-//        Log.i(TAG, "2 " + new String(result));
+        Log.i(TAG, "1 " + Arrays.toString(result));
+        Log.i(TAG, "2 " + new String(result));
 
         provisionManager.getEspDevice().sendDataToCustomEndPoint("custom-data", result, new ResponseListener() {
 
@@ -565,8 +569,8 @@ public class MainActivity extends FlutterActivity {
 
         byte[] result = gson.toJson(mqttConfig).getBytes(StandardCharsets.UTF_8);
 
-//        Log.i(TAG, "1 " + Arrays.toString(result));
-//        Log.i(TAG, "2 " + new String(result));
+        Log.i(TAG, "1 " + Arrays.toString(result));
+        Log.i(TAG, "2 " + new String(result));
 
         provisionManager.getEspDevice().sendDataToCustomEndPoint("custom-data", result, new ResponseListener() {
 
@@ -664,6 +668,9 @@ public class MainActivity extends FlutterActivity {
     };
 
     private void closeErrorActivity(String msg) {
+        if (provisionManager.getEspDevice() != null) {
+            provisionManager.getEspDevice().disconnectDevice();
+        }
         EventBus.getDefault().unregister(this);
         mainActivityResult.error("UNAVAILABLE", msg, null);
     }

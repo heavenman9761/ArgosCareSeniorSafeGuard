@@ -391,12 +391,14 @@ class _AddHubPage2State extends ConsumerState<AddHubPage2> {
 
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (context) {
         return StatefulBuilder(
           builder: (BuildContext context, StateSetter setDialogState) {
             return AlertDialog(
               title: const Text("Input WIFI Password"),
               content: TextFormField(
+                autofocus: true,
                 obscureText: passwordVisible,
                 controller: controller,
                 decoration: InputDecoration(

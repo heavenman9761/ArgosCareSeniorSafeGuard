@@ -14,7 +14,7 @@ class RegisterPage extends StatefulWidget {
 }
 
 class _RegisterPageState extends State<RegisterPage> {
-  final _formKey = GlobalKey<FormState>();  // DECLARE a formKey
+  final _formKey = GlobalKey<FormState>();
   String _name = '';
   String _email = '';
   String _password = '';
@@ -50,7 +50,6 @@ class _RegisterPageState extends State<RegisterPage> {
     final isValid = _formKey.currentState!.validate();
     if (isValid) {
       _formKey.currentState!.save();
-      print("validateController() true");
       try {
         var uri = Constants.BASE_URL;
         BaseOptions options = BaseOptions(
@@ -85,6 +84,7 @@ class _RegisterPageState extends State<RegisterPage> {
   void _failureDialog(BuildContext context) {
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (context) {
         return StatefulBuilder(
           builder: (BuildContext context, StateSetter setDialogState) {
@@ -109,6 +109,7 @@ class _RegisterPageState extends State<RegisterPage> {
   void _successDialog(BuildContext context, String text) {
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (context) {
         return StatefulBuilder(
           builder: (BuildContext context, StateSetter setDialogState) {

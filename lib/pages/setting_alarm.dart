@@ -770,9 +770,14 @@ class _SettingAlarmState extends ConsumerState<SettingAlarm> {
 
   void _inputDialog(BuildContext context, int initValue, int type) {
     final controller = TextEditingController(text: initValue.toString());
+    controller.selection = TextSelection(
+      baseOffset: 0,
+      extentOffset: initValue.toString().length,
+    );
 
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (context) {
         return StatefulBuilder(
           builder: (BuildContext context, StateSetter setDialogState) {
@@ -780,6 +785,7 @@ class _SettingAlarmState extends ConsumerState<SettingAlarm> {
               title: const Text("값 입력"),
               content: TextFormField(
                 controller: controller,
+                autofocus: true,
               ),
               actions: <Widget>[
                 TextButton(
@@ -828,6 +834,7 @@ class _SettingAlarmState extends ConsumerState<SettingAlarm> {
   void _confirmDialog(BuildContext context) {
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (context) {
         return StatefulBuilder(
           builder: (BuildContext context, StateSetter setDialogState) {

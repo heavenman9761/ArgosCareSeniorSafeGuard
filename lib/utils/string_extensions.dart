@@ -10,6 +10,15 @@ extension InputValidate on String {
     return RegExp(r'^010-?([0-9]{4})-?([0-9]{4})$').hasMatch(this);
   }
 
+  bool isValidTelNumberFormat() {
+    //일반 전화번호: /^\d{2,3}-\d{3,4}-\d{4}$/;
+    return RegExp(r'^\d{2,3}-\d{3,4}-\d{4}$').hasMatch(this);
+  }
+
+  bool isValidZipAddrNumberFormat() {
+    return RegExp(r'^\d{5}$').hasMatch(this);
+  }
+
   //영문(소문자, 대문자), 숫자, 특수문자로 이루어진 n~m 자릿수
   bool isValidPasswordFormatType1() {
     return RegExp(r'^(?!((?:[A-Za-z]+)|(?:[~!@#$%^&*()_+=-]+)|(?:[0-9]+))$)[A-Za-z\d~!@#$%^&*()_+=-]{6,12}$').hasMatch(this);

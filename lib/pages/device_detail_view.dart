@@ -525,9 +525,13 @@ class _DeviceDetailViewState extends State<DeviceDetailView> {
 
   void _inputDeviceNameDialog(BuildContext context, String deviceName) {
     final controller = TextEditingController(text: deviceName);
-
+    controller.selection = TextSelection(
+      baseOffset: 0,
+      extentOffset: deviceName.length,
+    );
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (context) {
         return StatefulBuilder(
           builder: (BuildContext context, StateSetter setDialogState) {
@@ -535,6 +539,7 @@ class _DeviceDetailViewState extends State<DeviceDetailView> {
               title: const Text("장치 명 입력"),
               content: TextFormField(
                 controller: controller,
+                autofocus: true,
               ),
               actions: <Widget>[
                 TextButton(
@@ -626,6 +631,7 @@ class _DeviceDetailViewState extends State<DeviceDetailView> {
   void _confirmHubInit(BuildContext context) {
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (context) {
         return StatefulBuilder(
           builder: (BuildContext context, StateSetter setDialogState) {
@@ -660,6 +666,7 @@ class _DeviceDetailViewState extends State<DeviceDetailView> {
   void _confirmHubRestart(BuildContext context) {
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (context) {
         return StatefulBuilder(
           builder: (BuildContext context, StateSetter setDialogState) {

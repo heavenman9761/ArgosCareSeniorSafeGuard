@@ -264,6 +264,7 @@ class _MyDeviceWidgetState extends ConsumerState<MyDeviceWidget> {
   void showActionDialog(BuildContext context, WidgetRef ref) {
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (context) {
         return StatefulBuilder(
           builder: (BuildContext context, StateSetter setState) {

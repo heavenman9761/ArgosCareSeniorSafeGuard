@@ -38,6 +38,61 @@ class _LoginPageState extends State<LoginPage> {
     _mailController.dispose();
   }
 
+  Future<void> _saveUserInfo(var storage, var loginResponse) async {
+    await storage.write(key: 'ID', value: loginResponse.data['user']['id']);
+    await storage.write(key: 'EMAIL', value: loginResponse.data['user']['email']);
+    await storage.write(key: 'PASSWORD', value: password);
+
+    final alarmResponse = await dio.get(
+        "/devices/get_alarm/$userID"
+    );
+
+    final SharedPreferences pref = await SharedPreferences.getInstance();
+
+    pref.setString("name", loginResponse.data['user']['name']);
+    pref.setString("protectPeople", loginResponse.data['user']['protectPeople']);
+    pref.setString("addr_zip", loginResponse.data['user']['addr_zip']);
+    pref.setString("addr", loginResponse.data['user']['addr']);
+    pref.setString("mobilephone", loginResponse.data['user']['mobilephone']);
+    pref.setString("tel", loginResponse.data['user']['tel']);
+    pref.setString("snsId", loginResponse.data['user']['snsId']);
+    pref.setString("provider", loginResponse.data['user']['provider']);
+    pref.setBool("admin", loginResponse.data['user']['admin']);
+    pref.setString("shareKey", loginResponse.data['user']['shareKey']);
+
+    pref.setBool("EntireAlarm", alarmResponse.data['entireAlarm']);
+
+    pref.setBool("HumidityAlarmEnable", alarmResponse.data['humidityAlarmEnable']);
+    pref.setString("HumidityStartTime", alarmResponse.data['humidityStartTime']);
+    pref.setString("HumidityEndTime", alarmResponse.data['humidityEndTime']);
+    pref.setInt("HumidityStartValue", alarmResponse.data['humidityStartValue']);
+    pref.setInt("HumidityEndValue", alarmResponse.data['humidityEndValue']);
+    pref.setInt("TemperatureStartValue", alarmResponse.data['temperatureStartValue']);
+    pref.setInt("TemperatureEndValue", alarmResponse.data['temperatureEndValue']);
+
+    pref.setBool("EmergencyAlarmEnable", alarmResponse.data['emergencyAlarmEnable']);
+    pref.setString("EmergencyStartTime", alarmResponse.data['emergencyStartTime']);
+    pref.setString("EmergencyEndTime", alarmResponse.data['emergencyEndTime']);
+
+    pref.setBool("MotionAlarmEnable", alarmResponse.data['motionAlarmEnable']);
+    pref.setString("MotionStartTime", alarmResponse.data['motionStartTime']);
+    pref.setString("MotionEndTime", alarmResponse.data['motionEndTime']);
+
+    pref.setBool("SmokeAlarmEnable", alarmResponse.data['smokeAlarmEnable']);
+    pref.setString("SmokeStartTime", alarmResponse.data['smokeStartTime']);
+    pref.setString("SmokeEndTime", alarmResponse.data['smokeEndTime']);
+
+    pref.setBool("IlluminanceAlarmEnable", alarmResponse.data['illuminanceAlarmEnable']);
+    pref.setString("IlluminanceStartTime", alarmResponse.data['illuminanceStartTime']);
+    pref.setString("IlluminanceEndTime", alarmResponse.data['illuminanceEndTime']);
+    pref.setInt("IlluminanceStartValue", alarmResponse.data['illuminanceStartValue']);
+    pref.setInt("IlluminanceEndValue", alarmResponse.data['illuminanceEndValue']);
+
+    pref.setBool("DoorAlarmEnable", alarmResponse.data['doorAlarmEnable']);
+    pref.setString("DoorStartTime", alarmResponse.data['doorStartTime']);
+    pref.setString("DoorEndTime", alarmResponse.data['doorEndTime']);
+  }
+
   // sign user in method
   void signUserIn(BuildContext context) async {
     final isValid = _formKey.currentState!.validate();
@@ -73,55 +128,7 @@ class _LoginPageState extends State<LoginPage> {
         final String userName = loginResponse.data['user']['name'];
         userID = loginResponse.data['user']['id'];
 
-        await storage.write(key: 'ID', value: loginResponse.data['user']['id']);
-        await storage.write(key: 'EMAIL', value: loginResponse.data['user']['email']);
-        await storage.write(key: 'PASSWORD', value: password);
-        // await storage.write(key: 'NAME', value: loginResponse.data['user']['name']);
-        // await storage.write(key: 'ADDR_ZIP', value: loginResponse.data['user']['addr_zip']);
-        // await storage.write(key: 'ADDR', value: loginResponse.data['user']['addr']);
-        // await storage.write(key: 'MOBILE_PHONE', value: loginResponse.data['user']['mobilephone']);
-        // await storage.write(key: 'TEL', value: loginResponse.data['user']['tel']);
-        // await storage.write(key: 'SNS_ID', value: loginResponse.data['user']['snsId']);
-        // await storage.write(key: 'PROVIDER', value: loginResponse.data['user']['provider']);
-        // await storage.write(key: 'ADMiN', value: loginResponse.data['user']['admin'].toString());
-
-        final alarmResponse = await dio.get(
-            "/devices/get_alarm/$userID"
-        );
-
-        final SharedPreferences pref = await SharedPreferences.getInstance();
-
-        pref.setBool("EntireAlarm", alarmResponse.data['entireAlarm']);
-
-        pref.setBool("HumidityAlarmEnable", alarmResponse.data['humidityAlarmEnable']);
-        pref.setString("HumidityStartTime", alarmResponse.data['humidityStartTime']);
-        pref.setString("HumidityEndTime", alarmResponse.data['humidityEndTime']);
-        pref.setInt("HumidityStartValue", alarmResponse.data['humidityStartValue']);
-        pref.setInt("HumidityEndValue", alarmResponse.data['humidityEndValue']);
-        pref.setInt("TemperatureStartValue", alarmResponse.data['temperatureStartValue']);
-        pref.setInt("TemperatureEndValue", alarmResponse.data['temperatureEndValue']);
-
-        pref.setBool("EmergencyAlarmEnable", alarmResponse.data['emergencyAlarmEnable']);
-        pref.setString("EmergencyStartTime", alarmResponse.data['emergencyStartTime']);
-        pref.setString("EmergencyEndTime", alarmResponse.data['emergencyEndTime']);
-
-        pref.setBool("MotionAlarmEnable", alarmResponse.data['motionAlarmEnable']);
-        pref.setString("MotionStartTime", alarmResponse.data['motionStartTime']);
-        pref.setString("MotionEndTime", alarmResponse.data['motionEndTime']);
-
-        pref.setBool("SmokeAlarmEnable", alarmResponse.data['smokeAlarmEnable']);
-        pref.setString("SmokeStartTime", alarmResponse.data['smokeStartTime']);
-        pref.setString("SmokeEndTime", alarmResponse.data['smokeEndTime']);
-
-        pref.setBool("IlluminanceAlarmEnable", alarmResponse.data['illuminanceAlarmEnable']);
-        pref.setString("IlluminanceStartTime", alarmResponse.data['illuminanceStartTime']);
-        pref.setString("IlluminanceEndTime", alarmResponse.data['illuminanceEndTime']);
-        pref.setInt("IlluminanceStartValue", alarmResponse.data['illuminanceStartValue']);
-        pref.setInt("IlluminanceEndValue", alarmResponse.data['illuminanceEndValue']);
-
-        pref.setBool("DoorAlarmEnable", alarmResponse.data['doorAlarmEnable']);
-        pref.setString("DoorStartTime", alarmResponse.data['doorStartTime']);
-        pref.setString("DoorEndTime", alarmResponse.data['doorEndTime']);
+        _saveUserInfo(storage, loginResponse);
 
         Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) {
           return HomePage(title: Constants.APP_TITLE, userName: userName, userID: userID);
@@ -141,6 +148,7 @@ class _LoginPageState extends State<LoginPage> {
   void _failureDialog(BuildContext context) {
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (context) {
         return StatefulBuilder(
           builder: (BuildContext context, StateSetter setDialogState) {
