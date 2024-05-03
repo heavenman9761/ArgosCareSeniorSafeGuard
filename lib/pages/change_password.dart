@@ -255,7 +255,7 @@ class _ChangePasswordState extends State<ChangePassword> {
               content: Text(text),
               actions: <Widget>[
                 TextButton(
-                  child: const Text("OK"),
+                  child: const Text("Close"),
                   onPressed: () {
                     Navigator.pop(context, false);
                   },
@@ -265,10 +265,6 @@ class _ChangePasswordState extends State<ChangePassword> {
           },
         );
       },
-    ).then((val) {
-      if (val == true) {
-        Navigator.pop(context);
-      }
-    });
+    );
   }
 }
