@@ -12,7 +12,9 @@ import 'package:argoscareseniorsafeguard/constants.dart';
 import 'package:argoscareseniorsafeguard/auth/auth_dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:argoscareseniorsafeguard/utils/string_extensions.dart';
+import 'package:argoscareseniorsafeguard/main.dart';
 
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -22,6 +24,9 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+  final List<String> _languageList = ['한국어', 'English'];
+  String _selectedLanguage = '한국어';
+
   final _formKey = GlobalKey<FormState>();
 
   String email = '';
@@ -31,6 +36,22 @@ class _LoginPageState extends State<LoginPage> {
   late String userID;
 
   final _mailController = TextEditingController(text: "dn9318dn@gmail.com");
+
+  @override
+  void initState() {
+    super.initState();
+    loadLocale();
+  }
+
+  void loadLocale() async {
+    var prefs = await SharedPreferences.getInstance();
+    setState(() {
+      String localeStr = prefs.getString('languageCode') ?? 'ko';
+
+      if (localeStr == "ko") { _selectedLanguage = "한국어"; }
+      else if (localeStr == "en") { _selectedLanguage = "English"; }
+    });
+  }
 
   @override
   void dispose() {
@@ -95,6 +116,11 @@ class _LoginPageState extends State<LoginPage> {
 
   // sign user in method
   void signUserIn(BuildContext context) async {
+    // setState(() {
+    //   MainApp.setLocale(context, const Locale("ko", ""));
+    //   print(AppLocalizations.of(context)!.login_button);
+    // });
+    // return;
     final isValid = _formKey.currentState!.validate();
     if (isValid) {
       setState(() {
@@ -153,11 +179,11 @@ class _LoginPageState extends State<LoginPage> {
         return StatefulBuilder(
           builder: (BuildContext context, StateSetter setDialogState) {
             return AlertDialog(
-              title: const Text("로그인"),
-              content: const Text("로그인에 실패했습니다.\n계정을 확인바랍니다."),
+              title: Text(AppLocalizations.of(context)!.login_button),
+              content: Text(AppLocalizations.of(context)!.login_failure_message),
               actions: <Widget>[
                 TextButton(
-                  child: const Text("OK"),
+                  child: Text(AppLocalizations.of(context)!.ok),
                   onPressed: () {
                     Navigator.pop(context);
                   },
@@ -176,6 +202,7 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Widget loginWidget(BuildContext context) {
+
     if (isLogging) {
       return const CircularProgressIndicator();
     } else {
@@ -183,7 +210,7 @@ class _LoginPageState extends State<LoginPage> {
           onTap: () async {
             signUserIn(context);
           },
-          text: "Sign in",
+          text: AppLocalizations.of(context)!.login_button//"Sign in",
       );
     }
   }
@@ -214,8 +241,32 @@ class _LoginPageState extends State<LoginPage> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const SizedBox(height: 50),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              const SizedBox(height: 50),
+                              DropdownButton<String>(
+                                value: _selectedLanguage,
+                                icon: const Icon(Icons.expand_more),
+                                underline: const SizedBox.shrink(),
+                                onChanged: (String? value) {
+                                  setState(() {
+                                    _selectedLanguage = value!;
+                                    if (value == "한국어") { MainApp.setLocale(context, const Locale("ko", "")); }
+                                    else if (value == "English") { MainApp.setLocale(context, const Locale("en", "")); }
 
+                                  });
+                                },
+                                items: _languageList.map((value) {
+                                  return DropdownMenuItem(
+                                      value: value,
+                                      child: Text(value)
+                                  );
+                                },
+                                ).toList(),
+                              ),
+                            ],
+                          ),
                           // logo
                           const Icon(
                             Icons.lock,
@@ -226,7 +277,7 @@ class _LoginPageState extends State<LoginPage> {
 
                           // welcome back, you've been missed!
                           Text(
-                            'Welcome back you\'ve been missed!',
+                            AppLocalizations.of(context)!.login_welcome,
                             style: TextStyle(
                               color: Colors.grey[700],
                               fontSize: 16,
@@ -245,7 +296,7 @@ class _LoginPageState extends State<LoginPage> {
                         children: [
                           renderTextFormField(
                             context: context,
-                            label: '메일 주소',
+                            label: AppLocalizations.of(context)!.login_email,
                             keyNumber: 1,
                             icon: const Icon(Icons.mail, color: Colors.grey,),
                             suffixIcon: _mailController.text.isNotEmpty ?
@@ -270,9 +321,9 @@ class _LoginPageState extends State<LoginPage> {
                             },
                             validator: (val) {
                               if (val.length < 1) {
-                                return '이메일은 필수사항입니다.';
+                                return AppLocalizations.of(context)!.login_validation_error1;
                               }
-                              return (val as String).isValidEmailFormat() ? null : '이메일 형식이 아닙니다.';
+                              return (val as String).isValidEmailFormat() ? null : AppLocalizations.of(context)!.login_validation_error2;
                             },
                           ),
 
@@ -280,7 +331,7 @@ class _LoginPageState extends State<LoginPage> {
 
                           renderTextFormField(
                             context: context,
-                            label: '비밀 번호',
+                            label: AppLocalizations.of(context)!.login_password,
                             keyNumber: 2,
                             icon: const Icon(Icons.lock, color: Colors.grey,),
                             suffixIcon: IconButton(
@@ -302,11 +353,11 @@ class _LoginPageState extends State<LoginPage> {
                             },
                             validator: (val) {
                               if (val.length < 6) {
-                                return '비밀번호는 6글자 이상 12글자 이하로 입력 해주셔야합니다.';
+                                return AppLocalizations.of(context)!.login_validation_error3;
                               }
 
                               //return (val as String).isValidPasswordFormatType1() ? null : '비밀번호는 영문(소문자, 대문자), 숫자, 특수문자로 이루어진 6 ~ 12 자리입니다.';
-                              return (val as String).isValidOnlyNumber() ? null : '비밀번호는 숫자로 이루어진 6 ~ 12 자리입니다.';
+                              return (val as String).isValidOnlyNumber() ? null : AppLocalizations.of(context)!.login_validation_error4;
                             },
                           ),
 
@@ -319,7 +370,7 @@ class _LoginPageState extends State<LoginPage> {
                               mainAxisAlignment: MainAxisAlignment.start,
                               children: [
                                 TextButton(
-                                  child: const Text("Register now", style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold,)),
+                                  child: Text(AppLocalizations.of(context)!.login_register, style: const TextStyle(color: Colors.blue, fontWeight: FontWeight.bold,)),
                                   onPressed: () {
                                     Navigator.push(context,
                                         MaterialPageRoute(builder: (context) {
@@ -333,7 +384,7 @@ class _LoginPageState extends State<LoginPage> {
                                     child: Row(
                                       mainAxisAlignment: MainAxisAlignment.end,
                                       children: [
-                                        Text('Forgot Password?', style: TextStyle(color: Colors.grey[600]), ),
+                                        Text(AppLocalizations.of(context)!.login_forgot, style: TextStyle(color: Colors.grey[600]), ),
                                       ],
                                     ),
                                 )
@@ -367,7 +418,7 @@ class _LoginPageState extends State<LoginPage> {
                                 Padding(
                                   padding: const EdgeInsets.symmetric(horizontal: 10.0),
                                   child: Text(
-                                    'Or continue with',
+                                    AppLocalizations.of(context)!.login_snslogin,
                                     style: TextStyle(color: Colors.grey[700]),
                                   ),
                                 ),
@@ -386,9 +437,7 @@ class _LoginPageState extends State<LoginPage> {
                           const Row(
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children:  [
-                              SquareTile(imagePath: 'lib/images/google.png'),
-                              SquareTile(imagePath: 'lib/images/facebook.png'),
-                              SquareTile(imagePath: 'lib/images/twitter.png'),
+                              SquareTile(imagePath: 'assets/images/kakao.png'),
                             ],
                           ),
                         ],

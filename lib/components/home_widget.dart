@@ -20,9 +20,6 @@ class HomeWidget extends ConsumerWidget{
 
   final List<Hub> _hubList = [];
 
-  /*final _locationList = ['모두', '우리집', '회사'];
-  var _selectedLocation = '모두';*/
-
   Widget waitWidget() {
     return const CircularProgressIndicator(backgroundColor: Colors.blue);
   }
@@ -62,21 +59,6 @@ class HomeWidget extends ConsumerWidget{
                       debugPrint('icon press');
                     },
                   ),
-                  /*DropdownButton(
-                    underline: const SizedBox.shrink(),
-                    items: _locationList.map(
-                        (value) {
-                          return DropdownMenuItem(
-                              value: value,
-                              child: Text(value)
-                          );
-                        },
-                    ).toList(),
-                    value: _selectedLocation,
-                    onChanged: (value) {
-                        _selectedLocation = value!;
-                    }
-                  )*/
                 ]
             )
         ),
