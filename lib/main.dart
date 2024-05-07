@@ -2,18 +2,15 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:argoscareseniorsafeguard/utils/firebase_options.dart';
 import 'package:argoscareseniorsafeguard/pages/login_page.dart';
 import 'package:argoscareseniorsafeguard/pages/Intro_page.dart';
 import 'package:argoscareseniorsafeguard/pages/home_page.dart';
 import 'package:argoscareseniorsafeguard/constants.dart';
-
 import 'package:argoscareseniorsafeguard/utils/fcm.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:flutter/cupertino.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
