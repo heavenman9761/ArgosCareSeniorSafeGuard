@@ -118,11 +118,6 @@ class _LoginPageState extends State<LoginPage> {
 
   // sign user in method
   void signUserIn(BuildContext context) async {
-    // setState(() {
-    //   MainApp.setLocale(context, const Locale("ko", ""));
-    //   print(AppLocalizations.of(context)!.login_button);
-    // });
-    // return;
     final isValid = _formKey.currentState!.validate();
     if (isValid) {
       setState(() {
@@ -465,7 +460,7 @@ class _LoginPageState extends State<LoginPage> {
 
   void _loginKaKao(BuildContext context) async {
     bool isInstalled = await isKakaoTalkInstalled();
-    print(isInstalled);
+
     if (!isInstalled) {
       _failureDialog(context, AppLocalizations.of(context)!.login_kakao, AppLocalizations.of(context)!.login_kakao_not_installed);
       return;
@@ -477,21 +472,21 @@ class _LoginPageState extends State<LoginPage> {
 
     try {
       OAuthToken token = await UserApi.instance.loginWithKakaoTalk();
-      print('카카오톡 로그인 성공 ======================');
-      print('accessToken: ${token.accessToken}');
-      print('expiresAt: ${token.expiresAt}');
-      print('refreshToken: ${token.refreshToken}');
-      print('refreshTokenExpiresAt: ${token.refreshTokenExpiresAt}');
-      print('scopes: ${token.scopes}');
-      print('idToken: ${token.idToken}');
+      debugPrint('카카오톡 로그인 성공 ======================');
+      debugPrint('accessToken: ${token.accessToken}');
+      debugPrint('expiresAt: ${token.expiresAt}');
+      debugPrint('refreshToken: ${token.refreshToken}');
+      debugPrint('refreshTokenExpiresAt: ${token.refreshTokenExpiresAt}');
+      debugPrint('scopes: ${token.scopes}');
+      debugPrint('idToken: ${token.idToken}');
 
       var user = await UserApi.instance.me();
 
-      print("회원 정보 ======================");
-      print('회원번호(id): ${user.id}');
-      print('connected_at: ${user.connectedAt}');
-      print('nickname: ${user.kakaoAccount?.profile?.nickname}');
-      print('email: ${user.kakaoAccount?.email}');
+      debugPrint("회원 정보 ======================");
+      debugPrint('회원번호(id): ${user.id}');
+      debugPrint('connected_at: ${user.connectedAt}');
+      debugPrint('nickname: ${user.kakaoAccount?.profile?.nickname}');
+      debugPrint('email: ${user.kakaoAccount?.email}');
 
       dio = await authDio();
       await dio.post(
