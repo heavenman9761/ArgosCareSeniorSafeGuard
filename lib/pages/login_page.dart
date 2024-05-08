@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:argoscareseniorsafeguard/pages/register_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
+import 'package:dio/dio.dart';
 
 import 'package:argoscareseniorsafeguard/components/my_button.dart';
 import 'package:argoscareseniorsafeguard/components/my_textfield.dart';
@@ -140,30 +142,11 @@ class _LoginPageState extends State<LoginPage> {
             })
         );
 
-        final token = response.data['token'];
-        const storage = FlutterSecureStorage(
-          iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock),
-          aOptions: AndroidOptions(encryptedSharedPreferences: true),
-        );
-        await storage.write(key: 'ACCESS_TOKEN', value: token);
-
-        final loginResponse = await dio.get(
-            "/auth/me"
-        );
-
-        final String userName = loginResponse.data['user']['name'];
-        userID = loginResponse.data['user']['id'];
-
-        _saveUserInfo(storage, loginResponse);
-
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) {
-          return HomePage(title: Constants.APP_TITLE, userName: userName, userID: userID);
-        },
-        ));
+        _processLogin(response);
 
       } catch (e) {
         debugPrint(e.toString());
-        _failureDialog(context);
+        _failureDialog(context, AppLocalizations.of(context)!.login_button, AppLocalizations.of(context)!.login_failure_message);
         setState(() {
           isLogging = false;
         });
@@ -171,7 +154,30 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-  void _failureDialog(BuildContext context) {
+  void _processLogin(Response response) async {
+    final token = response.data['token'];
+    const storage = FlutterSecureStorage(
+      iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock),
+      aOptions: AndroidOptions(encryptedSharedPreferences: true),
+    );
+    await storage.write(key: 'ACCESS_TOKEN', value: token);
+
+    final loginResponse = await dio.get(
+        "/auth/me"
+    );
+
+    final String userName = loginResponse.data['user']['name'];
+    userID = loginResponse.data['user']['id'];
+
+    _saveUserInfo(storage, loginResponse);
+
+    Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) {
+      return HomePage(title: Constants.APP_TITLE, userName: userName, userID: userID);
+    },
+    ));
+  }
+
+  void _failureDialog(BuildContext context, String title, String msg) {
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -179,8 +185,8 @@ class _LoginPageState extends State<LoginPage> {
         return StatefulBuilder(
           builder: (BuildContext context, StateSetter setDialogState) {
             return AlertDialog(
-              title: Text(AppLocalizations.of(context)!.login_button),
-              content: Text(AppLocalizations.of(context)!.login_failure_message),
+              title: Text(title),
+              content: Text(msg),
               actions: <Widget>[
                 TextButton(
                   child: Text(AppLocalizations.of(context)!.ok),
@@ -434,10 +440,15 @@ class _LoginPageState extends State<LoginPage> {
 
                           const SizedBox(height: 10),
 
-                          const Row(
+                          Row(
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children:  [
-                              SquareTile(imagePath: 'assets/images/kakao.png'),
+                              SquareTile(
+                                imagePath: 'assets/images/kakao.png',
+                                onTap: () {
+                                  _loginKaKao(context);
+                                },
+                              ),
                             ],
                           ),
                         ],
@@ -450,5 +461,66 @@ class _LoginPageState extends State<LoginPage> {
         ),
       ),
     );
+  }
+
+  void _loginKaKao(BuildContext context) async {
+    bool isInstalled = await isKakaoTalkInstalled();
+    print(isInstalled);
+    if (!isInstalled) {
+      _failureDialog(context, AppLocalizations.of(context)!.login_kakao, AppLocalizations.of(context)!.login_kakao_not_installed);
+      return;
+    }
+
+    setState(() {
+      isLogging = true;
+    });
+
+    try {
+      OAuthToken token = await UserApi.instance.loginWithKakaoTalk();
+      print('카카오톡 로그인 성공 ======================');
+      print('accessToken: ${token.accessToken}');
+      print('expiresAt: ${token.expiresAt}');
+      print('refreshToken: ${token.refreshToken}');
+      print('refreshTokenExpiresAt: ${token.refreshTokenExpiresAt}');
+      print('scopes: ${token.scopes}');
+      print('idToken: ${token.idToken}');
+
+      var user = await UserApi.instance.me();
+
+      print("회원 정보 ======================");
+      print('회원번호(id): ${user.id}');
+      print('connected_at: ${user.connectedAt}');
+      print('nickname: ${user.kakaoAccount?.profile?.nickname}');
+      print('email: ${user.kakaoAccount?.email}');
+
+      dio = await authDio();
+      await dio.post(
+          "/auth/kakao_signup",
+          data: jsonEncode({
+            "email": user.id,
+            "name": user.kakaoAccount?.profile?.nickname,
+            "password": '${user.id}_${user.kakaoAccount?.profile?.nickname}',
+            "snsId": user.id,
+            "provider": "kakao",
+            "admin": false
+          })
+      );
+
+      final response = await dio.post(
+          "/auth/signin",
+          data: jsonEncode({
+            "email": user.id,
+            "password": '${user.id}_${user.kakaoAccount?.profile?.nickname}',
+          })
+      );
+
+      _processLogin(response);
+
+    } catch (error) {
+      _failureDialog(context, AppLocalizations.of(context)!.login_kakao, AppLocalizations.of(context)!.login_kakao_failure_message);
+      setState(() {
+        isLogging = false;
+      });
+    }
   }
 }

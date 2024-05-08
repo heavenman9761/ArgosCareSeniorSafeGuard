@@ -53,6 +53,7 @@
             <intent-filter>
                  <action android:name="FLUTTER_NOTIFICATION_CLICK" />
                  <category android:name="android.intent.category.DEFAULT" />
+                 <data android:scheme="kakaoa8748a5f0bf6184b2cc89fc11f3ab459" android:host="oauth"/>
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>

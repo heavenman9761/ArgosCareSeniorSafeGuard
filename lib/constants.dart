@@ -32,6 +32,7 @@ class Constants {
   static const MQTT_PASSWORD = 'Sct91234!';
 
   static const BASE_URL = 'http://14.42.209.174:6008/api';
+  static const KAKAO_REDIRECT_URL = 'http://14.42.209.174:6008/api/auth/kakao_flutter/callback';
 
   static const APP_TITLE = 'Argos Care';
 

@@ -113,35 +113,10 @@ class _ProfileState extends State<Profile> {
                         ],
                       ),
                     ),
-                    Card(
-                      color: Colors.white,
-                      surfaceTintColor: Colors.transparent,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
-                      child: Column(
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            children: [
-                              const SizedBox(width: 10),
-                              Text("비밀번호 변경", style: TextStyle(fontSize: deviceFontSize, color: Colors.redAccent),),
-                              Expanded(
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.end,
-                                  children: [
-                                    const SizedBox(width: 10, height: 50),
-                                    GestureDetector(
-                                      onTap: () { _goChangePassword(); },
-                                      child: const Icon(Icons.edit, size: 20, color: Colors.black),
-                                    ),
-                                    const SizedBox(width: 10)
-                                  ],
-                                ),
-                              )
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
+                    _getChangePasswordWidget(),
+
+                    _getLoginProviderWidget(),
+
                   ],
                 ),
               ),
@@ -149,6 +124,81 @@ class _ProfileState extends State<Profile> {
           )
         )
     );
+  }
+
+  Widget _getChangePasswordWidget() {
+    if (_provider == '') {
+      return Card(
+        color: Colors.white,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                const SizedBox(width: 8),
+                Text("비밀번호 변경", style: TextStyle(fontSize: deviceFontSize, color: Colors.redAccent),),
+                Flexible(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      const SizedBox(width: 8, height: 50),
+                      GestureDetector(
+                        onTap: () { _goChangePassword(); },
+                        child: const Icon(Icons.edit, size: 20, color: Colors.black),
+                      ),
+                      const SizedBox(width: 8)
+                    ],
+                  ),
+                )
+              ],
+            ),
+          ],
+        ),
+      );
+    } else {
+      return const SizedBox();
+    }
+
+  }
+
+  Widget _getLoginProviderWidget() {
+    if (_provider != '') {
+      return Card(
+        color: Colors.white,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                const SizedBox(width: 8),
+                Text("로그인 경로", style: TextStyle(fontSize: deviceFontSize),),
+                Flexible(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      const SizedBox(width: 8, height: 50),
+                      Flexible(
+                        flex: 1,
+                        fit: FlexFit.tight,
+                        child: Text(_provider, style: TextStyle(fontSize: deviceFontSize -2, color: Colors.grey), overflow: TextOverflow.ellipsis, textAlign: TextAlign.right),
+                      ),
+                      const SizedBox(width: 8)
+                    ],
+                  ),
+                )
+              ],
+            ),
+          ],
+        ),
+      );
+    } else {
+      return const SizedBox();
+    }
+
   }
 
   Widget _getWidgetOnlyCopy(String value, int kind) {
@@ -163,19 +213,24 @@ class _ProfileState extends State<Profile> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.start,
       children: [
-        const SizedBox(width: 10),
+        const SizedBox(width: 8),
         Text(label, style: TextStyle(fontSize: deviceFontSize),),
-        Expanded(
+        Flexible(
           child: Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              Text(value, style: TextStyle(fontSize: deviceFontSize -2, color: Colors.grey)),
-              const SizedBox(width: 10, height: 50),
+              Flexible(
+                flex: 1,
+                fit: FlexFit.tight,
+                child: Text(value, style: TextStyle(fontSize: deviceFontSize -2, color: Colors.grey), overflow: TextOverflow.ellipsis, textAlign: TextAlign.right),
+              ),
+
+              const SizedBox(width: 8, height: 50),
               GestureDetector(
                 onTap: () { _copyProperty(value); },
                 child: const Icon(Icons.copy, size: 20, color: Colors.black),
               ),
-              const SizedBox(width: 10)
+              const SizedBox(width: 8)
             ],
           ),
         )
@@ -196,24 +251,28 @@ class _ProfileState extends State<Profile> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.start,
       children: [
-        const SizedBox(width: 10),
+        const SizedBox(width: 8),
         Text(label, style: TextStyle(fontSize: deviceFontSize),),
-        Expanded(
+        Flexible(
           child: Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              Text(value, style: TextStyle(fontSize: deviceFontSize - 2, color: Colors.grey)),
-              const SizedBox(width: 10, height: 50),
+              Flexible(
+                flex: 1,
+                fit: FlexFit.tight,
+                child: Text(value, style: TextStyle(fontSize: deviceFontSize -2, color: Colors.grey), overflow: TextOverflow.ellipsis, textAlign: TextAlign.right),
+              ),
+              const SizedBox(width: 8, height: 50),
               GestureDetector(
                 onTap: () { _copyProperty(value); },
                 child: const Icon(Icons.copy, size: 20, color: Colors.black),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 8),
               GestureDetector(
                 onTap: () => { _editProperty(context, kind, value) },
                 child: const Icon(Icons.edit, size: 20, color: Colors.black),
               ),
-              const SizedBox(width: 10)
+              const SizedBox(width: 8)
             ],
           ),
         )
@@ -243,6 +302,10 @@ class _ProfileState extends State<Profile> {
     _provider = pref.getString("provider")!;
     _admin = pref.getBool("admin")!;
     _shareKey = pref.getString("shareKey")!;
+
+    if (_provider != '') {
+      _email = "";
+    }
 
     setState(() {
 
