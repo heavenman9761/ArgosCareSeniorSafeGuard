@@ -3,10 +3,12 @@ import 'package:argoscareseniorsafeguard/constants.dart';
 
 renderTextFormField({
   required BuildContext context,
+  bool? autofocus,
+  FocusNode? focusNode,
   String? label,
   FormFieldSetter? onSaved,
   FormFieldValidator? validator,
-  required int keyNumber,
+  int? keyNumber,
   Icon? icon,
   IconButton? suffixIcon,
   TextInputType? keyboardType,
@@ -19,6 +21,8 @@ renderTextFormField({
   assert(validator != null);*/
   return TextFormField(
     key: ValueKey(keyNumber),
+    autofocus: autofocus ?? false,
+    focusNode: focusNode,
     decoration: InputDecoration(
         prefixIcon: icon,
         suffixIcon: suffixIcon,
