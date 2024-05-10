@@ -1,16 +1,16 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:argoscareseniorsafeguard/models/sensor.dart';
 import 'package:argoscareseniorsafeguard/constants.dart';
 import 'package:argoscareseniorsafeguard/providers/providers.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:argoscareseniorsafeguard/constants.dart';
 
 class SettingAlarm extends ConsumerStatefulWidget {
   const SettingAlarm({super.key, required this.sensorList});
@@ -21,109 +21,159 @@ class SettingAlarm extends ConsumerStatefulWidget {
 }
 
 class _SettingAlarmState extends ConsumerState<SettingAlarm> {
+  bool _isPermanentlyDenied = false;
+  bool _isGranted = true;
+  bool _checkingPermission = false;
+
+  bool _isTimerRunning = false;
+  late Timer _timer;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _startTimer();
+    _loadSettings();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _stopTimer();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        backgroundColor: Colors.grey[300],
-        appBar: AppBar(
-          backgroundColor: Colors.white,
-          title: const Text(Constants.APP_TITLE),
-          centerTitle: true,
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.save),
-              tooltip: "Menu",
-              color: Colors.blue,
-              onPressed: () {
-                _confirmDialog(context);
-              },
+      backgroundColor: Colors.grey[300],
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        title: const Text(Constants.APP_TITLE),
+        centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.save),
+            tooltip: "Menu",
+            color: Colors.blue,
+            onPressed: () {
+              _confirmDialog(context);
+            },
+          ),
+        ],
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          children: [
+            _isGranted ? const SizedBox() : notificationPermission(context),
+            entire(context, ref),
+            Expanded(child: ListView.builder(
+              itemCount: widget.sensorList.length,
+              itemBuilder: (BuildContext context, int index) {
+                return Consumer(
+                  builder: (context, ref, widget) {
+                    return alarmSetting(context, ref, index);
+                  }
+                );
+              }
+              )
+            )
+          ],
+        ),
+      )
+    );
+  }
+
+  Widget notificationPermission(BuildContext context) {
+    return Card(
+      color: Colors.white,
+      surfaceTintColor: Colors.transparent,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text('앱 알림 권한', style: TextStyle(fontSize: deviceFontSize),),
+            SizedBox(
+              height: 30,
+              child: FittedBox(
+                child: CupertinoSwitch(
+                  value: _isGranted,
+                  activeColor: CupertinoColors.activeBlue,
+                  onChanged: (bool? value) {
+                    openAppSettings();
+                  },
+                ),
+              )
+            )
+          ],
+        ),
+      )
+    );
+  }
+
+  Widget entire(BuildContext context, WidgetRef ref) {
+    return Card(
+      color: Colors.white,
+      surfaceTintColor: Colors.transparent,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text('알림', style: TextStyle(fontSize: deviceFontSize),),
+            SizedBox(
+              height: 30,
+              child: FittedBox(
+                fit: BoxFit.contain,
+                child: CupertinoSwitch(
+                  value: ref.watch(alarmEntireEnableProvider),
+                  activeColor: CupertinoColors.activeBlue,
+                  onChanged: (bool? value) {
+                    ref.read(alarmEntireEnableProvider.notifier).state = value ?? false;
+                    ref.read(alarmHumidityEnableProvider.notifier).state = value ?? false;
+                    ref.read(alarmEmergencyEnableProvider.notifier).state = value ?? false;
+                    ref.read(alarmMotionEnableProvider.notifier).state = value ?? false;
+                    ref.read(alarmSmokeEnableProvider.notifier).state = value ?? false;
+                    ref.read(alarmIlluminanceEnableProvider.notifier).state = value ?? false;
+                    ref.read(alarmDoorEnableProvider.notifier).state = value ?? false;
+                  },
+                ),
+              )
+
             ),
           ],
         ),
-        body: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Column(
-            children: [
-              Entire(context, ref),
-              Expanded(child: ListView.builder(
-                  // padding: const EdgeInsets.all(8.0),
-                  itemCount: widget.sensorList.length,
-                  itemBuilder: (BuildContext context, int index) {
-                    return Consumer(
-                        builder: (context, ref, widget) {
-                          return AlarmSetting(context, ref, index);
-                        }
-                    );
-                  }
-                )
-              )
-            ],
-          ),
-        )
+      )
     );
   }
 
-  Widget Entire(BuildContext context, WidgetRef ref) {
-     return Card(
-        color: Colors.white,
-        surfaceTintColor: Colors.transparent,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text('알림', style: TextStyle(fontSize: deviceFontSize),),
-              SizedBox(
-                height: 30,
-                child: FittedBox(
-                  fit: BoxFit.contain,
-                  child: CupertinoSwitch(
-                    value: ref.watch(alarmEntireEnableProvider),
-                    activeColor: CupertinoColors.activeBlue,
-                    onChanged: (bool? value) {
-                      ref.read(alarmEntireEnableProvider.notifier).state = value ?? false;
-                      ref.read(alarmHumidityEnableProvider.notifier).state = value ?? false;
-                      ref.read(alarmEmergencyEnableProvider.notifier).state = value ?? false;
-                      ref.read(alarmMotionEnableProvider.notifier).state = value ?? false;
-                      ref.read(alarmSmokeEnableProvider.notifier).state = value ?? false;
-                      ref.read(alarmIlluminanceEnableProvider.notifier).state = value ?? false;
-                      ref.read(alarmDoorEnableProvider.notifier).state = value ?? false;
-                    },
-                  ),
-                )
-
-              ),
-            ],
-          ),
-        )
-    );
-  }
-
-  Widget Header(String sensorName) {
+  Widget header(String sensorName) {
     return Padding(
-        padding: const EdgeInsets.fromLTRB(8, 16, 8, 8),
-        child: Row(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              const Icon(Icons.fiber_manual_record, size: 10.0, color: Colors.redAccent),
-              const SizedBox(width: 10),
-              Text(sensorName, style: TextStyle(fontSize: deviceFontSize - 2),),
-            ]
-        )
-    );
-  }
-
-  Widget AlarmSetting(BuildContext context, WidgetRef ref, int index) {
-    return Column(
+      padding: const EdgeInsets.fromLTRB(8, 16, 8, 8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.start,
         children: [
-          Header(widget.sensorList[index].getName()!),
-          SensorWidget(context, ref, widget.sensorList[index]),
+          const Icon(Icons.fiber_manual_record, size: 10.0, color: Colors.redAccent),
+          const SizedBox(width: 10),
+          Text(sensorName, style: TextStyle(fontSize: deviceFontSize - 2),),
         ]
+      )
     );
   }
 
-  Widget SensorWidget(BuildContext context, WidgetRef ref, Sensor sensor) {
+  Widget alarmSetting(BuildContext context, WidgetRef ref, int index) {
+    return Column(
+      children: [
+        header(widget.sensorList[index].getName()!),
+        sensorWidget(context, ref, widget.sensorList[index]),
+      ]
+    );
+  }
+
+  Widget sensorWidget(BuildContext context, WidgetRef ref, Sensor sensor) {
     if (sensor.getDeviceType() == Constants.DEVICE_TYPE_TEMPERATURE_HUMIDITY) {
       return humidityCard(context, ref);
 
@@ -149,622 +199,608 @@ class _SettingAlarmState extends ConsumerState<SettingAlarm> {
 
   Widget humidityCard(BuildContext context, WidgetRef ref) {
     return Card(
-        color: Colors.white,
-        surfaceTintColor: Colors.transparent,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Column(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text('알림', style: TextStyle(fontSize: deviceFontSize),),
-                  SizedBox(
-                    height: 30,
-                    child: FittedBox(
-                      child: CupertinoSwitch(
-                        value: ref.watch(alarmHumidityEnableProvider),
-                        activeColor: CupertinoColors.activeBlue,
-                        onChanged: (bool? value) {
-                          ref
-                              .read(alarmHumidityEnableProvider.notifier)
-                              .state = value ?? false;
-                        },
-                      ),
-                    )
+      color: Colors.white,
+      surfaceTintColor: Colors.transparent,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('알림', style: TextStyle(fontSize: deviceFontSize),),
+                SizedBox(
+                  height: 30,
+                  child: FittedBox(
+                    child: CupertinoSwitch(
+                      value: ref.watch(alarmHumidityEnableProvider),
+                      activeColor: CupertinoColors.activeBlue,
+                      onChanged: (bool? value) {
+                        ref
+                            .read(alarmHumidityEnableProvider.notifier)
+                            .state = value ?? false;
+                      },
+                    ),
                   )
+                )
 
-                ],
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text('시간대 설정', style: TextStyle(fontSize: deviceFontSize),),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      TextButton(
-                        style: TextButton.styleFrom(
-                            textStyle: TextStyle(fontSize: deviceFontSize),
-                            foregroundColor: Colors.black
-                        ),
-                        onPressed: () async {
-                          String st = ref.watch(alarmHumidityStartTimeProvider);
-                          TimeOfDay startTime = TimeOfDay(hour:int.parse(st.split(":")[0]),minute: int.parse(st.split(":")[1]));
-                          final TimeOfDay? timeOfDay = await showTimePicker(
-                            context: context,
-                            initialTime: startTime,
-                          );
-                          if (timeOfDay != null) {
-                              String formattedTime = '${timeOfDay.hour.toString().padLeft(2, '0')}:${timeOfDay.minute.toString().padLeft(2, '0')}';
-                              print(formattedTime);
-                              ref.read(alarmHumidityStartTimeProvider.notifier).state = formattedTime;
-                          }
-                        },
-                        child: Text(ref.watch(alarmHumidityStartTimeProvider)),
+              ],
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('시간대 설정', style: TextStyle(fontSize: deviceFontSize),),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      style: TextButton.styleFrom(
+                        textStyle: TextStyle(fontSize: deviceFontSize),
+                        foregroundColor: Colors.black
                       ),
-                      Text(' ~ ', style: TextStyle(fontSize: deviceFontSize),),
-                      TextButton(
-                        style: TextButton.styleFrom(
-                            textStyle: TextStyle(fontSize: deviceFontSize),
-                            foregroundColor: Colors.black
-                        ),
-                        onPressed: () async {
-                          String et = ref.watch(alarmHumidityEndTimeProvider);
-                          TimeOfDay endTime = TimeOfDay(hour:int.parse(et.split(":")[0]),minute: int.parse(et.split(":")[1]));
-                          final TimeOfDay? timeOfDay = await showTimePicker(
-                            context: context,
-                            initialTime: endTime,
-                          );
-                          if (timeOfDay != null) {
-                            String formattedTime = '${timeOfDay.hour.toString().padLeft(2, '0')}:${timeOfDay.minute.toString().padLeft(2, '0')}';
-                            print(formattedTime);
-                            ref.read(alarmHumidityEndTimeProvider.notifier).state = formattedTime;
-                          }
-                        },
-                        child: Text(ref.watch(alarmHumidityEndTimeProvider)),
+                      onPressed: () async {
+                        String st = ref.watch(alarmHumidityStartTimeProvider);
+                        TimeOfDay startTime = TimeOfDay(hour:int.parse(st.split(":")[0]),minute: int.parse(st.split(":")[1]));
+                        final TimeOfDay? timeOfDay = await showTimePicker(
+                          context: context,
+                          initialTime: startTime,
+                        );
+                        if (timeOfDay != null) {
+                          String formattedTime = '${timeOfDay.hour.toString().padLeft(2, '0')}:${timeOfDay.minute.toString().padLeft(2, '0')}';
+                          ref.read(alarmHumidityStartTimeProvider.notifier).state = formattedTime;
+                        }
+                      },
+                      child: Text(ref.watch(alarmHumidityStartTimeProvider)),
+                    ),
+                    Text(' ~ ', style: TextStyle(fontSize: deviceFontSize),),
+                    TextButton(
+                      style: TextButton.styleFrom(
+                        textStyle: TextStyle(fontSize: deviceFontSize),
+                        foregroundColor: Colors.black
                       ),
-                    ],
-                  )
+                      onPressed: () async {
+                        String et = ref.watch(alarmHumidityEndTimeProvider);
+                        TimeOfDay endTime = TimeOfDay(hour:int.parse(et.split(":")[0]),minute: int.parse(et.split(":")[1]));
+                        final TimeOfDay? timeOfDay = await showTimePicker(
+                          context: context,
+                          initialTime: endTime,
+                        );
+                        if (timeOfDay != null) {
+                          String formattedTime = '${timeOfDay.hour.toString().padLeft(2, '0')}:${timeOfDay.minute.toString().padLeft(2, '0')}';
+                          ref.read(alarmHumidityEndTimeProvider.notifier).state = formattedTime;
+                        }
+                      },
+                      child: Text(ref.watch(alarmHumidityEndTimeProvider)),
+                    ),
+                  ],
+                )
 
-                ],
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text('습도 범위', style: TextStyle(fontSize: deviceFontSize),),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      TextButton(
-                        style: TextButton.styleFrom(
-                            textStyle: TextStyle(fontSize: deviceFontSize),
-                            foregroundColor: Colors.black
-                        ),
-                        onPressed: () async {
-                          _inputDialog(context, ref.watch(alarmHumidityStartValueProvider), 0);
-                        },
-                        child: Text('${ref.watch(alarmHumidityStartValueProvider).toString()}%'),
+              ],
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('습도 범위', style: TextStyle(fontSize: deviceFontSize),),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      style: TextButton.styleFrom(
+                        textStyle: TextStyle(fontSize: deviceFontSize),
+                        foregroundColor: Colors.black
                       ),
-                      Text(' ~ ', style: TextStyle(fontSize: deviceFontSize),),
-                      TextButton(
-                        style: TextButton.styleFrom(
-                            textStyle: TextStyle(fontSize: deviceFontSize),
-                            foregroundColor: Colors.black
-                        ),
-                        onPressed: () async {
-                          _inputDialog(context, ref.watch(alarmHumidityEndValueProvider), 1);
-                        },
-                        child: Text('${ref.watch(alarmHumidityEndValueProvider).toString()}%'),
+                      onPressed: () async {
+                        _inputDialog(context, ref.watch(alarmHumidityStartValueProvider), 0);
+                      },
+                      child: Text('${ref.watch(alarmHumidityStartValueProvider).toString()}%'),
+                    ),
+                    Text(' ~ ', style: TextStyle(fontSize: deviceFontSize),),
+                    TextButton(
+                      style: TextButton.styleFrom(
+                        textStyle: TextStyle(fontSize: deviceFontSize),
+                        foregroundColor: Colors.black
                       ),
-                    ],
-                  )
-                ],
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text('온도 범위', style: TextStyle(fontSize: deviceFontSize),),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      TextButton(
-                        style: TextButton.styleFrom(
-                            textStyle: TextStyle(fontSize: deviceFontSize),
-                            foregroundColor: Colors.black
-                        ),
-                        onPressed: () async {
-                          _inputDialog(context, ref.watch(alarmTemperatureStartValueProvider), 2);
-                        },
-                        child: Text('${ref.watch(alarmTemperatureStartValueProvider).toString()}°'),
+                      onPressed: () async {
+                        _inputDialog(context, ref.watch(alarmHumidityEndValueProvider), 1);
+                      },
+                      child: Text('${ref.watch(alarmHumidityEndValueProvider).toString()}%'),
+                    ),
+                  ],
+                )
+              ],
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('온도 범위', style: TextStyle(fontSize: deviceFontSize),),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      style: TextButton.styleFrom(
+                        textStyle: TextStyle(fontSize: deviceFontSize),
+                        foregroundColor: Colors.black
                       ),
-                      Text(' ~ ', style: TextStyle(fontSize: deviceFontSize),),
-                      TextButton(
-                        style: TextButton.styleFrom(
-                            textStyle: TextStyle(fontSize: deviceFontSize),
-                            foregroundColor: Colors.black
-                        ),
-                        onPressed: () async {
-                          _inputDialog(context, ref.watch(alarmTemperatureEndValueProvider), 3);
-                        },
-                        child: Text('${ref.watch(alarmTemperatureEndValueProvider).toString()}°'),
+                      onPressed: () async {
+                        _inputDialog(context, ref.watch(alarmTemperatureStartValueProvider), 2);
+                      },
+                      child: Text('${ref.watch(alarmTemperatureStartValueProvider).toString()}°'),
+                    ),
+                    Text(' ~ ', style: TextStyle(fontSize: deviceFontSize),),
+                    TextButton(
+                      style: TextButton.styleFrom(
+                        textStyle: TextStyle(fontSize: deviceFontSize),
+                        foregroundColor: Colors.black
                       ),
-                    ],
-                  )
-                ],
-              ),
-            ],
+                      onPressed: () async {
+                        _inputDialog(context, ref.watch(alarmTemperatureEndValueProvider), 3);
+                      },
+                      child: Text('${ref.watch(alarmTemperatureEndValueProvider).toString()}°'),
+                    ),
+                  ],
+                )
+              ],
+            ),
+          ],
 
-          ),
-        )
+        ),
+      )
     );
   }
 
   Widget illuminanceCard(BuildContext context, WidgetRef ref) {
     return Card(
-        color: Colors.white,
-        surfaceTintColor: Colors.transparent,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
-        child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Column(
+      color: Colors.white,
+      surfaceTintColor: Colors.transparent,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text('알림', style: TextStyle(fontSize: deviceFontSize),),
-                    SizedBox(
-                      height: 30,
-                      child: FittedBox(
-                        fit: BoxFit.contain,
-                        child: CupertinoSwitch(
-                          value: ref.watch(alarmIlluminanceEnableProvider),
-                          activeColor: CupertinoColors.activeBlue,
-                          onChanged: (bool? value) {
-                            ref.read(alarmIlluminanceEnableProvider.notifier).state = value ?? false;
-                          },
-                        ),
-                      ),
-                    )
-
-                  ],
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text('시간대 설정', style: TextStyle(fontSize: deviceFontSize),),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        TextButton(
-                          style: TextButton.styleFrom(
-                              textStyle: TextStyle(fontSize: deviceFontSize),
-                              foregroundColor: Colors.black
-                          ),
-                          onPressed: () async {
-                            String st = ref.watch(alarmIlluminanceStartTimeProvider);
-                            TimeOfDay startTime = TimeOfDay(hour:int.parse(st.split(":")[0]),minute: int.parse(st.split(":")[1]));
-                            final TimeOfDay? timeOfDay = await showTimePicker(
-                              context: context,
-                              initialTime: startTime,
-                            );
-                            if (timeOfDay != null) {
-                              String formattedTime = '${timeOfDay.hour.toString().padLeft(2, '0')}:${timeOfDay.minute.toString().padLeft(2, '0')}';
-                              print(formattedTime);
-                              ref.read(alarmIlluminanceStartTimeProvider.notifier).state = formattedTime;
-                            }
-                          },
-                          child: Text(ref.watch(alarmIlluminanceStartTimeProvider)),
-                        ),
-                        Text(' ~ ', style: TextStyle(fontSize: deviceFontSize),),
-                        TextButton(
-                          style: TextButton.styleFrom(
-                              textStyle: TextStyle(fontSize: deviceFontSize),
-                              foregroundColor: Colors.black
-                          ),
-                          onPressed: () async {
-                            String st = ref.watch(alarmIlluminanceEndTimeProvider);
-                            TimeOfDay startTime = TimeOfDay(hour:int.parse(st.split(":")[0]),minute: int.parse(st.split(":")[1]));
-                            final TimeOfDay? timeOfDay = await showTimePicker(
-                              context: context,
-                              initialTime: startTime,
-                            );
-                            if (timeOfDay != null) {
-                              String formattedTime = '${timeOfDay.hour.toString().padLeft(2, '0')}:${timeOfDay.minute.toString().padLeft(2, '0')}';
-                              print(formattedTime);
-                              ref.read(alarmIlluminanceEndTimeProvider.notifier).state = formattedTime;
-                            }
-                          },
-                          child: Text(ref.watch(alarmIlluminanceEndTimeProvider)),
-                        ),
-                      ],
-                    )
-
-                  ],
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text('조도 범위', style: TextStyle(fontSize: deviceFontSize),),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        TextButton(
-                          style: TextButton.styleFrom(
-                              textStyle: TextStyle(fontSize: deviceFontSize),
-                              foregroundColor: Colors.black
-                          ),
-                          onPressed: () async {
-                            _inputDialog(context, ref.watch(alarmIlluminanceStartValueProvider), 4);
-                          },
-                          child: Text(ref.watch(alarmIlluminanceStartValueProvider).toString()),
-                        ),
-                        Text(' ~ ', style: TextStyle(fontSize: deviceFontSize),),
-                        TextButton(
-                          style: TextButton.styleFrom(
-                              textStyle: TextStyle(fontSize: deviceFontSize),
-                              foregroundColor: Colors.black
-                          ),
-                          onPressed: () async {
-                            _inputDialog(context, ref.watch(alarmIlluminanceEndValueProvider), 5);
-                          },
-                          child: Text(ref.watch(alarmIlluminanceEndValueProvider).toString()),
-                        ),
-                      ],
-                    )
-                  ],
-                ),
+                Text('알림', style: TextStyle(fontSize: deviceFontSize),),
+                SizedBox(
+                  height: 30,
+                  child: FittedBox(
+                    fit: BoxFit.contain,
+                    child: CupertinoSwitch(
+                      value: ref.watch(alarmIlluminanceEnableProvider),
+                      activeColor: CupertinoColors.activeBlue,
+                      onChanged: (bool? value) {
+                        ref.read(alarmIlluminanceEnableProvider.notifier).state = value ?? false;
+                      },
+                    ),
+                  ),
+                )
               ],
-            )
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('시간대 설정', style: TextStyle(fontSize: deviceFontSize),),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      style: TextButton.styleFrom(
+                        textStyle: TextStyle(fontSize: deviceFontSize),
+                        foregroundColor: Colors.black
+                      ),
+                      onPressed: () async {
+                        String st = ref.watch(alarmIlluminanceStartTimeProvider);
+                        TimeOfDay startTime = TimeOfDay(hour:int.parse(st.split(":")[0]),minute: int.parse(st.split(":")[1]));
+                        final TimeOfDay? timeOfDay = await showTimePicker(
+                          context: context,
+                          initialTime: startTime,
+                        );
+                        if (timeOfDay != null) {
+                          String formattedTime = '${timeOfDay.hour.toString().padLeft(2, '0')}:${timeOfDay.minute.toString().padLeft(2, '0')}';
+                          ref.read(alarmIlluminanceStartTimeProvider.notifier).state = formattedTime;
+                        }
+                      },
+                      child: Text(ref.watch(alarmIlluminanceStartTimeProvider)),
+                    ),
+                    Text(' ~ ', style: TextStyle(fontSize: deviceFontSize),),
+                    TextButton(
+                      style: TextButton.styleFrom(
+                        textStyle: TextStyle(fontSize: deviceFontSize),
+                        foregroundColor: Colors.black
+                      ),
+                      onPressed: () async {
+                        String st = ref.watch(alarmIlluminanceEndTimeProvider);
+                        TimeOfDay startTime = TimeOfDay(hour:int.parse(st.split(":")[0]),minute: int.parse(st.split(":")[1]));
+                        final TimeOfDay? timeOfDay = await showTimePicker(
+                          context: context,
+                          initialTime: startTime,
+                        );
+                        if (timeOfDay != null) {
+                          String formattedTime = '${timeOfDay.hour.toString().padLeft(2, '0')}:${timeOfDay.minute.toString().padLeft(2, '0')}';
+                          ref.read(alarmIlluminanceEndTimeProvider.notifier).state = formattedTime;
+                        }
+                      },
+                      child: Text(ref.watch(alarmIlluminanceEndTimeProvider)),
+                    ),
+                  ],
+                )
+              ],
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('조도 범위', style: TextStyle(fontSize: deviceFontSize),),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      style: TextButton.styleFrom(
+                        textStyle: TextStyle(fontSize: deviceFontSize),
+                        foregroundColor: Colors.black
+                      ),
+                      onPressed: () async {
+                        _inputDialog(context, ref.watch(alarmIlluminanceStartValueProvider), 4);
+                      },
+                      child: Text(ref.watch(alarmIlluminanceStartValueProvider).toString()),
+                    ),
+                    Text(' ~ ', style: TextStyle(fontSize: deviceFontSize),),
+                    TextButton(
+                      style: TextButton.styleFrom(
+                        textStyle: TextStyle(fontSize: deviceFontSize),
+                        foregroundColor: Colors.black
+                      ),
+                      onPressed: () async {
+                        _inputDialog(context, ref.watch(alarmIlluminanceEndValueProvider), 5);
+                      },
+                      child: Text(ref.watch(alarmIlluminanceEndValueProvider).toString()),
+                    ),
+                  ],
+                )
+              ],
+            ),
+          ],
         )
+      )
     );
   }
 
   Widget motionCard(BuildContext context, WidgetRef ref) {
     return Card(
-        color: Colors.white,
-        surfaceTintColor: Colors.transparent,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
-        child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Column(
+      color: Colors.white,
+      surfaceTintColor: Colors.transparent,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text('알림', style: TextStyle(fontSize: deviceFontSize),),
-                    SizedBox(
-                      height: 30,
-                      child: FittedBox(
-                        fit: BoxFit.contain,
-                        child: CupertinoSwitch(
-                          value: ref.watch(alarmMotionEnableProvider),
-                          activeColor: CupertinoColors.activeBlue,
-                          onChanged: (bool? value) {
-                            ref.read(alarmMotionEnableProvider.notifier).state = value ?? false;
-                          },
-                        ),
-                      )
-                    )
-                  ],
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text('시간대 설정', style: TextStyle(fontSize: deviceFontSize),),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        TextButton(
-                          style: TextButton.styleFrom(
-                              textStyle: TextStyle(fontSize: deviceFontSize),
-                              foregroundColor: Colors.black
-                          ),
-                          onPressed: () async {
-                            String st = ref.watch(alarmMotionStartTimeProvider);
-                            TimeOfDay startTime = TimeOfDay(hour:int.parse(st.split(":")[0]),minute: int.parse(st.split(":")[1]));
-                            final TimeOfDay? timeOfDay = await showTimePicker(
-                              context: context,
-                              initialTime: startTime,
-                            );
-                            if (timeOfDay != null) {
-                              String formattedTime = '${timeOfDay.hour.toString().padLeft(2, '0')}:${timeOfDay.minute.toString().padLeft(2, '0')}';
-                              print(formattedTime);
-                              ref.read(alarmMotionStartTimeProvider.notifier).state = formattedTime;
-                            }
-                          },
-                          child: Text(ref.watch(alarmMotionStartTimeProvider)),
-                        ),
-                        Text(' ~ ', style: TextStyle(fontSize: deviceFontSize),),
-                        TextButton(
-                          style: TextButton.styleFrom(
-                              textStyle: TextStyle(fontSize: deviceFontSize),
-                              foregroundColor: Colors.black
-                          ),
-                          onPressed: () async {
-                            String st = ref.watch(alarmMotionEndTimeProvider);
-                            TimeOfDay startTime = TimeOfDay(hour:int.parse(st.split(":")[0]),minute: int.parse(st.split(":")[1]));
-                            final TimeOfDay? timeOfDay = await showTimePicker(
-                              context: context,
-                              initialTime: startTime,
-                            );
-                            if (timeOfDay != null) {
-                              String formattedTime = '${timeOfDay.hour.toString().padLeft(2, '0')}:${timeOfDay.minute.toString().padLeft(2, '0')}';
-                              print(formattedTime);
-                              ref.read(alarmMotionEndTimeProvider.notifier).state = formattedTime;
-                            }
-                          },
-                          child: Text(ref.watch(alarmMotionEndTimeProvider)),
-                        ),
-                      ],
-                    )
-
-                  ],
-                ),
+                Text('알림', style: TextStyle(fontSize: deviceFontSize),),
+                SizedBox(
+                  height: 30,
+                  child: FittedBox(
+                    fit: BoxFit.contain,
+                    child: CupertinoSwitch(
+                      value: ref.watch(alarmMotionEnableProvider),
+                      activeColor: CupertinoColors.activeBlue,
+                      onChanged: (bool? value) {
+                        ref.read(alarmMotionEnableProvider.notifier).state = value ?? false;
+                      },
+                    ),
+                  )
+                )
               ],
-            )
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('시간대 설정', style: TextStyle(fontSize: deviceFontSize),),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      style: TextButton.styleFrom(
+                        textStyle: TextStyle(fontSize: deviceFontSize),
+                        foregroundColor: Colors.black
+                      ),
+                      onPressed: () async {
+                        String st = ref.watch(alarmMotionStartTimeProvider);
+                        TimeOfDay startTime = TimeOfDay(hour:int.parse(st.split(":")[0]),minute: int.parse(st.split(":")[1]));
+                        final TimeOfDay? timeOfDay = await showTimePicker(
+                          context: context,
+                          initialTime: startTime,
+                        );
+                        if (timeOfDay != null) {
+                          String formattedTime = '${timeOfDay.hour.toString().padLeft(2, '0')}:${timeOfDay.minute.toString().padLeft(2, '0')}';
+                          ref.read(alarmMotionStartTimeProvider.notifier).state = formattedTime;
+                        }
+                      },
+                      child: Text(ref.watch(alarmMotionStartTimeProvider)),
+                    ),
+                    Text(' ~ ', style: TextStyle(fontSize: deviceFontSize),),
+                    TextButton(
+                      style: TextButton.styleFrom(
+                        textStyle: TextStyle(fontSize: deviceFontSize),
+                        foregroundColor: Colors.black
+                      ),
+                      onPressed: () async {
+                        String st = ref.watch(alarmMotionEndTimeProvider);
+                        TimeOfDay startTime = TimeOfDay(hour:int.parse(st.split(":")[0]),minute: int.parse(st.split(":")[1]));
+                        final TimeOfDay? timeOfDay = await showTimePicker(
+                          context: context,
+                          initialTime: startTime,
+                        );
+                        if (timeOfDay != null) {
+                          String formattedTime = '${timeOfDay.hour.toString().padLeft(2, '0')}:${timeOfDay.minute.toString().padLeft(2, '0')}';
+                          ref.read(alarmMotionEndTimeProvider.notifier).state = formattedTime;
+                        }
+                      },
+                      child: Text(ref.watch(alarmMotionEndTimeProvider)),
+                    ),
+                  ],
+                )
+
+              ],
+            ),
+          ],
         )
+      )
     );
   }
 
   Widget doorCard(BuildContext context, WidgetRef ref) {
     return Card(
-        color: Colors.white,
-        surfaceTintColor: Colors.transparent,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
-        child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Column(
+      color: Colors.white,
+      surfaceTintColor: Colors.transparent,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text('알림', style: TextStyle(fontSize: deviceFontSize),),
-                    SizedBox(
-                      height: 30,
-                      child: FittedBox(
-                        fit: BoxFit.contain,
-                        child: CupertinoSwitch(
-                          value: ref.watch(alarmDoorEnableProvider),
-                          activeColor: CupertinoColors.activeBlue,
-                          onChanged: (bool? value) {
-                            ref.read(alarmDoorEnableProvider.notifier).state = value ?? false;
-                          },
-                        ),
-                      )
-                    )
-                  ],
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text('시간대 설정', style: TextStyle(fontSize: deviceFontSize),),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        TextButton(
-                          style: TextButton.styleFrom(
-                              textStyle: TextStyle(fontSize: deviceFontSize),
-                              foregroundColor: Colors.black
-                          ),
-                          onPressed: () async {
-                            String st = ref.watch(alarmDoorStartTimeProvider);
-                            TimeOfDay startTime = TimeOfDay(hour:int.parse(st.split(":")[0]),minute: int.parse(st.split(":")[1]));
-                            final TimeOfDay? timeOfDay = await showTimePicker(
-                              context: context,
-                              initialTime: startTime,
-                            );
-                            if (timeOfDay != null) {
-                              String formattedTime = '${timeOfDay.hour.toString().padLeft(2, '0')}:${timeOfDay.minute.toString().padLeft(2, '0')}';
-                              print(formattedTime);
-                              ref.read(alarmDoorStartTimeProvider.notifier).state = formattedTime;
-                            }
-                          },
-                          child: Text(ref.watch(alarmDoorStartTimeProvider)),
-                        ),
-                        Text(' ~ ', style: TextStyle(fontSize: deviceFontSize),),
-                        TextButton(
-                          style: TextButton.styleFrom(
-                              textStyle: TextStyle(fontSize: deviceFontSize),
-                              foregroundColor: Colors.black
-                          ),
-                          onPressed: () async {
-                            String st = ref.watch(alarmDoorEndTimeProvider);
-                            TimeOfDay startTime = TimeOfDay(hour:int.parse(st.split(":")[0]),minute: int.parse(st.split(":")[1]));
-                            final TimeOfDay? timeOfDay = await showTimePicker(
-                              context: context,
-                              initialTime: startTime,
-                            );
-                            if (timeOfDay != null) {
-                              String formattedTime = '${timeOfDay.hour.toString().padLeft(2, '0')}:${timeOfDay.minute.toString().padLeft(2, '0')}';
-                              print(formattedTime);
-                              ref.read(alarmDoorEndTimeProvider.notifier).state = formattedTime;
-                            }
-                          },
-                          child: Text(ref.watch(alarmDoorEndTimeProvider)),
-                        ),
-                      ],
-                    )
-
-                  ],
-                ),
+                Text('알림', style: TextStyle(fontSize: deviceFontSize),),
+                SizedBox(
+                  height: 30,
+                  child: FittedBox(
+                    fit: BoxFit.contain,
+                    child: CupertinoSwitch(
+                      value: ref.watch(alarmDoorEnableProvider),
+                      activeColor: CupertinoColors.activeBlue,
+                      onChanged: (bool? value) {
+                        ref.read(alarmDoorEnableProvider.notifier).state = value ?? false;
+                      },
+                    ),
+                  )
+                )
               ],
-            )
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('시간대 설정', style: TextStyle(fontSize: deviceFontSize),),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      style: TextButton.styleFrom(
+                        textStyle: TextStyle(fontSize: deviceFontSize),
+                        foregroundColor: Colors.black
+                      ),
+                      onPressed: () async {
+                        String st = ref.watch(alarmDoorStartTimeProvider);
+                        TimeOfDay startTime = TimeOfDay(hour:int.parse(st.split(":")[0]),minute: int.parse(st.split(":")[1]));
+                        final TimeOfDay? timeOfDay = await showTimePicker(
+                          context: context,
+                          initialTime: startTime,
+                        );
+                        if (timeOfDay != null) {
+                          String formattedTime = '${timeOfDay.hour.toString().padLeft(2, '0')}:${timeOfDay.minute.toString().padLeft(2, '0')}';
+                          ref.read(alarmDoorStartTimeProvider.notifier).state = formattedTime;
+                        }
+                      },
+                      child: Text(ref.watch(alarmDoorStartTimeProvider)),
+                    ),
+                    Text(' ~ ', style: TextStyle(fontSize: deviceFontSize),),
+                    TextButton(
+                      style: TextButton.styleFrom(
+                        textStyle: TextStyle(fontSize: deviceFontSize),
+                        foregroundColor: Colors.black
+                      ),
+                      onPressed: () async {
+                        String st = ref.watch(alarmDoorEndTimeProvider);
+                        TimeOfDay startTime = TimeOfDay(hour:int.parse(st.split(":")[0]),minute: int.parse(st.split(":")[1]));
+                        final TimeOfDay? timeOfDay = await showTimePicker(
+                          context: context,
+                          initialTime: startTime,
+                        );
+                        if (timeOfDay != null) {
+                          String formattedTime = '${timeOfDay.hour.toString().padLeft(2, '0')}:${timeOfDay.minute.toString().padLeft(2, '0')}';
+                          ref.read(alarmDoorEndTimeProvider.notifier).state = formattedTime;
+                        }
+                      },
+                      child: Text(ref.watch(alarmDoorEndTimeProvider)),
+                    ),
+                  ],
+                )
+
+              ],
+            ),
+          ],
         )
+      )
     );
   }
 
   Widget smokeCard(BuildContext context, WidgetRef ref) {
     return Card(
-        color: Colors.white,
-        surfaceTintColor: Colors.transparent,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
-        child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Column(
+      color: Colors.white,
+      surfaceTintColor: Colors.transparent,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text('알림', style: TextStyle(fontSize: deviceFontSize),),
-                    SizedBox(
-                      height: 30,
-                      child: FittedBox(
-                        fit: BoxFit.contain,
-                        child: CupertinoSwitch(
-                          value: ref.watch(alarmSmokeEnableProvider),
-                          activeColor: CupertinoColors.activeBlue,
-                          onChanged: (bool? value) {
-                            ref.read(alarmSmokeEnableProvider.notifier).state = value ?? false;
-                          },
-                        ),
-                      )
-                    )
-                  ],
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text('시간대 설정', style: TextStyle(fontSize: deviceFontSize),),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        TextButton(
-                          style: TextButton.styleFrom(
-                              textStyle: TextStyle(fontSize: deviceFontSize),
-                              foregroundColor: Colors.black
-                          ),
-                          onPressed: () async {
-                            String st = ref.watch(alarmSmokeStartTimeProvider);
-                            TimeOfDay startTime = TimeOfDay(hour:int.parse(st.split(":")[0]),minute: int.parse(st.split(":")[1]));
-                            final TimeOfDay? timeOfDay = await showTimePicker(
-                              context: context,
-                              initialTime: startTime,
-                            );
-                            if (timeOfDay != null) {
-                              String formattedTime = '${timeOfDay.hour.toString().padLeft(2, '0')}:${timeOfDay.minute.toString().padLeft(2, '0')}';
-                              print(formattedTime);
-                              ref.read(alarmSmokeStartTimeProvider.notifier).state = formattedTime;
-                            }
-                          },
-                          child: Text(ref.watch(alarmSmokeStartTimeProvider)),
-                        ),
-                        Text(' ~ ', style: TextStyle(fontSize: deviceFontSize),),
-                        TextButton(
-                          style: TextButton.styleFrom(
-                              textStyle: TextStyle(fontSize: deviceFontSize),
-                              foregroundColor: Colors.black
-                          ),
-                          onPressed: () async {
-                            String st = ref.watch(alarmSmokeEndTimeProvider);
-                            TimeOfDay startTime = TimeOfDay(hour:int.parse(st.split(":")[0]),minute: int.parse(st.split(":")[1]));
-                            final TimeOfDay? timeOfDay = await showTimePicker(
-                              context: context,
-                              initialTime: startTime,
-                            );
-                            if (timeOfDay != null) {
-                              String formattedTime = '${timeOfDay.hour.toString().padLeft(2, '0')}:${timeOfDay.minute.toString().padLeft(2, '0')}';
-                              print(formattedTime);
-                              ref.read(alarmSmokeEndTimeProvider.notifier).state = formattedTime;
-                            }
-                          },
-                          child: Text(ref.watch(alarmSmokeEndTimeProvider)),
-                        ),
-                      ],
-                    )
-
-                  ],
-                ),
+                Text('알림', style: TextStyle(fontSize: deviceFontSize),),
+                SizedBox(
+                  height: 30,
+                  child: FittedBox(
+                    fit: BoxFit.contain,
+                    child: CupertinoSwitch(
+                      value: ref.watch(alarmSmokeEnableProvider),
+                      activeColor: CupertinoColors.activeBlue,
+                      onChanged: (bool? value) {
+                        ref.read(alarmSmokeEnableProvider.notifier).state = value ?? false;
+                      },
+                    ),
+                  )
+                )
               ],
-            )
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('시간대 설정', style: TextStyle(fontSize: deviceFontSize),),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      style: TextButton.styleFrom(
+                        textStyle: TextStyle(fontSize: deviceFontSize),
+                        foregroundColor: Colors.black
+                      ),
+                      onPressed: () async {
+                        String st = ref.watch(alarmSmokeStartTimeProvider);
+                        TimeOfDay startTime = TimeOfDay(hour:int.parse(st.split(":")[0]),minute: int.parse(st.split(":")[1]));
+                        final TimeOfDay? timeOfDay = await showTimePicker(
+                          context: context,
+                          initialTime: startTime,
+                        );
+                        if (timeOfDay != null) {
+                          String formattedTime = '${timeOfDay.hour.toString().padLeft(2, '0')}:${timeOfDay.minute.toString().padLeft(2, '0')}';
+                          ref.read(alarmSmokeStartTimeProvider.notifier).state = formattedTime;
+                        }
+                      },
+                      child: Text(ref.watch(alarmSmokeStartTimeProvider)),
+                    ),
+                    Text(' ~ ', style: TextStyle(fontSize: deviceFontSize),),
+                    TextButton(
+                      style: TextButton.styleFrom(
+                        textStyle: TextStyle(fontSize: deviceFontSize),
+                        foregroundColor: Colors.black
+                      ),
+                      onPressed: () async {
+                        String st = ref.watch(alarmSmokeEndTimeProvider);
+                        TimeOfDay startTime = TimeOfDay(hour:int.parse(st.split(":")[0]),minute: int.parse(st.split(":")[1]));
+                        final TimeOfDay? timeOfDay = await showTimePicker(
+                          context: context,
+                          initialTime: startTime,
+                        );
+                        if (timeOfDay != null) {
+                          String formattedTime = '${timeOfDay.hour.toString().padLeft(2, '0')}:${timeOfDay.minute.toString().padLeft(2, '0')}';
+                          ref.read(alarmSmokeEndTimeProvider.notifier).state = formattedTime;
+                        }
+                      },
+                      child: Text(ref.watch(alarmSmokeEndTimeProvider)),
+                    ),
+                  ],
+                )
+
+              ],
+            ),
+          ],
         )
+      )
     );
   }
 
   Widget emergencyCard(BuildContext context, WidgetRef ref) {
     return Card(
-        color: Colors.white,
-        surfaceTintColor: Colors.transparent,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
-        child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Column(
+      color: Colors.white,
+      surfaceTintColor: Colors.transparent,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text('알림', style: TextStyle(fontSize: deviceFontSize),),
-                    SizedBox(
-                      height: 30,
-                      child: FittedBox(
-                        fit: BoxFit.contain,
-                        child: CupertinoSwitch(
-                          value: ref.watch(alarmEmergencyEnableProvider),
-                          activeColor: CupertinoColors.activeBlue,
-                          onChanged: (bool? value) {
-                            ref.read(alarmEmergencyEnableProvider.notifier).state = value ?? false;
-                          },
-                        ),
-                      )
-                    )
-                  ],
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text('시간대 설정', style: TextStyle(fontSize: deviceFontSize),),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        TextButton(
-                          style: TextButton.styleFrom(
-                              textStyle: TextStyle(fontSize: deviceFontSize),
-                              foregroundColor: Colors.black
-                          ),
-                          onPressed: () async {
-                            String st = ref.watch(alarmEmergencyStartTimeProvider);
-                            TimeOfDay startTime = TimeOfDay(hour:int.parse(st.split(":")[0]),minute: int.parse(st.split(":")[1]));
-                            final TimeOfDay? timeOfDay = await showTimePicker(
-                              context: context,
-                              initialTime: startTime,
-                            );
-                            if (timeOfDay != null) {
-                              String formattedTime = '${timeOfDay.hour.toString().padLeft(2, '0')}:${timeOfDay.minute.toString().padLeft(2, '0')}';
-                              print(formattedTime);
-                              ref.read(alarmEmergencyStartTimeProvider.notifier).state = formattedTime;
-                            }
-                          },
-                          child: Text(ref.watch(alarmEmergencyStartTimeProvider)),
-                        ),
-                        Text(' ~ ', style: TextStyle(fontSize: deviceFontSize),),
-                        TextButton(
-                          style: TextButton.styleFrom(
-                              textStyle: TextStyle(fontSize: deviceFontSize),
-                              foregroundColor: Colors.black
-                          ),
-                          onPressed: () async {
-                            String st = ref.watch(alarmEmergencyEndTimeProvider);
-                            TimeOfDay startTime = TimeOfDay(hour:int.parse(st.split(":")[0]),minute: int.parse(st.split(":")[1]));
-                            final TimeOfDay? timeOfDay = await showTimePicker(
-                              context: context,
-                              initialTime: startTime,
-                            );
-                            if (timeOfDay != null) {
-                              String formattedTime = '${timeOfDay.hour.toString().padLeft(2, '0')}:${timeOfDay.minute.toString().padLeft(2, '0')}';
-                              print(formattedTime);
-                              ref.read(alarmEmergencyEndTimeProvider.notifier).state = formattedTime;
-                            }
-                          },
-                          child: Text(ref.watch(alarmEmergencyEndTimeProvider)),
-                        ),
-                      ],
-                    )
-                  ],
-                ),
+                Text('알림', style: TextStyle(fontSize: deviceFontSize),),
+                SizedBox(
+                  height: 30,
+                  child: FittedBox(
+                    fit: BoxFit.contain,
+                    child: CupertinoSwitch(
+                      value: ref.watch(alarmEmergencyEnableProvider),
+                      activeColor: CupertinoColors.activeBlue,
+                      onChanged: (bool? value) {
+                        ref.read(alarmEmergencyEnableProvider.notifier).state = value ?? false;
+                      },
+                    ),
+                  )
+                )
               ],
-            )
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('시간대 설정', style: TextStyle(fontSize: deviceFontSize),),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      style: TextButton.styleFrom(
+                        textStyle: TextStyle(fontSize: deviceFontSize),
+                        foregroundColor: Colors.black
+                      ),
+                      onPressed: () async {
+                        String st = ref.watch(alarmEmergencyStartTimeProvider);
+                        TimeOfDay startTime = TimeOfDay(hour:int.parse(st.split(":")[0]),minute: int.parse(st.split(":")[1]));
+                        final TimeOfDay? timeOfDay = await showTimePicker(
+                          context: context,
+                          initialTime: startTime,
+                        );
+                        if (timeOfDay != null) {
+                          String formattedTime = '${timeOfDay.hour.toString().padLeft(2, '0')}:${timeOfDay.minute.toString().padLeft(2, '0')}';
+                          ref.read(alarmEmergencyStartTimeProvider.notifier).state = formattedTime;
+                        }
+                      },
+                      child: Text(ref.watch(alarmEmergencyStartTimeProvider)),
+                    ),
+                    Text(' ~ ', style: TextStyle(fontSize: deviceFontSize),),
+                    TextButton(
+                      style: TextButton.styleFrom(
+                        textStyle: TextStyle(fontSize: deviceFontSize),
+                        foregroundColor: Colors.black
+                      ),
+                      onPressed: () async {
+                        String st = ref.watch(alarmEmergencyEndTimeProvider);
+                        TimeOfDay startTime = TimeOfDay(hour:int.parse(st.split(":")[0]),minute: int.parse(st.split(":")[1]));
+                        final TimeOfDay? timeOfDay = await showTimePicker(
+                          context: context,
+                          initialTime: startTime,
+                        );
+                        if (timeOfDay != null) {
+                          String formattedTime = '${timeOfDay.hour.toString().padLeft(2, '0')}:${timeOfDay.minute.toString().padLeft(2, '0')}';
+                          ref.read(alarmEmergencyEndTimeProvider.notifier).state = formattedTime;
+                        }
+                      },
+                      child: Text(ref.watch(alarmEmergencyEndTimeProvider)),
+                    ),
+                  ],
+                )
+              ],
+            ),
+          ],
         )
+      )
     );
   }
 
@@ -863,13 +899,6 @@ class _SettingAlarmState extends ConsumerState<SettingAlarm> {
         _saveSettings();
       }
     });
-  }
-
-  @override
-  void initState() {
-    super.initState();
-
-    _loadSettings();
   }
 
   void _loadSettings() async {
@@ -987,5 +1016,51 @@ class _SettingAlarmState extends ConsumerState<SettingAlarm> {
         "doorEndTime": ref.watch(alarmDoorEndTimeProvider),
       })
     );
+  }
+
+  void _startTimer() {
+    _isTimerRunning = true;
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+
+      if (!_checkingPermission) {
+        _checkPermission();
+      }
+    });
+  }
+
+  void _stopTimer() {
+    _isTimerRunning = false;
+    _timer.cancel();
+  }
+
+  void _checkPermission() async {
+    _checkingPermission = true;
+
+    var status = await Permission.notification.status;
+
+    if (status.isGranted || status.isLimited) {
+      setState(() {
+        _isGranted = true;
+        _stopTimer();
+      });
+    } else if (status.isPermanentlyDenied) {
+      /*권한 요청 거부, 해당 권한에 대한 요청에 대해 다시 묻지 않음 선택하여 설정화면에서 변경해야함. android*/
+      setState(() {
+        _isGranted = false;
+        _isPermanentlyDenied = true;
+      });
+    } else if (status.isRestricted) {
+      /*권한 요청 거부, 해당 권한에 대한 요청을 표시하지 않도록 선택하여 설정화면에서 변경해야함. ios*/
+      setState(() {
+        _isGranted = false;
+        _isPermanentlyDenied = true;
+      });
+    } else if (status.isDenied) {
+      setState(() {
+        _isGranted = false;
+      });
+    }
+
+    _checkingPermission = false;
   }
 }

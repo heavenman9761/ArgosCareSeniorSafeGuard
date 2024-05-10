@@ -120,6 +120,17 @@ class _AddHubPage2State extends ConsumerState<AddHubPage2> {
     if (statuses.values.every((element) => element.isGranted)) {
       return true;
     }
+
+    if (statuses.values.any((element) => element.isPermanentlyDenied)) {
+      openAppSettings();
+      return false;
+    }
+
+    if (statuses.values.any((element) => element.isRestricted)) { //ios
+      openAppSettings();
+      return false;
+    }
+
     return false;
   }
 
