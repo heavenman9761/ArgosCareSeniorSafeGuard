@@ -57,6 +57,7 @@ dependencies:
   universal_platform: ^1.0.0+1
   kakao_flutter_sdk_user: ^1.9.1+2
   fluttertoast: ^8.2.5
+  iamport_flutter: ^0.10.18
 
 dev_dependencies:
   flutter_test:

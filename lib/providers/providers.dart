@@ -189,3 +189,9 @@ final alarmDoorEndTimeProvider = StateProvider<String>((ref) {
 final alarmReceivedProvider = StateProvider<bool>((ref) {
   return false;
 });
+
+//------------------------------------------------------------------
+
+final phoneCertificationProvider = StateProvider<bool>((ref) {
+  return false;
+});

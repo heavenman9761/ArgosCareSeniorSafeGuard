@@ -3,21 +3,26 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:iamport_flutter/model/certification_data.dart';
+import 'package:iamport_flutter/model/url_data.dart';
+import 'package:dio/dio.dart';
 
 import 'package:argoscareseniorsafeguard/utils/string_extensions.dart';
 import 'package:argoscareseniorsafeguard/components/my_button.dart';
 import 'package:argoscareseniorsafeguard/components/my_textfield.dart';
-import 'package:dio/dio.dart';
 import 'package:argoscareseniorsafeguard/constants.dart';
+import 'package:argoscareseniorsafeguard/pages/phone_certification.dart';
+import 'package:argoscareseniorsafeguard/providers/providers.dart';
 
-class RegisterPage extends StatefulWidget {
+class RegisterPage extends ConsumerStatefulWidget {
   const RegisterPage({super.key});
 
   @override
-  State<RegisterPage> createState() => _RegisterPageState();
+  ConsumerState<RegisterPage> createState() => _RegisterPageState();
 }
 
-class _RegisterPageState extends State<RegisterPage> {
+class _RegisterPageState extends ConsumerState<RegisterPage> {
   final _formKey = GlobalKey<FormState>();
 
   String _name = '';
@@ -189,6 +194,9 @@ class _RegisterPageState extends State<RegisterPage> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen(phoneCertificationProvider, (previous, next) {
+      _smsAuthOk = ref.watch(phoneCertificationProvider);
+    });
     return Scaffold(
         resizeToAvoidBottomInset: false,
         backgroundColor: Colors.grey[300],
@@ -405,12 +413,17 @@ class _RegisterPageState extends State<RegisterPage> {
 
                             _smsAuthOk ? const SizedBox()
                                 : TextButton(
-                                    child: const Text("SMS 전송"),
+                                    child: const Text("본인 인증"),
                                     onPressed: () async {
-                                      setState(() {
+                                      if (_phoneController.text.isValidPhoneNumberFormat()) {
+                                        _phoneCertification(context, _phoneController.text);
+                                      } else  {
+
+                                      }
+                                      /*setState(() {
                                         _smsSendCompleted = true;
                                       });
-                                      /*if (_phoneController.text.isValidPhoneNumberFormat()) {
+                                      if (_phoneController.text.isValidPhoneNumberFormat()) {
                                         await _auth.verifyPhoneNumber(
                                           timeout: const Duration(seconds: 60),
                                           codeAutoRetrievalTimeout: (String verificationId) {
@@ -575,5 +588,24 @@ class _RegisterPageState extends State<RegisterPage> {
           )
         )
     );
+  }
+
+  void _phoneCertification(BuildContext context, String phoneNumber) async {
+    CertificationData data = CertificationData(
+      pg: 'inicis_unified',
+      merchantUid: 'mid_${DateTime.now().millisecondsSinceEpoch}',
+      mRedirectUrl: UrlData.redirectUrl
+    );
+
+    final result = await Navigator.push(context,
+        MaterialPageRoute(builder: (context) {
+          return PhoneCertification(userCode: 'imp71235150', data: data);
+        })
+    );
+
+    ScaffoldMessenger.of(context)
+      ..removeCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text('$result')));
+
   }
 }
