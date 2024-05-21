@@ -15,19 +15,20 @@ class PhoneCertification extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return IamportCertification(
       appBar: AppBar(
+        backgroundColor: Colors.white,
         title: const Text('휴대폰 본인인증'),
         centerTitle: true,
-        titleTextStyle: const TextStyle(
-          fontSize: 24,
-          color: Colors.white,
-        ),
-        backgroundColor: Colors.blue,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios),
-          onPressed: () {
-            // Get.back();
-          },
-        ),
+        // titleTextStyle: const TextStyle(
+        //   fontSize: 24,
+        //   color: Colors.white,
+        // ),
+
+        // leading: IconButton(
+        //   icon: const Icon(Icons.arrow_back_ios),
+        //   onPressed: () {
+        //     // Get.back();
+        //   },
+        // ),
       ),
       initialChild: const SafeArea(
         child: Center(
