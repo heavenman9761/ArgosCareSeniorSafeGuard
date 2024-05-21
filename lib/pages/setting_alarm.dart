@@ -5,7 +5,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:argoscareseniorsafeguard/models/sensor.dart';
@@ -13,8 +12,9 @@ import 'package:argoscareseniorsafeguard/constants.dart';
 import 'package:argoscareseniorsafeguard/providers/providers.dart';
 
 class SettingAlarm extends ConsumerStatefulWidget {
-  const SettingAlarm({super.key, required this.sensorList});
+  const SettingAlarm({super.key, required this.userID, required this.sensorList});
   final List<Sensor> sensorList;
+  final String userID;
 
   @override
   ConsumerState<SettingAlarm> createState() => _SettingAlarmState();
@@ -938,12 +938,6 @@ class _SettingAlarmState extends ConsumerState<SettingAlarm> {
   }
 
   void _saveSettings() async {
-    const storage = FlutterSecureStorage(
-      iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock),
-      aOptions: AndroidOptions(encryptedSharedPreferences: true),
-    );
-    final userID = await storage.read(key: 'ID');
-
     final SharedPreferences pref = await SharedPreferences.getInstance();
 
     pref.setBool("EntireAlarm", ref.watch(alarmEntireEnableProvider));
@@ -981,7 +975,7 @@ class _SettingAlarmState extends ConsumerState<SettingAlarm> {
     final response = await dio.post(
       "/devices/set_alarm",
       data: jsonEncode({
-        "userID": userID,
+        "userID": widget.userID,
 
         "entireAlarm": ref.watch(alarmEntireEnableProvider),
 

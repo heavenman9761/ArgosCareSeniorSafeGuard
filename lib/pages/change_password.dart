@@ -200,6 +200,7 @@ class _ChangePasswordState extends State<ChangePassword> {
         isProcessing = false;
       });
 
+      if (!context.mounted) return;
       if (response.statusCode == 201) {
         _failureDialog(context, response.data['message']);
       } else {

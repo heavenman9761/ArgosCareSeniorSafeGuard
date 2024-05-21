@@ -5,6 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
 import 'package:dio/dio.dart';
+import 'package:mobile_device_identifier/mobile_device_identifier.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import 'package:argoscareseniorsafeguard/components/my_button.dart';
 import 'package:argoscareseniorsafeguard/components/my_textfield.dart';
@@ -15,8 +18,6 @@ import 'package:argoscareseniorsafeguard/auth/auth_dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:argoscareseniorsafeguard/utils/string_extensions.dart';
 import 'package:argoscareseniorsafeguard/main.dart';
-
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -37,15 +38,40 @@ class _LoginPageState extends State<LoginPage> {
   bool passwordVisible = true;
   late String userID;
 
+  String _deviceId = 'Unknown';
+  final _mobileDeviceIdentifierPlugin = MobileDeviceIdentifier();
+
   final _mailController = TextEditingController(text: "dn9318dn@gmail.com");
 
   @override
   void initState() {
     super.initState();
-    loadLocale();
+    _initDeviceId();
+    _loadLocale();
   }
 
-  void loadLocale() async {
+  Future<void> _initDeviceId() async {
+    String deviceId;
+    try {
+      deviceId = await _mobileDeviceIdentifierPlugin.getDeviceId() ?? 'Unknown platform version';
+      // debugPrint('origin: $deviceId');
+
+      deviceId = base64.encode(utf8.encode(deviceId));
+      // debugPrint('encoded: $deviceId');
+
+      // String decoded = utf8.decode(base64.decode(deviceId));
+      // debugPrint('decoded: $decoded');
+    } on PlatformException {
+      deviceId = 'Failed to get platform version.';
+    }
+
+    if (!mounted) return;
+    setState(() {
+      _deviceId = deviceId;
+    });
+  }
+
+  void _loadLocale() async {
     var prefs = await SharedPreferences.getInstance();
     setState(() {
       String localeStr = prefs.getString('languageCode') ?? 'ko';
@@ -137,10 +163,12 @@ class _LoginPageState extends State<LoginPage> {
             })
         );
 
-        _processLogin(response);
+        if (!context.mounted) return;
+        _processLogin(context, response);
 
       } catch (e) {
         debugPrint(e.toString());
+        if (!context.mounted) return;
         _failureDialog(context, AppLocalizations.of(context)!.login_button, AppLocalizations.of(context)!.login_failure_message);
         setState(() {
           isLogging = false;
@@ -149,7 +177,7 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-  void _processLogin(Response response) async {
+  void _processLogin(BuildContext context, Response response) async {
     final token = response.data['token'];
     const storage = FlutterSecureStorage(
       iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock),
@@ -166,6 +194,7 @@ class _LoginPageState extends State<LoginPage> {
 
     _saveUserInfo(storage, loginResponse);
 
+    if (!context.mounted) return;
     Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) {
       return HomePage(title: Constants.APP_TITLE, userName: userName, userID: userID);
     },
@@ -444,6 +473,12 @@ class _LoginPageState extends State<LoginPage> {
                                   _loginKaKao(context);
                                 },
                               ),
+                              SquareTile(
+                                imagePath: 'assets/images/google.png',
+                                onTap: () {
+                                  _loginGoogle(context);
+                                },
+                              ),
                             ],
                           ),
                         ],
@@ -458,10 +493,15 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
+  void _loginGoogle(BuildContext context) async {
+
+  }
+
   void _loginKaKao(BuildContext context) async {
     bool isInstalled = await isKakaoTalkInstalled();
 
     if (!isInstalled) {
+      if (!context.mounted) return;
       _failureDialog(context, AppLocalizations.of(context)!.login_kakao, AppLocalizations.of(context)!.login_kakao_not_installed);
       return;
     }
@@ -497,7 +537,8 @@ class _LoginPageState extends State<LoginPage> {
             "password": '${user.id}_${user.kakaoAccount?.profile?.nickname}',
             "snsId": user.id,
             "provider": "kakao",
-            "admin": false
+            "admin": false,
+            "deviceID": _deviceId
           })
       );
 
@@ -509,9 +550,11 @@ class _LoginPageState extends State<LoginPage> {
           })
       );
 
-      _processLogin(response);
+      if (!context.mounted) return;
+      _processLogin(context, response);
 
     } catch (error) {
+      if (!context.mounted) return;
       _failureDialog(context, AppLocalizations.of(context)!.login_kakao, AppLocalizations.of(context)!.login_kakao_failure_message);
       setState(() {
         isLogging = false;

@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -7,6 +6,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:iamport_flutter/model/certification_data.dart';
 import 'package:iamport_flutter/model/url_data.dart';
 import 'package:dio/dio.dart';
+import 'package:mobile_device_identifier/mobile_device_identifier.dart';
+import 'package:flutter/services.dart';
 
 import 'package:argoscareseniorsafeguard/utils/string_extensions.dart';
 import 'package:argoscareseniorsafeguard/components/my_button.dart';
@@ -14,6 +15,7 @@ import 'package:argoscareseniorsafeguard/components/my_textfield.dart';
 import 'package:argoscareseniorsafeguard/constants.dart';
 import 'package:argoscareseniorsafeguard/pages/phone_certification.dart';
 import 'package:argoscareseniorsafeguard/providers/providers.dart';
+
 
 class RegisterPage extends ConsumerStatefulWidget {
   const RegisterPage({super.key});
@@ -47,9 +49,13 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   String _verificationId = '';
 
+  String _deviceId = 'Unknown';
+  final _mobileDeviceIdentifierPlugin = MobileDeviceIdentifier();
+
   @override
   void initState(){
     super.initState();
+    _initDeviceId();
   }
 
   @override
@@ -61,6 +67,28 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
     _smsController.dispose();
     _zipController.dispose();
     _addrController.dispose();
+  }
+
+  Future<void> _initDeviceId() async {
+    String deviceId;
+    try {
+      deviceId = await _mobileDeviceIdentifierPlugin.getDeviceId() ?? 'Unknown platform version';
+      // debugPrint('origin: $deviceId');
+
+      deviceId = base64.encode(utf8.encode(deviceId));
+      // debugPrint('encoded: $deviceId');
+
+      // String decoded = utf8.decode(base64.decode(deviceId));
+      // debugPrint('decoded: $decoded');
+
+    } on PlatformException {
+      deviceId = 'Failed to get platform version.';
+    }
+
+    if (!mounted) return;
+    setState(() {
+      _deviceId = deviceId;
+    });
   }
 
   void _signInWithPhoneAuthCredential(PhoneAuthCredential phoneAuthCredential) async {
@@ -116,9 +144,12 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
               "mobilephone": _mobilephone,
               "addr_zip": _addrzip,
               "addr": _addr,
-              "admin": false
+              "admin": false,
+              "deviceID": _deviceId
             })
         );
+
+        if (!context.mounted) return;
         if (response.statusCode == 201) {
           _successDialog(context, response.data['message']);
         } else {
@@ -603,9 +634,9 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
         })
     );
 
+    if (!context.mounted) return;
     ScaffoldMessenger.of(context)
       ..removeCurrentSnackBar()
       ..showSnackBar(SnackBar(content: Text('$result')));
-
   }
 }

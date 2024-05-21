@@ -8,6 +8,7 @@ import 'package:argoscareseniorsafeguard/constants.dart';
 import 'package:argoscareseniorsafeguard/pages/profile.dart';
 import 'package:argoscareseniorsafeguard/main.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:argoscareseniorsafeguard/pages/share_manage.dart';
 
 class ProfileWidget extends StatefulWidget {
   final String userID;
@@ -159,7 +160,7 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                               Text("공유자 추가", style: TextStyle(fontSize: deviceFontSize - 2, color: Colors.grey)),
                               const SizedBox(width: 10, height: 50),
                               GestureDetector(
-                                onTap: null,
+                                onTap: () { _goShareManage(context); },
                                 child: const Icon(Icons.chevron_right, size: 20, color: Colors.black),
                               ),
                               const SizedBox(width: 10)
@@ -252,15 +253,23 @@ class _ProfileWidgetState extends State<ProfileWidget> {
 
   void _goSettingAlarm(BuildContext context) async {
     List<Sensor> list = await _getSensorList();
+    if (!context.mounted) return;
     Navigator.push(context, MaterialPageRoute(builder: (context) {
-      return SettingAlarm(sensorList: list);
+      return SettingAlarm(userID: widget.userID, sensorList: list);
+    }));
+  }
+
+  void _goShareManage(BuildContext context) async {
+    Navigator.push(context, MaterialPageRoute(builder: (context) {
+      return ShareManage(userID: widget.userID);
     }));
   }
 
   void _goProfile(BuildContext context) async {
     List<Sensor> list = await _getSensorList();
+    if (!context.mounted) return;
     Navigator.push(context, MaterialPageRoute(builder: (context) {
-      return Profile();
+      return const Profile();
     }));
   }
 }

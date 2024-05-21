@@ -37,7 +37,7 @@ class _AddSensorPage1State extends ConsumerState<AddSensorPage1> {
 
   @override
   void initState() {
-    print('add_sensor_page1() $widget.deviceID');
+    debugPrint('add_sensor_page1() $widget.deviceID');
     super.initState();
   }
 
@@ -59,17 +59,17 @@ class _AddSensorPage1State extends ConsumerState<AddSensorPage1> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                processWidget()
+                processWidget(context)
               ],
             )
           )
         ),
     );
   }
-  Widget processWidget() {
+  Widget processWidget(BuildContext context) {
     return Column(
       children: [
-        widget1(),
+        widget1(context),
         const SizedBox(height: 20,),
         widget2()
       ],
@@ -88,7 +88,7 @@ class _AddSensorPage1State extends ConsumerState<AddSensorPage1> {
     _timer?.cancel();
   }
 
-  Widget widget1() {
+  Widget widget1(BuildContext context) {
     if (ref.watch(findHubStateProvider) == ConfigState.findingSensor) {
       _startTimer();
       return const SpinKitRipple(

@@ -1,5 +1,4 @@
 import "package:argoscareseniorsafeguard/mqtt/mqtt.dart";
-import 'package:flutter/cupertino.dart';
 import "package:flutter/material.dart";
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
@@ -12,7 +11,6 @@ import 'package:argoscareseniorsafeguard/database/db.dart';
 import 'package:argoscareseniorsafeguard/constants.dart';
 import 'package:argoscareseniorsafeguard/models/sensor_event.dart';
 import 'package:argoscareseniorsafeguard/components/humi_temp_chart.dart';
-import 'package:argoscareseniorsafeguard/constants.dart';
 
 class DeviceDetailView extends StatefulWidget {
   const DeviceDetailView({super.key, required this.device, required this.userID});
@@ -151,7 +149,7 @@ class _DeviceDetailViewState extends State<DeviceDetailView> {
                     ),
                   ),
                 ),
-                _initDevice(),
+                _initDevice(context),
                 _restartHub(),
                 _selectDivider(),
                 SizedBox(
@@ -446,7 +444,7 @@ class _DeviceDetailViewState extends State<DeviceDetailView> {
     Clipboard.setData(ClipboardData(text: deviceID));
   }
 
-  Widget _initDevice() {
+  Widget _initDevice(BuildContext context) {
     if (widget.device.getDeviceType() == Constants.DEVICE_TYPE_HUB) {
       return Card(
         color: Colors.white,

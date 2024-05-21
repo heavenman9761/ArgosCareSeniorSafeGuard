@@ -250,7 +250,7 @@ class _MyDeviceWidgetState extends ConsumerState<MyDeviceWidget> {
 
   void _goAddSensePage(BuildContext context, WidgetRef ref) {
     String? deviceID = _hubList[0].getHubID();
-    print(deviceID);
+    debugPrint(deviceID);
     ref.read(findHubStateProvider.notifier).doChangeState(ConfigState.none);
     Navigator.push(context, MaterialPageRoute(builder: (context) {
       return AddSensorPage1(deviceID: deviceID!);

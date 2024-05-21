@@ -13,7 +13,6 @@ import 'package:argoscareseniorsafeguard/providers/providers.dart';
 import 'package:argoscareseniorsafeguard/models/accesspoint.dart';
 import 'package:argoscareseniorsafeguard/constants.dart';
 import 'package:argoscareseniorsafeguard/mqtt/mqtt.dart';
-import 'package:argoscareseniorsafeguard/providers/providers.dart';
 
 class AddHubPage2 extends ConsumerStatefulWidget {
   const AddHubPage2({super.key});
