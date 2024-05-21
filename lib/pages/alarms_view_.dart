@@ -32,6 +32,9 @@ class _NotisViewState extends State<AlarmsView> {
           displaySunBun: hub.getDisplaySunBun(),
           userID: "",
           status: "",
+          shared: 0,
+          ownerID: '',
+          ownerName: '',
           updatedAt: "",
           createdAt: ""
       );
@@ -46,6 +49,9 @@ class _NotisViewState extends State<AlarmsView> {
           displaySunBun: sensor.getDisplaySunBun(),
           userID: "",
           status: "",
+          shared: 0,
+          ownerID: '',
+          ownerName: '',
           updatedAt: "",
           createdAt: ""
       );

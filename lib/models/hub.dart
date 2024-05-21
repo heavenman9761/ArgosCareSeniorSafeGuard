@@ -14,6 +14,9 @@ class Hub {
   final String? status;
   final int? battery;
   final int? isUse;
+  final int? shared;
+  final String? ownerID;
+  final String? ownerName;
   final String? createdAt;
   final String? updatedAt;
 
@@ -69,6 +72,18 @@ class Hub {
     return isUse;
   }
 
+  int? getShared() {
+    return shared;
+  }
+
+  String? getOwnerID() {
+    return ownerID;
+  }
+
+  String? getOwnerName() {
+    return ownerName;
+  }
+
   String? getCreatedAt() {
     return createdAt;
   }
@@ -77,12 +92,24 @@ class Hub {
     return updatedAt;
   }
 
-  Hub({this.id, this.hubID, required this.name, required this.userID,
-    required this.displaySunBun, required this.category, required this.deviceType,
+  Hub({this.id,
+    this.hubID,
+    required this.name,
+    required this.userID,
+    required this.displaySunBun,
+    required this.category,
+    required this.deviceType,
     required this.hasSubDevices,
-    required this.modelName, required this.online, required this.status,
-    required this.battery, required this.isUse,
-    this.createdAt, required this.updatedAt
+    required this.modelName,
+    required this.online,
+    required this.status,
+    required this.battery,
+    required this.isUse,
+    required this.shared,
+    required this.ownerID,
+    required this.ownerName,
+    this.createdAt,
+    required this.updatedAt
   });
 
   Map<String, dynamic> toMap() {
@@ -100,6 +127,9 @@ class Hub {
       'status': status ?? '',
       'battery': battery ?? 0,
       'isUse': isUse ?? 0,
+      'shared': shared ?? 0,
+      'ownerID': ownerID ?? '',
+      'ownerName': ownerName ?? '',
       'createdAt': createdAt ?? '',
       'updatedAt': updatedAt ?? '',
     };
@@ -120,6 +150,9 @@ class Hub {
       status: json['status'],
       battery: json['battery'],
       isUse: json['isUse'],
+      shared: json['shared'],
+      ownerID: json['ownerID'],
+      ownerName: json['ownerName'],
       createdAt: json['createdAt'],
       updatedAt: json['updatedAt'],
     );
@@ -141,6 +174,9 @@ class Hub {
         'status: $status, '
         'battery: $battery, '
         'isUse: $isUse, '
+        'shared: $shared, '
+        'ownerID: $ownerID, '
+        'ownerName: $ownerName, '
         'createdAt: $createdAt, '
         'updatedAt: $updatedAt, '
       '}';

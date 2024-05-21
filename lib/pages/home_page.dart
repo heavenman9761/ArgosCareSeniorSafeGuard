@@ -227,6 +227,9 @@ class _HomePageState extends ConsumerState<HomePage> {
       status: mqttMsg['sensorState'].toString(),
       humi: humi,
       temp: temp,
+      shared: 0,
+      ownerID: '',
+      ownerName: '',
       updatedAt: DateTime.now().toString(),
       createdAt: DateTime.now().toString(),
     );
@@ -241,6 +244,9 @@ class _HomePageState extends ConsumerState<HomePage> {
           displaySunBun: deviceList[0].displaySunBun,
           userID: deviceList[0].userID,
           status: mqttMsg['sensorState'].toString(),
+          shared: 0,
+          ownerID: '',
+          ownerName: '',
           updatedAt: DateTime.now().toString(),
           createdAt: deviceList[0].createdAt
       );
@@ -309,6 +315,9 @@ class _HomePageState extends ConsumerState<HomePage> {
          status: mqttMsg['status'],
          battery: mqttMsg['battery'],
          isUse: mqttMsg['isUse'] ? 1 : 0,
+         shared: 0,
+         ownerID: '',
+         ownerName: '',
          updatedAt: DateTime.now().toString(),
          createdAt: DateTime.now().toString(),
        );
@@ -328,6 +337,9 @@ class _HomePageState extends ConsumerState<HomePage> {
         status: mqttMsg['status'],
         battery: mqttMsg['battery'],
         isUse: mqttMsg['isUse'] ? 1 : 0,
+        shared: 0,
+        ownerID: '',
+        ownerName: '',
         updatedAt: DateTime.now().toString(),
         // createdAt: DateTime.now().toString(),
       );
@@ -354,6 +366,9 @@ class _HomePageState extends ConsumerState<HomePage> {
         status: mqttMsg['status'],
         battery: mqttMsg['battery'],
         isUse: mqttMsg['isUse'] ? 1 : 0,
+        shared: 0,
+        ownerID: '',
+        ownerName: '',
         updatedAt: DateTime.now().toString(),
         createdAt: DateTime.now().toString(),
         hubID: mqttMsg['hubID']
@@ -373,6 +388,9 @@ class _HomePageState extends ConsumerState<HomePage> {
           status: mqttMsg['status'],
           battery: mqttMsg['battery'],
           isUse: mqttMsg['isUse'] ? 1 : 0,
+          shared: 0,
+          ownerID: '',
+          ownerName: '',
           updatedAt: DateTime.now().toString(),
           // createdAt: DateTime.now().toString(),
           hubID: mqttMsg['hubID']
@@ -382,10 +400,8 @@ class _HomePageState extends ConsumerState<HomePage> {
   }
 
   Future<void> _delSensor(String sensorID) async {
-
     DBHelper sd = DBHelper();
     await sd.deleteSensor(sensorID);
-
   }
 
   Future<void> _saveDevice(String deviceID, String deviceType) async {
@@ -418,6 +434,9 @@ class _HomePageState extends ConsumerState<HomePage> {
       displaySunBun: displaySunBun,
       userID: widget.userID,
       status: "",
+      shared: 0,
+      ownerID: '',
+      ownerName: '',
       updatedAt: DateTime.now().toString(),
       createdAt: DateTime.now().toString(),
     );

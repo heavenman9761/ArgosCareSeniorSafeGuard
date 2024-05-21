@@ -40,6 +40,9 @@ class DBHelper {
         "displaySunBun INTEGER,"
         "userID TEXT, "
         "status TEXT, "
+        "shared BOOLEAN, "
+        "ownerID TEXT, "
+        "ownerName TEXT, "
         "createdAt TEXT, "
         "updatedAt TEXT"
       ")",
@@ -60,6 +63,9 @@ class DBHelper {
         "status TEXT, "
         "battery INTEGER, "
         "isUse BOOLEAN, "
+        "shared BOOLEAN, "
+        "ownerID TEXT, "
+        "ownerName TEXT, "
         "createdAt TEXT, "
         "updatedAt TEXT "
       ")",
@@ -79,6 +85,9 @@ class DBHelper {
         "status TEXT, "
         "battery INTEGER, "
         "isUse BOOLEAN, "
+        "shared BOOLEAN, "
+        "ownerID TEXT, "
+        "ownerName TEXT, "
         "createdAt TEXT, "
         "updatedAt TEXT, "
         "hubID TEXT"
@@ -96,6 +105,9 @@ class DBHelper {
         "status TEXT, "
         "humi INTEGER, "
         "temp REAL, "
+        "shared BOOLEAN, "
+        "ownerID TEXT, "
+        "ownerName TEXT, "
         "createdAt TEXT, "
         "updatedAt TEXT"
       ")",
@@ -107,6 +119,9 @@ class DBHelper {
         "name TEXT, "
         "userID TEXT, "
         "sensorID TEXT, "
+        "shared BOOLEAN, "
+        "ownerID TEXT, "
+        "ownerName TEXT, "
         "createdAt TEXT, "
         "updatedAt TEXT"
       ")",
@@ -118,6 +133,9 @@ class DBHelper {
         "name TEXT, "
         "userID TEXT, "
         "locationID TEXT, "
+        "shared BOOLEAN, "
+        "ownerID TEXT, "
+        "ownerName TEXT, "
         "createdAt TEXT, "
         "updatedAt TEXT"
       ")",
@@ -148,6 +166,9 @@ class DBHelper {
         displaySunBun: maps[i]['displaySunBun'],
         userID: maps[i]['userID'],
         status: maps[i]['status'],
+        shared: maps[i]['shared'],
+        ownerID: maps[i]['ownerID'],
+        ownerName: maps[i]['ownerName'],
         updatedAt: maps[i]['updatedAt'],
         createdAt: maps[i]['createdAt'],
       );
@@ -167,6 +188,9 @@ class DBHelper {
         displaySunBun: maps[i]['displaySunBun'],
         userID: maps[i]['userID'],
         status: maps[i]['status'],
+        shared: maps[i]['shared'],
+        ownerID: maps[i]['ownerID'],
+        ownerName: maps[i]['ownerName'],
         updatedAt: maps[i]['updatedAt'],
         createdAt: maps[i]['createdAt'],
       );
@@ -186,6 +210,9 @@ class DBHelper {
         displaySunBun: maps[i]['displaySunBun'],
         userID: maps[i]['userID'],
         status: maps[i]['status'],
+        shared: maps[i]['shared'],
+        ownerID: maps[i]['ownerID'],
+        ownerName: maps[i]['ownerName'],
         updatedAt: maps[i]['updatedAt'],
         createdAt: maps[i]['createdAt'],
       );
@@ -227,6 +254,9 @@ class DBHelper {
         displaySunBun: maps[i]['displaySunBun'],
         userID: maps[i]['userID'],
         status: maps[i]['status'],
+        shared: maps[i]['shared'],
+        ownerID: maps[i]['ownerID'],
+        ownerName: maps[i]['ownerName'],
         updatedAt: maps[i]['updatedAt'],
         createdAt: maps[i]['createdAt'],
       );
@@ -247,6 +277,9 @@ class DBHelper {
         displaySunBun: maps[i]['displaySunBun'],
         userID: maps[i]['userID'],
         status: maps[i]['status'],
+        shared: maps[i]['shared'],
+        ownerID: maps[i]['ownerID'],
+        ownerName: maps[i]['ownerName'],
         updatedAt: maps[i]['updatedAt'],
         createdAt: maps[i]['createdAt'],
       );
@@ -308,6 +341,9 @@ class DBHelper {
         status: maps[i]['status'],
         battery: maps[i]['battery'],
         isUse: maps[i]['isUse'],
+        shared: maps[i]['shared'],
+        ownerID: maps[i]['ownerID'],
+        ownerName: maps[i]['ownerName'],
         createdAt: maps[i]['createdAt'],
         updatedAt: maps[i]['updatedAt'],
 
@@ -357,6 +393,9 @@ class DBHelper {
         status: maps[i]['status'],
         battery: maps[i]['battery'],
         isUse: maps[i]['isUse'],
+        shared: maps[i]['shared'],
+        ownerID: maps[i]['ownerID'],
+        ownerName: maps[i]['ownerName'],
         createdAt: maps[i]['createdAt'],
         updatedAt: maps[i]['updatedAt'],
       );
@@ -394,6 +433,9 @@ class DBHelper {
         status: maps[i]['status'],
         battery: maps[i]['battery'],
         isUse: maps[i]['isUse'],
+        shared: maps[i]['shared'],
+        ownerID: maps[i]['ownerID'],
+        ownerName: maps[i]['ownerName'],
         createdAt: maps[i]['createdAt'],
         updatedAt: maps[i]['updatedAt'],
         hubID: maps[i]['hubID'],
@@ -442,6 +484,9 @@ class DBHelper {
         status: maps[i]['status'],
         battery: maps[i]['battery'],
         isUse: maps[i]['isUse'],
+        shared: maps[i]['shared'],
+        ownerID: maps[i]['ownerID'],
+        ownerName: maps[i]['ownerName'],
         createdAt: maps[i]['createdAt'],
         updatedAt: maps[i]['updatedAt'],
         hubID: maps[i]['hubID'],
@@ -477,6 +522,9 @@ class DBHelper {
         status: maps[i]['status'],
         humi: maps[i]['humi'],
         temp: maps[i]['temp'],
+        shared: maps[i]['shared'],
+        ownerID: maps[i]['ownerID'],
+        ownerName: maps[i]['ownerName'],
         updatedAt: maps[i]['updatedAt'],
         createdAt: maps[i]['createdAt'],
       );
@@ -503,6 +551,9 @@ class DBHelper {
         status: maps[i]['status'],
         humi: maps[i]['humi'],
         temp: maps[i]['temp'],
+        shared: maps[i]['shared'],
+        ownerID: maps[i]['ownerID'],
+        ownerName: maps[i]['ownerName'],
         updatedAt: maps[i]['updatedAt'],
         createdAt: maps[i]['createdAt'],
       );
@@ -529,6 +580,9 @@ class DBHelper {
         status: maps[i]['status'],
         humi: maps[i]['humi'],
         temp: maps[i]['temp'],
+        shared: maps[i]['shared'],
+        ownerID: maps[i]['ownerID'],
+        ownerName: maps[i]['ownerName'],
         updatedAt: maps[i]['updatedAt'],
         createdAt: maps[i]['createdAt'],
       );
@@ -573,6 +627,9 @@ class DBHelper {
         status: maps[i]['status'],
         humi: maps[i]['humi'],
         temp: maps[i]['temp'],
+        shared: maps[i]['shared'],
+        ownerID: maps[i]['ownerID'],
+        ownerName: maps[i]['ownerName'],
         updatedAt: maps[i]['updatedAt'],
         createdAt: maps[i]['createdAt'],
       );
@@ -596,6 +653,9 @@ class DBHelper {
         status: maps[i]['status'],
         humi: maps[i]['humi'],
         temp: maps[i]['temp'],
+        shared: maps[i]['shared'],
+        ownerID: maps[i]['ownerID'],
+        ownerName: maps[i]['ownerName'],
         updatedAt: maps[i]['updatedAt'],
         createdAt: maps[i]['createdAt'],
       );
@@ -625,6 +685,9 @@ class DBHelper {
         id: maps[i]['id'],
         name: maps[i]['name'],
         userID: maps[i]['userID'],
+        shared: maps[i]['shared'],
+        ownerID: maps[i]['ownerID'],
+        ownerName: maps[i]['ownerName'],
         sensorID: maps[i]['sensorID'],
         updatedAt: maps[i]['updatedAt'],
         createdAt: maps[i]['createdAt'],
@@ -664,6 +727,9 @@ class DBHelper {
           id: maps[i]['id'],
           name: maps[i]['name'],
           userID: maps[i]['userID'],
+          shared: maps[i]['shared'],
+          ownerID: maps[i]['ownerID'],
+          ownerName: maps[i]['ownerName'],
           sensorID: maps[i]['sensorID'],
           createdAt: maps[i]['createdAt'],
           updatedAt: maps[i]['updatedAt']
@@ -693,6 +759,9 @@ class DBHelper {
         id: maps[i]['id'],
         name: maps[i]['name'],
         userID: maps[i]['userID'],
+        shared: maps[i]['shared'],
+        ownerID: maps[i]['ownerID'],
+        ownerName: maps[i]['ownerName'],
         locationID: maps[i]['locationID'],
         updatedAt: maps[i]['updatedAt'],
         createdAt: maps[i]['createdAt'],
@@ -732,6 +801,9 @@ class DBHelper {
           id: maps[i]['id'],
           name: maps[i]['name'],
           userID: maps[i]['userID'],
+          shared: maps[i]['shared'],
+          ownerID: maps[i]['ownerID'],
+          ownerName: maps[i]['ownerName'],
           locationID: maps[i]['locationID'],
           createdAt: maps[i]['createdAt'],
           updatedAt: maps[i]['updatedAt']

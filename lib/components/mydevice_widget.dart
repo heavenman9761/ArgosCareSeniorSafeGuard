@@ -42,6 +42,9 @@ class _MyDeviceWidgetState extends ConsumerState<MyDeviceWidget> {
           displaySunBun: hub.getDisplaySunBun(),
           userID: "",
           status: "",
+          shared: 0,
+          ownerID: '',
+          ownerName: '',
           updatedAt: hub.getUpdatedAt(),
           createdAt: hub.getCreatedAt()
       );
@@ -57,6 +60,9 @@ class _MyDeviceWidgetState extends ConsumerState<MyDeviceWidget> {
           displaySunBun: sensor.getDisplaySunBun(),
           userID: "",
           status: "",
+          shared: 0,
+          ownerID: '',
+          ownerName: '',
           updatedAt: sensor.getUpdatedAt(),
           createdAt: sensor.getCreatedAt()
       );

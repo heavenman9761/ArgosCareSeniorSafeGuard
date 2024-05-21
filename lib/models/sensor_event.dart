@@ -8,6 +8,9 @@ class SensorEvent {
   final String? status;
   final int? humi;
   final double? temp;
+  final int? shared;
+  final String? ownerID;
+  final String? ownerName;
   final String? updatedAt;
   final String? createdAt;
 
@@ -47,6 +50,19 @@ class SensorEvent {
     return temp;
   }
 
+  int? getShared() {
+    return shared;
+  }
+
+  String? getOwnerID() {
+    return ownerID;
+  }
+
+  String? getOwnerName() {
+    return ownerName;
+  }
+
+
   String? getUpdateAt() {
     return updatedAt;
   }
@@ -55,8 +71,21 @@ class SensorEvent {
     return createdAt;
   }
 
-  SensorEvent({this.id, required this.deviceID, required this.hubID, required this.userID, required this.deviceType,
-    required this.event, required this.status, required this.humi, required this.temp, required this.updatedAt, required this.createdAt});
+  SensorEvent({
+    this.id,
+    required this.deviceID,
+    required this.hubID,
+    required this.userID,
+    required this.deviceType,
+    required this.event,
+    required this.status,
+    required this.humi,
+    required this.temp,
+    required this.shared,
+    required this.ownerID,
+    required this.ownerName,
+    required this.updatedAt,
+    required this.createdAt});
 
   Map<String, dynamic> toMap() {
     return {
@@ -69,6 +98,9 @@ class SensorEvent {
       'status': status ?? '',
       'humi': humi ?? 0,
       'temp': temp ?? 0.0,
+      'shared': shared ?? 0,
+      'ownerID': ownerID ?? '',
+      'ownerName': ownerName ?? '',
       'updatedAt': updatedAt ?? '',
       'createdAt': createdAt ?? '',
     };
@@ -85,6 +117,9 @@ class SensorEvent {
       status: json['status'],
       humi: json['humi'],
       temp: json['temp'],
+      shared: json['shared'],
+      ownerID: json['ownerID'],
+      ownerName: json['ownerName'],
       updatedAt: json['updatedAt'],
       createdAt: json['createdAt'],
     );
@@ -102,6 +137,9 @@ class SensorEvent {
         'status: $status, '
         'humi: $humi, '
         'temp: $temp, '
+        'shared: $shared, '
+        'ownerID: $ownerID, '
+        'ownerName: $ownerName, '
         'updatedAt: $updatedAt, '
         'createdAt: $createdAt'
     '}';

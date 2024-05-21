@@ -12,7 +12,7 @@ import 'package:argoscareseniorsafeguard/database/db.dart';
 import 'package:argoscareseniorsafeguard/models/sensor.dart';
 import 'package:argoscareseniorsafeguard/models/hub.dart';
 
-class HomeWidget extends ConsumerWidget{
+class HomeWidget extends ConsumerWidget {
   HomeWidget({super.key, required this.userName, required this.userID});
 
   final String userName;

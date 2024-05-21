@@ -70,13 +70,13 @@ double deviceIconSize = 16.0;
 
 void getDeviceFontSize(BuildContext context) {
   if (DeviceScreen.isPhone(context)) {
-    print("isPhone()");
+    debugPrint("isPhone()");
     deviceFontSize = 18.0;
   } else if (DeviceScreen.isTablet(context)) {
-    print("isTablet()");
+    debugPrint("isTablet()");
     deviceFontSize = 20.0;
   } else if (DeviceScreen.isSmallPhone(context)) {
-    print("isSmallPhone()");
+    debugPrint("isSmallPhone()");
   }
 }
 
@@ -211,10 +211,8 @@ void getMyDeviceToken() async {
         })
     );
   } catch(e) {
-    print(e);
+    debugPrint(e as String?);
   }
-
-  logger.i("FCM Device Token: $token,   $email");
 }
 
 permission() async {
