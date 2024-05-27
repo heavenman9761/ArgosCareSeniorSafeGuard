@@ -250,14 +250,35 @@ class _AddHubPage2State extends ConsumerState<AddHubPage2> {
     ref.listen(findHubStateProvider, (previous, next) {
       logger.i('current state: ${ref.watch(findHubStateProvider)}');
     });
-    return Scaffold(
-        backgroundColor: Colors.grey[300],
-        appBar: AppBar(
-          backgroundColor: Colors.white,
-          title: const Text('허브 추가'),
-          centerTitle: true,
+    return Stack(
+      children: [
+        Container(color: Theme.of(context).colorScheme.primary),
+        Container(
+          decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Colors.white10,
+                  Colors.white10,
+                  Colors.black12,
+                  Colors.black12,
+                  Colors.black12,
+                  Colors.black12,
+                ],
+              )
+          ),
         ),
-        body: Center(child: controlUI()));
+        Scaffold(
+          backgroundColor: Colors.transparent,
+          appBar: AppBar(
+            backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+            title: const Text('허브 추가'),
+            centerTitle: true,
+          ),
+          body: Center(child: controlUI()))
+      ],
+    );
   }
 
   Widget controlUI() {
@@ -303,9 +324,21 @@ class _AddHubPage2State extends ConsumerState<AddHubPage2> {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        ElevatedButton(onPressed: () async => _pairingHub(context), style: Constants.elevatedButtonStyle, child: const Text('다시 시도')),
+        ElevatedButton(
+            style: ElevatedButton.styleFrom(
+                foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                backgroundColor: Theme.of(context).colorScheme.primary,
+                elevation: 5, //
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))
+            ),
+            child: const Text('다시 시도'),
+            onPressed: () async => _pairingHub(context),
+        ),
         const SizedBox(height: 20,),
-        Text(msg)
+        Text(
+          msg,
+          style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: Theme.of(context).colorScheme.onPrimary),
+        )
       ]);
   }
 
@@ -315,22 +348,28 @@ class _AddHubPage2State extends ConsumerState<AddHubPage2> {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         //const CircularProgressIndicator(),
-        const SpinKitRipple(
-          color: Colors.blue,
+        SpinKitRipple(
+          color: Theme.of(context).colorScheme.onPrimary,
           size: 100,
         ),
         const SizedBox(height: 20,),
-        Text(msg),
+        Text(
+          msg,
+          style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: Theme.of(context).colorScheme.onPrimary),
+        ),
       ],
     );
   }
 
   Widget lastWidget()
   {
-    return const Column(
+    return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Text('설정이 완료되었습니다.')
+        Text(
+          '설정이 완료되었습니다.',
+          style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: Theme.of(context).colorScheme.onPrimary),
+        )
       ],
     );
   }

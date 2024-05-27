@@ -24,6 +24,7 @@ import 'package:argoscareseniorsafeguard/components/home_widget.dart';
 import 'package:argoscareseniorsafeguard/components/mydevice_widget.dart';
 import 'package:argoscareseniorsafeguard/components/profile_widget.dart';
 import 'package:argoscareseniorsafeguard/components/nofify_badge_widget.dart';
+import 'package:argoscareseniorsafeguard/models/hub_infos.dart';
 
 class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key, required this.title, required this.userName, required this.userID});
@@ -47,6 +48,8 @@ class _HomePageState extends ConsumerState<HomePage> {
 
   @override
   void initState() {
+    super.initState();
+
     getMyDeviceToken();
 
     _checkPermissions();
@@ -64,13 +67,19 @@ class _HomePageState extends ConsumerState<HomePage> {
 
     _getLastEvent();
 
-    super.initState();
+    _getHubInfos();
+
+
   }
 
   @override
   void dispose() {
     mqttDisconnect();
     super.dispose();
+  }
+
+  void _getHubInfos() async {
+
   }
 
   void _getLastEvent() async {
@@ -150,7 +159,7 @@ class _HomePageState extends ConsumerState<HomePage> {
   }
 
   void _addDevice() async {
-    if (_deviceList.isEmpty) {
+    /*if (_deviceList.isEmpty) {
       ref.read(findHubStateProvider.notifier).doChangeState(ConfigState.none);
       Navigator.push(context, MaterialPageRoute(builder: (context) {
         return const AddHubPage1();
@@ -161,7 +170,7 @@ class _HomePageState extends ConsumerState<HomePage> {
       Navigator.push(context, MaterialPageRoute(builder: (context) {
         return AddSensorPage1(deviceID: deviceID!);
       }));
-    }
+    }*/
   }
 
   Future<bool> _checkPermissions() async {
@@ -298,7 +307,38 @@ class _HomePageState extends ConsumerState<HomePage> {
   Future<void> _saveHub(String message) async {
     final mqttMsg = json.decode(message);
 
-    DBHelper sd = DBHelper();
+    if (gHubList.isEmpty) {
+      HubInfo hubInfo = HubInfo(
+        id: mqttMsg['id'],
+        hubID: mqttMsg['deviceID'],
+        name: mqttMsg['name'],
+        userID: widget.userID,
+        displaySunBun: mqttMsg['displaySunBun'],
+        category: mqttMsg['category'],
+        deviceType: mqttMsg['deviceType'],
+        hasSubDevices: mqttMsg['hasSubDevices'],
+        modelName: mqttMsg['modelName'],
+        online: mqttMsg['online'],
+        status: mqttMsg['status'],
+        battery: mqttMsg['battery'],
+        isUse: mqttMsg['isUse'],
+        shared: false,
+        ownerID: '',
+        ownerName: '',
+        createdAt: mqttMsg['createdAt'],
+        updatedAt: mqttMsg['updatedAt'],
+      );
+      gHubList.add(hubInfo);
+    } else {
+      for (HubInfo hub in gHubList) {
+        if (hub.getHubID() == mqttMsg['deviceID']) {
+
+        }
+      }
+    }
+
+
+    /*DBHelper sd = DBHelper();
     List<Hub> lists = await sd.findHub(widget.userID, mqttMsg['deviceID']);
     if (lists.isEmpty) {
        Hub hub = Hub(
@@ -344,7 +384,7 @@ class _HomePageState extends ConsumerState<HomePage> {
         // createdAt: DateTime.now().toString(),
       );
       await sd.updateHub(hub);
-    }
+    }*/
   }
 
   Future<void> _saveSensor(String message) async {
@@ -566,59 +606,70 @@ class _HomePageState extends ConsumerState<HomePage> {
       logger.i('current state: ${ref.watch(mqttCurrentStateProvider)}');
       if (ref.watch(mqttCurrentStateProvider) == MqttConnectionState.connected) {
         _mqttStartSubscribeTo();
+      } else if (ref.watch(mqttCurrentStateProvider) == MqttConnectionState.disconnected) {
+        mqttInit(ref,
+            Constants.MQTT_HOST,
+            Constants.MQTT_PORT,
+            Constants.MQTT_IDENTIFIER,
+            Constants.MQTT_ID,
+            Constants.MQTT_PASSWORD);
       }
     });
 
-    return Scaffold(
-      backgroundColor: Colors.grey[300],
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        title: const Text(Constants.APP_TITLE),
-        centerTitle: true,
-        actions: const [
-          NotifyBadgeWidget(),
-        ],
-      ),
-      body: selectWidget(),
-      bottomNavigationBar: BottomNavigationBar(
-          items: const <BottomNavigationBarItem>[
-            BottomNavigationBarItem(
-              icon: Icon(Icons.home),
-              label: '홈',
+    return Stack(
+        children: [
+          Container(color: Theme.of(context).colorScheme.primary),
+          Container(
+            decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Colors.white10,
+                    Colors.white10,
+                    Colors.black12,
+                    Colors.black12,
+                    Colors.black12,
+                    Colors.black12,
+                  ],
+                )
             ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.sensors),
-              label: '내 기기',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.account_circle),
-              label: '프로필',
-            ),
-          ],
-          selectedItemColor: Colors.lightBlue,
-          currentIndex: _selectedIndex,
-          onTap: _onItemTapped
-      ),
+          ),
+          Scaffold(
+              backgroundColor: Colors.transparent,//Colors.grey[300],
+              appBar: AppBar(
+                //backgroundColor: Colors.white,
+                backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+                title: const Text(Constants.APP_TITLE),
+                centerTitle: true,
+                actions: const [ NotifyBadgeWidget(), ],
+              ),
+
+              bottomNavigationBar: BottomNavigationBar(
+                  items: const <BottomNavigationBarItem>[
+                    BottomNavigationBarItem(icon: Icon(Icons.home_outlined), label: '홈',),
+                    BottomNavigationBarItem(icon: Icon(Icons.sensors_outlined), label: '내 기기',),
+                    BottomNavigationBarItem(icon: Icon(Icons.account_circle_outlined), label: '프로필',),
+                  ],
+                  // selectedItemColor: Colors.lightBlue,
+                  selectedItemColor: Theme.of(context).colorScheme.onPrimary,
+                  unselectedItemColor: Theme.of(context).colorScheme.onPrimaryContainer,
+                  backgroundColor: Theme.of(context).colorScheme.primary,
+                  currentIndex: _selectedIndex,
+                  onTap: _onItemTapped
+              ),
+
+              body: selectWidget()
+          )
+        ]
     );
+
   }
 
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
     });
-  }
-
-  FloatingActionButton extendButton() {
-    return FloatingActionButton.extended(
-      foregroundColor: Colors.white60,
-      backgroundColor: Colors.lightBlue,
-      onPressed: () => _addDevice(),
-      label: const Text("기기 등록"),
-      isExtended: true,
-      // ingEsp32 ? null : _findEsp32,
-      icon: const Icon(Icons.add, size: 30),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-    );
   }
 
   Widget selectWidget() {

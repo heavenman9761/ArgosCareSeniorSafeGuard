@@ -59,6 +59,7 @@ dependencies:
   fluttertoast: ^8.2.5
   iamport_flutter: ^0.10.18
   mobile_device_identifier: ^0.0.2
+  google_fonts: ^6.2.1
 
 dev_dependencies:
   flutter_test:

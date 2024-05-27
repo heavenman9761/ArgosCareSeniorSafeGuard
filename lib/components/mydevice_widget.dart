@@ -10,6 +10,8 @@ import 'package:argoscareseniorsafeguard/providers/providers.dart';
 import 'package:argoscareseniorsafeguard/models/device.dart';
 import 'package:argoscareseniorsafeguard/models/hub.dart';
 import 'package:argoscareseniorsafeguard/models/sensor.dart';
+import 'package:argoscareseniorsafeguard/models/location_infos.dart';
+import 'package:argoscareseniorsafeguard/components/my_container.dart';
 
 class MyDeviceWidget extends ConsumerStatefulWidget {
   const MyDeviceWidget({super.key, required this.userID});
@@ -74,88 +76,114 @@ class _MyDeviceWidgetState extends ConsumerState<MyDeviceWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-        children: [
-          Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 8, 8),
-              child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text("기기 조회", style: TextStyle(fontSize: 24.0),),
-                    ElevatedButton(onPressed: () { _action(context, ref); }, style: Constants.elevatedButtonStyle, child: const Text('기기 등록')),
-                  ]
-              )
-          ),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: FutureBuilder<List<Device>>(
-                future: _getDeviceList(),
-                builder: (context, snapshot) {
-                  final List<Device>? devices = snapshot.data;
-                  if (snapshot.connectionState != ConnectionState.done) {
-                    return Center(
-                      child: waitWidget(),
-                    );
-                  }
-                  if (snapshot.hasError) {
-                    return Center(
-                      child: Text(snapshot.error.toString()),
-                    );
-                  }
-                  if (snapshot.hasData) {
-                    if (devices != null) {
-                      if (devices.isEmpty) {
-                        return const Center(
-                          child: Text("등록된 센서가 없습니다.\n기기 등록에서 센서를 등록하세요.", textAlign: TextAlign.center),
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.all(outPadding),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: outPadding,),
+
+            _topCard(context, ref),
+
+            const SizedBox(height: outPadding,),
+
+            Expanded(
+                child: GridView.builder(
+                  padding: const EdgeInsets.all(0),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2, mainAxisSpacing: outPadding, crossAxisSpacing: outPadding),
+                  itemCount: gLocationList.length + 1,
+                  itemBuilder: (BuildContext context, int index) {
+                    return MyContainer(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            _getCards(context, ref, index),
+                          ],
+                        ));
+                  },
+                ))
+            /*Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text("기기 조회",
+                      style: Theme.of(context).textTheme.headlineSmall!.copyWith(color: Theme.of(context).colorScheme.onPrimary, fontWeight: FontWeight.bold)
+                  ),
+                  ElevatedButton(onPressed: () { _action(context, ref); }, style: Constants.elevatedButtonStyle, child: const Text('기기 등록')),
+                ]
+            ),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(0.0),
+                child: FutureBuilder<List<Device>>(
+                  future: _getDeviceList(),
+                  builder: (context, snapshot) {
+                    final List<Device>? devices = snapshot.data;
+                    if (snapshot.connectionState != ConnectionState.done) {
+                      return Center(
+                        child: waitWidget(),
+                      );
+                    }
+                    if (snapshot.hasError) {
+                      return Center(
+                        child: Text(snapshot.error.toString()),
+                      );
+                    }
+                    if (snapshot.hasData) {
+                      if (devices != null) {
+                        if (devices.isEmpty) {
+                          return const Center(
+                            child: Text("등록된 센서가 없습니다.\n기기 등록에서 센서를 등록하세요.", textAlign: TextAlign.center),
+                          );
+                        }
+                        return ListView.builder(
+                            itemCount: devices.length,
+                            itemBuilder: (context, index) {
+                              if (devices[index].getDeviceType() == Constants.DEVICE_TYPE_HUB) {
+                                _existHub = true;
+                                return myListTile(context, devices[index]);
+
+                              } else if (devices[index].getDeviceType() == Constants.DEVICE_TYPE_ILLUMINANCE) {
+                                return myListTile(context, devices[index]);
+
+                              } else if (devices[index].getDeviceType() == Constants.DEVICE_TYPE_TEMPERATURE_HUMIDITY) {
+                                return myListTile(context, devices[index]);
+
+                              } else if (devices[index].getDeviceType() == Constants.DEVICE_TYPE_SMOKE) {
+                                return myListTile(context, devices[index]);
+
+                              } else if (devices[index].getDeviceType() == Constants.DEVICE_TYPE_EMERGENCY) {
+                                return myListTile(context, devices[index]);
+
+                              } else if (devices[index].getDeviceType() == Constants.DEVICE_TYPE_MOTION) {
+                                return myListTile(context, devices[index]);
+
+                              } else if (devices[index].getDeviceType() == Constants.DEVICE_TYPE_DOOR) {
+                                return myListTile(context, devices[index]);
+
+                              }
+                              return null;
+                            }
+
+                        );
+
+                      } else {
+                        return Center(
+                          child: waitWidget(),
                         );
                       }
-                      return ListView.builder(
-                          itemCount: devices.length,
-                          itemBuilder: (context, index) {
-                            if (devices[index].getDeviceType() == Constants.DEVICE_TYPE_HUB) {
-                              _existHub = true;
-                              return myListTile(context, devices[index]);
-
-                            } else if (devices[index].getDeviceType() == Constants.DEVICE_TYPE_ILLUMINANCE) {
-                              return myListTile(context, devices[index]);
-
-                            } else if (devices[index].getDeviceType() == Constants.DEVICE_TYPE_TEMPERATURE_HUMIDITY) {
-                              return myListTile(context, devices[index]);
-
-                            } else if (devices[index].getDeviceType() == Constants.DEVICE_TYPE_SMOKE) {
-                              return myListTile(context, devices[index]);
-
-                            } else if (devices[index].getDeviceType() == Constants.DEVICE_TYPE_EMERGENCY) {
-                              return myListTile(context, devices[index]);
-
-                            } else if (devices[index].getDeviceType() == Constants.DEVICE_TYPE_MOTION) {
-                              return myListTile(context, devices[index]);
-
-                            } else if (devices[index].getDeviceType() == Constants.DEVICE_TYPE_DOOR) {
-                              return myListTile(context, devices[index]);
-
-                            }
-                            return null;
-                          }
-
-                      );
-
                     } else {
                       return Center(
                         child: waitWidget(),
                       );
                     }
-                  } else {
-                    return Center(
-                      child: waitWidget(),
-                    );
-                  }
-                },
+                  },
+                ),
               ),
-            ),
-          ),
-        ]
+            ),*/
+          ]
+        )
+      )
     );
   }
 
@@ -224,7 +252,7 @@ class _MyDeviceWidgetState extends ConsumerState<MyDeviceWidget> {
   }
 
   void _action(BuildContext context, WidgetRef ref) {
-    if (_hubList.isEmpty) {
+    /*if (_hubList.isEmpty) {
       _goAddHubPage(context, ref);
     } else {
       if (_hubList.length == 1) {
@@ -232,15 +260,15 @@ class _MyDeviceWidgetState extends ConsumerState<MyDeviceWidget> {
       } else {
         showActionDialog(context, ref);
       }
-    }
+    }*/
   }
 
   void _goParingPage(BuildContext context, WidgetRef ref) {
-    if (_selectIndex == 0) {
-      _goAddHubPage(context, ref);
-    } else {
-      _goAddSensePage(context, ref);
-    }
+    // if (_selectIndex == 0) {
+    //   _goAddHubPage(context, ref);
+    // } else {
+    //   _goAddSensePage(context, ref);
+    // }
   }
 
   void _goAddHubPage(BuildContext context, WidgetRef ref) {
@@ -252,14 +280,98 @@ class _MyDeviceWidgetState extends ConsumerState<MyDeviceWidget> {
 
       });
     });
+    // _showFindHubModalSheet();
   }
 
-  void _goAddSensePage(BuildContext context, WidgetRef ref) {
-    String? deviceID = _hubList[0].getHubID();
+  void _showFindHubModalSheet() {
+    showModalBottomSheet<void>(
+        context: context,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20.0),
+        ),
+        isDismissible: false,
+        enableDrag: false,
+        builder: (BuildContext context) {
+          return PopScope(
+            canPop: false,
+            onPopInvoked: (bool didPop) {
+              if (didPop) {
+                print('showModalBottomSheet(): canPop: true');
+                return;
+              } else {
+                print('showModalBottomSheet(): canPop: false');
+                return;
+              }
+            },
+            child: Container(
+              height: 300,
+              decoration: BoxDecoration(
+                shape: BoxShape.rectangle,
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(20.0),
+                  topRight: Radius.circular(20.0),
+                ),
+                color: Theme.of(context).colorScheme.primaryContainer,
+              ),
+              child: Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(outPadding),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.max,
+                    children: <Widget>[
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          IconButton(
+                              onPressed: () => Navigator.pop(context),
+                              icon: const Icon(Icons.close),
+                              color: Theme.of(context).colorScheme.primary
+                          )
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+                      Text(
+                        'Pairing 버튼을 10초간 길게 누르세요\n'
+                            '삐 소리가 연속적으로 5번 울립니다.\n'
+                            'LED가 보라색으로 변합니다.\n'
+                            '모두 준비되면 [허브 검색]을 탭하세요',
+                        style: Theme.of(context).textTheme.labelLarge!.copyWith(color: Theme.of(context).colorScheme.onPrimaryContainer),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 40),
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                            foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                            backgroundColor: Theme.of(context).colorScheme.primary,
+                            elevation: 5, //
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))
+                        ),
+                        child: const Text('허브 검색'),
+                        onPressed: () => Navigator.pop(context),
+                      )
+                    ],
+                  ),
+                ),
+              ),
+            )
+          );
+        }
+    );
+  }
+
+  void _goAddSensePage(BuildContext context, WidgetRef ref, LocationInfo? location) {
+    String? deviceID = gHubList[0].getHubID();
     debugPrint(deviceID);
+
     ref.read(findHubStateProvider.notifier).doChangeState(ConfigState.none);
     Navigator.push(context, MaterialPageRoute(builder: (context) {
-      return AddSensorPage1(deviceID: deviceID!);
+      if (location == null) {
+        return AddSensorPage1(deviceID: deviceID!);
+      } else {
+        return AddSensorPage1(deviceID: deviceID!, location: location!);
+      }
+
     })).then((value) {
       setState(() {
 
@@ -319,4 +431,170 @@ class _MyDeviceWidgetState extends ConsumerState<MyDeviceWidget> {
       }
     );
   }
+
+  Widget _getCards(BuildContext context, WidgetRef ref, int index) {
+    String title = '';
+    bool enable = false;
+
+    if (index == gLocationList.length) {
+      title = '장소 추가';
+    } else {
+      LocationInfo location = gLocationList[index];
+      title = location.getName()!;
+    }
+
+    if (gHubList.isNotEmpty) {
+      if (index != gLocationList.length) {
+        LocationInfo location = gLocationList[index];
+        if (location.getType()! == 'emergency') {
+          enable = true;
+        } else {
+          if ((location.getRequireDoorSensorCount()! > location.getDetectedDoorSensorCount()!) || location.getRequireMotionSensorCount()! > location.getDetectedMotionSensorCount()!)  {
+            enable = true;
+          }
+        }
+      } else {
+        enable = true; //장소 추가는 무조건 등록가능 하도록
+      }
+    }
+
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text(
+          title,
+          style: Theme.of(context).textTheme.titleMedium!.copyWith(color: Theme.of(context).colorScheme.onPrimaryContainer,),
+        ),
+        const SizedBox(height: outPadding),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                    foregroundColor: enable ? Theme.of(context).colorScheme.onPrimary : Theme.of(context).colorScheme.onSecondaryContainer,//Theme.of(context).colorScheme.onPrimary,
+                    backgroundColor: enable ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.secondaryContainer, // text color
+                    elevation: 5, //
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))
+                ),
+                onPressed: enable
+                    ? () {
+                      if (index != gLocationList.length) {
+                        LocationInfo location = gLocationList[index];
+                        _goAddSensePage(context, ref, gLocationList[index]);
+                      } else {
+                        _goAddSensePage(context, ref, null);
+                      }
+
+                    }
+                    : null,
+                child: const Text('등록')
+            )
+          ],
+        )
+      ],
+    );
+  }
+
+  Widget _topCard(BuildContext context, WidgetRef ref) {
+    String title = gHubList.isEmpty ? '허브가 등록되지 않았습니다.' : '허브';
+    String buttonTitle = gHubList.isEmpty ? '허브 등록' : '등록됨';
+
+    return MyContainer(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const SizedBox(height: 10,),
+
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  style: Theme.of(context).textTheme.titleMedium!.copyWith(color: Theme.of(context).colorScheme.onPrimaryContainer),
+                  title,
+                ),
+              ],
+            ),
+
+            const SizedBox(height: outPadding),
+
+            Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                          foregroundColor: gHubList.isEmpty ? Theme.of(context).colorScheme.onPrimary : Theme.of(context).colorScheme.onSecondaryContainer,
+                          backgroundColor: gHubList.isEmpty ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.secondaryContainer, // text color
+                          elevation: 5, //
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))
+                      ),
+                      onPressed: gHubList.isEmpty ?  () => _goAddHubPage(context, ref) : null,
+                      child: Text(buttonTitle)
+                  )
+
+                ],
+            ),
+
+            const SizedBox(height: 10,),
+          ],
+        ),
+    );
+  }
 }
+
+/*
+
+class _TopCard extends StatelessWidget {
+  const _TopCard({
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return MyContainer(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const SizedBox(height: 10,),
+
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                '허브가 등록되지 않았습니다.',
+                style: Theme.of(context).textTheme.titleMedium!.copyWith(color: Theme.of(context).colorScheme.onPrimaryContainer),
+              ),
+
+            ],
+          ),
+          const SizedBox(height: outPadding),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                      foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                      backgroundColor: Theme.of(context).colorScheme.primary, // text color
+                      elevation: 5, //
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))
+                  ),
+                  onPressed: (){
+                    _goAddHubPage(context, ref);
+                    */
+/*Navigator.push(context,
+                        MaterialPageRoute(builder: (context) {
+                          return const AddHubPage2();
+                        }));*//*
+
+                  },//findHub,
+                  child: const Text('허브 등록')
+              )
+            ],
+          ),
+          const SizedBox(height: 10,),
+        ],
+      ),
+    );
+  }
+}
+
+*/

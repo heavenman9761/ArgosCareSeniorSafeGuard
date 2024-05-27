@@ -13,6 +13,9 @@ import 'package:intl/intl.dart';
 
 import 'package:argoscareseniorsafeguard/utils/device_info.dart';
 import 'package:argoscareseniorsafeguard/models/sensor_event.dart';
+import 'package:argoscareseniorsafeguard/models/hub_infos.dart';
+import 'package:argoscareseniorsafeguard/models/sensor_infos.dart';
+import 'package:argoscareseniorsafeguard/models/location_infos.dart';
 
 class Constants {
   static const platform = MethodChannel('est.co.kr/IoT_Hub');
@@ -43,6 +46,13 @@ class Constants {
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
   );
 }
+
+List<HubInfo> gHubList = [];
+List<SensorInfo> gSensorList = [];
+List<LocationInfo> gLocationList = [];
+
+const outPadding = 16.0;
+
 
 late Dio dio;
 

@@ -18,6 +18,9 @@ import 'package:argoscareseniorsafeguard/auth/auth_dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:argoscareseniorsafeguard/utils/string_extensions.dart';
 import 'package:argoscareseniorsafeguard/main.dart';
+import 'package:argoscareseniorsafeguard/models/location_infos.dart';
+import 'package:argoscareseniorsafeguard/models/sensor_infos.dart';
+import 'package:argoscareseniorsafeguard/models/hub_infos.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -87,29 +90,48 @@ class _LoginPageState extends State<LoginPage> {
     _mailController.dispose();
   }
 
-  Future<void> _saveUserInfo(var storage, var loginResponse) async {
-    await storage.write(key: 'ID', value: loginResponse.data['user']['id']);
-    await storage.write(key: 'EMAIL', value: loginResponse.data['user']['email']);
-    await storage.write(key: 'PASSWORD', value: password);
+  void _saveUserInfo(var loginResponse) async {
+    // final alarmResponse = await dio.get(
+    //     "/devices/get_alarm/$userID"
+    // );
 
-    final alarmResponse = await dio.get(
-        "/devices/get_alarm/$userID"
-    );
+    gHubList.clear();
+    gSensorList.clear();
+    gLocationList.clear();
+
+    final hList = loginResponse.data['Hub_Infos'] as List;
+    for (var h in hList) {
+      gHubList.add(HubInfo.fromJson(h));
+    }
+
+    final sList = loginResponse.data['Sensor_Infos'] as List;
+    for (var s in sList) {
+      gSensorList.add(SensorInfo.fromJson(s));
+    }
+
+    final lList = loginResponse.data['Location_Infos'] as List;
+    for (var l in lList) {
+      gLocationList.add(LocationInfo.fromJson(l));
+    }
+
+    print(gHubList);
+    print(gSensorList);
+    print(gLocationList);
 
     final SharedPreferences pref = await SharedPreferences.getInstance();
 
-    pref.setString("name", loginResponse.data['user']['name']);
-    pref.setString("protectPeople", loginResponse.data['user']['protectPeople']);
-    pref.setString("addr_zip", loginResponse.data['user']['addr_zip']);
-    pref.setString("addr", loginResponse.data['user']['addr']);
-    pref.setString("mobilephone", loginResponse.data['user']['mobilephone']);
-    pref.setString("tel", loginResponse.data['user']['tel']);
-    pref.setString("snsId", loginResponse.data['user']['snsId']);
-    pref.setString("provider", loginResponse.data['user']['provider']);
-    pref.setBool("admin", loginResponse.data['user']['admin']);
-    pref.setString("shareKey", loginResponse.data['user']['shareKey']);
+    pref.setString("name", loginResponse.data['name']);
+    pref.setString("protectPeople", loginResponse.data['protectPeople']);
+    pref.setString("addr_zip", loginResponse.data['addr_zip']);
+    pref.setString("addr", loginResponse.data['addr']);
+    pref.setString("mobilephone", loginResponse.data['mobilephone']);
+    pref.setString("tel", loginResponse.data['tel']);
+    pref.setString("snsId", loginResponse.data['snsId']);
+    pref.setString("provider", loginResponse.data['provider']);
+    pref.setBool("admin", loginResponse.data['admin']);
+    pref.setString("shareKey", loginResponse.data['shareKey']);
 
-    pref.setBool("EntireAlarm", alarmResponse.data['entireAlarm']);
+    /*pref.setBool("EntireAlarm", alarmResponse.data['entireAlarm']);
 
     pref.setBool("HumidityAlarmEnable", alarmResponse.data['humidityAlarmEnable']);
     pref.setString("HumidityStartTime", alarmResponse.data['humidityStartTime']);
@@ -139,7 +161,7 @@ class _LoginPageState extends State<LoginPage> {
 
     pref.setBool("DoorAlarmEnable", alarmResponse.data['doorAlarmEnable']);
     pref.setString("DoorStartTime", alarmResponse.data['doorStartTime']);
-    pref.setString("DoorEndTime", alarmResponse.data['doorEndTime']);
+    pref.setString("DoorEndTime", alarmResponse.data['doorEndTime']);*/
   }
 
   // sign user in method
@@ -189,16 +211,22 @@ class _LoginPageState extends State<LoginPage> {
         "/auth/me"
     );
 
-    final String userName = loginResponse.data['user']['name'];
-    userID = loginResponse.data['user']['id'];
+    final String userName = loginResponse.data['name'];
+    userID = loginResponse.data['id'];
 
-    _saveUserInfo(storage, loginResponse);
+    await storage.write(key: 'ID', value: loginResponse.data['id']);
+    await storage.write(key: 'EMAIL', value: loginResponse.data['email']);
+    await storage.write(key: 'PASSWORD', value: password); //세션 종료시 다시 로그인하기 위해 필요
+
+    _saveUserInfo(loginResponse);
 
     if (!context.mounted) return;
-    Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) {
-      return HomePage(title: Constants.APP_TITLE, userName: userName, userID: userID);
-    },
-    ));
+    Navigator.pushReplacement(context,
+        MaterialPageRoute(builder: (context) {
+          return HomePage(title: Constants.APP_TITLE, userName: userName, userID: userID);
+        },
+      )
+    );
   }
 
   void _failureDialog(BuildContext context, String title, String msg) {

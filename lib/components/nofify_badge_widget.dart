@@ -24,7 +24,7 @@ class _NotifyBadgeWidgetState extends ConsumerState<NotifyBadgeWidget> {
             position: badges.BadgePosition.topEnd(top: 0, end: 5),
             child: IconButton(
               icon: const Icon(Icons.notifications_none_outlined, size: 30),
-              color: Colors.grey,
+              color: Theme.of(context).colorScheme.onSurface,
               onPressed: () {
                 Navigator.push(context, MaterialPageRoute(builder: (context) {
                   return const AlarmsView();

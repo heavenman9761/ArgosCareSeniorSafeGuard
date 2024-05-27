@@ -30,7 +30,8 @@ Future<void> main() async {
   runApp(const ProviderScope(child: MainApp()));
 }
 
-const seedColor = Color(0xff00ffff);
+// const seedColor = Color(0xff00ffff);
+const seedColor = Colors.indigo;
 
 class MainApp extends StatefulWidget {
   const MainApp({super.key});
@@ -58,11 +59,18 @@ class _MainAppState extends State<MainApp> {
   @override
   void initState() {
     super.initState();
+    print("_MainAppState() initState ================================================================()");
     _fetchLocale().then((locale) {
       setState(() {
         _locale = locale;
       });
     });
+  }
+
+  @override
+  void deactivate() {
+    super.deactivate();
+    print("_MainAppState() deactivate() ===============================================================");
   }
 
   /*
@@ -87,28 +95,30 @@ class _MainAppState extends State<MainApp> {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         // colorScheme: ColorScheme.fromSeed(seedColor: seedColor),
-        colorSchemeSeed: seedColor,
-        brightness: Brightness.light,
+        // colorSchemeSeed: seedColor,
+        // brightness: Brightness.light,
         useMaterial3: true,
+        colorScheme: ColorScheme.fromSeed(seedColor: seedColor, brightness: Brightness.light),
         fontFamily: "Pretendard"
       ),
       // home: const LoginPage()
-      home: FutureBuilder(
-        future: Future.delayed(
-            const Duration(seconds: 3), () => "Intro Completed."),
-        builder: (context, snapshot) {
-          const LoginPage();
-          return AnimatedSwitcher(
-            duration: const Duration(milliseconds: 2000),
-            transitionBuilder: (Widget child, Animation<double> animation) {
-              //return ScaleTransition(child: child, scale: animation);
-              return FadeTransition(opacity: animation, child: child);
-            },
-            child: _splashLoadingWidget(snapshot),
+      home: isLogin()
+        ? const HomePage(title: Constants.APP_TITLE, userName: "guest", userID: '')
+        : FutureBuilder(
+            future: Future.delayed(
+                const Duration(seconds: 3), () => "Intro Completed."),
+            builder: (context, snapshot) {
+              return AnimatedSwitcher(
+                duration: const Duration(milliseconds: 2000),
+                transitionBuilder: (Widget child, Animation<double> animation) {
+                  //return ScaleTransition(child: child, scale: animation);
+                  return FadeTransition(opacity: animation, child: child);
+                },
+                child: _splashLoadingWidget(snapshot),
 
-          );
-        },
-      )
+              );
+            },
+          )
     );
   }
 
