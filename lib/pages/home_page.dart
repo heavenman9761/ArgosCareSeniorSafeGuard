@@ -5,6 +5,7 @@ import 'package:argoscareseniorsafeguard/models/hub.dart';
 import 'package:argoscareseniorsafeguard/models/sensor_event.dart';
 import 'package:argoscareseniorsafeguard/models/device.dart';
 import 'package:argoscareseniorsafeguard/models/sensor.dart';
+import 'package:argoscareseniorsafeguard/models/sensor_infos.dart';
 
 import 'package:flutter/material.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -390,7 +391,70 @@ class _HomePageState extends ConsumerState<HomePage> {
   Future<void> _saveSensor(String message) async {
     final mqttMsg = json.decode(message);
 
-    DBHelper sd = DBHelper();
+    //센서 이름 재정의
+    int nameCount = mqttMsg['nameCount'];
+    String sensorName = mqttMsg['name'];
+    if (mqttMsg['deviceType'] == 'motion_sensor') {
+      sensorName = '움직임 센서 $nameCount (${ref.watch(currentLocationProvider)!.getName()!})';
+    } else if (mqttMsg['deviceType'] == 'door_sensor') {
+      sensorName = '도어 센서 $nameCount (${ref.watch(currentLocationProvider)!.getName()!})';
+    } else if (mqttMsg['deviceType'] == 'emergency_button') {
+      sensorName = 'SOS 버튼 $nameCount';
+    }
+
+    SensorInfo sensor = SensorInfo(
+        id: mqttMsg['id'],
+        sensorID: mqttMsg['sensorID'],
+        name: sensorName,//mqttMsg['name'],
+        userID: widget.userID,//mqttMsg['userID'],
+        displaySunBun: mqttMsg['displaySunBun'],
+        category: mqttMsg['category'],
+        deviceType: mqttMsg['deviceType'],
+        modelName: mqttMsg['modelName'],
+        online: mqttMsg['online'] ? true : false,
+        status: mqttMsg['status'],
+        battery: mqttMsg['battery'],
+        isUse: mqttMsg['isUse'] ? true : false,
+        shared: false,
+        ownerID: '',
+        ownerName: '',
+        updatedAt: DateTime.now().toString(),
+        createdAt: DateTime.now().toString(),
+        hubID: mqttMsg['hubID'],
+        locationID: ref.watch(currentLocationProvider)!.getID()! ?? ''//gCurrentLocation.getID() ?? ''
+    );
+
+    //gCurrentLocation.sensors?.add(sensor);
+    ref.watch(currentLocationProvider)!.sensors!.add(sensor);
+
+    // ref.watch(SensorList.provider.notifier).addItem(sensor);
+    ref.read(findHubStateProvider.notifier).doChangeState(ConfigState.findingSensorDone);
+
+    if (sensor.getLocationID() != '') {
+      final res = await dio.put(
+        "/devices/setLocation",
+        queryParameters: {
+          "sensorID": mqttMsg['sensorID'],
+          "sensorName": sensorName,
+          "locationID": ref.watch(currentLocationProvider)!.getID()!,//gCurrentLocation.getID(),
+          "deviceType": mqttMsg['deviceType']
+        }
+      );
+
+      if (ref.watch(currentLocationProvider)!.getType() != 'emergency' || ref.watch(currentLocationProvider)!.getType() != 'customer') {
+        ref.watch(currentLocationProvider)!.setDetectedDoorSensorCount(res.data['detectedDoorSensorCount']);
+        ref.watch(currentLocationProvider)!.setDetectedMotionSensorCount(res.data['detectedMotionSensorCount']);
+      }
+    }
+
+
+    // Get the current item
+    // final currentItem = ref.watch(SensorList.provider.notifier).current;
+
+    // Get the List<Item> from state
+    // final itemList = ref.watch(SensorList.provider);
+
+    /*DBHelper sd = DBHelper();
     List<Sensor> lists = await sd.findSensor(widget.userID, mqttMsg['sensorID']);
     if (lists.isEmpty) {
       Sensor sensor = Sensor(
@@ -436,7 +500,7 @@ class _HomePageState extends ConsumerState<HomePage> {
           hubID: mqttMsg['hubID']
       );
       await sd.updateSensor(sensor);
-    }
+    }*/
   }
 
   Future<void> _delSensor(String sensorID) async {
@@ -571,10 +635,13 @@ class _HomePageState extends ConsumerState<HomePage> {
         if (mqttMsg['state'] == 'device add success') {
           _saveDevice(mqttMsg['deviceID'], mqttMsg['device_type']);
           _saveSensor(message);
+
+
         } else if (mqttMsg['state'] == 'device add failure') {
 
         }
-        _goHome();
+
+        // _goHome();
       } else if (mqttMsg['event'] == 'device_del') {
         if (mqttMsg['state'] == 'device del success') {
           _delDevice(mqttMsg['deviceID']);

@@ -1,14 +1,8 @@
+import 'package:argoscareseniorsafeguard/models/sensor_infos.dart';
+import 'package:argoscareseniorsafeguard/models/location_infos.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:argoscareseniorsafeguard/constants.dart';
-
-final mqttCurrentStateProvider = StateNotifierProvider<MqttConnectionStateNotifier, MqttConnectionState>((ref) {
-  return MqttConnectionStateNotifier();
-});
-
-final findHubStateProvider = StateNotifierProvider<FindHubStateNotifier, ConfigState>((ref) {
-  return FindHubStateNotifier();
-});
 
 class MqttConnectionStateNotifier extends StateNotifier<MqttConnectionState> {
   MqttConnectionStateNotifier(): super(MqttConnectionState.disconnected);
@@ -18,6 +12,10 @@ class MqttConnectionStateNotifier extends StateNotifier<MqttConnectionState> {
   }
 }
 
+final mqttCurrentStateProvider = StateNotifierProvider<MqttConnectionStateNotifier, MqttConnectionState>((ref) {
+  return MqttConnectionStateNotifier();
+});
+
 class FindHubStateNotifier extends StateNotifier<ConfigState> {
   FindHubStateNotifier(): super(ConfigState.none);
 
@@ -25,6 +23,53 @@ class FindHubStateNotifier extends StateNotifier<ConfigState> {
     state = findHubState;
   }
 }
+
+final findHubStateProvider = StateNotifierProvider<FindHubStateNotifier, ConfigState>((ref) {
+  return FindHubStateNotifier();
+});
+
+
+//--------- CurrentLocation을 셋팅할 때 사용하는 Provider ---------------------------------------------------
+class CurrentLocationNotifier extends StateNotifier<LocationInfo?> {
+  CurrentLocationNotifier() : super(null);
+
+  void doChangeState(LocationInfo location) {
+    state = location;
+  }
+}
+
+final currentLocationProvider = StateNotifierProvider<CurrentLocationNotifier, LocationInfo?>((ref) {
+  return CurrentLocationNotifier();
+});
+
+//--------- Sensor 찾을때 사용하는 Provider ---------------------------------------------------
+/*class FindSensorNotifier extends StateNotifier<List<SensorInfo>> {
+  FindSensorNotifier() : super([]);
+
+  void changeData(SensorInfo sensor) {
+    state = [...state, sensor];
+  }
+}
+
+final StateNotifierProvider<FindSensorNotifier, List<SensorInfo>> findSensorProvider =
+  StateNotifierProvider((ref) => FindSensorNotifier());*/
+
+
+/*class SensorList extends StateNotifier<List<SensorInfo>> {
+  SensorList() : super([]);
+
+  static final provider = StateNotifierProvider<SensorList, List<SensorInfo>>((ref) => SensorList());
+
+  late SensorInfo _current;
+  SensorInfo get current => _current;
+
+  void addItem(SensorInfo item) {
+    _current = item;
+    state = [...state, item];
+  }
+}*/
+
+//-------------------------------------------------------------------------------------------
 
 final mqttCurrentMessageProvider = StateProvider<String>((ref) {
   return "";

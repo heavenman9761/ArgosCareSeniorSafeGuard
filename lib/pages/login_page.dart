@@ -95,8 +95,10 @@ class _LoginPageState extends State<LoginPage> {
     //     "/devices/get_alarm/$userID"
     // );
 
+    // print(loginResponse.data);
+
     gHubList.clear();
-    gSensorList.clear();
+    // gSensorList.clear();
     gLocationList.clear();
 
     final hList = loginResponse.data['Hub_Infos'] as List;
@@ -104,19 +106,49 @@ class _LoginPageState extends State<LoginPage> {
       gHubList.add(HubInfo.fromJson(h));
     }
 
-    final sList = loginResponse.data['Sensor_Infos'] as List;
-    for (var s in sList) {
-      gSensorList.add(SensorInfo.fromJson(s));
-    }
+    // final sList = loginResponse.data['Sensor_Infos'] as List;
+    // for (var s in sList) {
+    //   gSensorList.add(SensorInfo.fromJson(s));
+    // }
 
     final lList = loginResponse.data['Location_Infos'] as List;
     for (var l in lList) {
-      gLocationList.add(LocationInfo.fromJson(l));
+      // print(l);
+      // gLocationList.add(LocationInfo.fromJson(l));
+
+      List<SensorInfo> sl = [];
+      for (var s in l['Sensor_Infos']) {
+        sl.add(
+          SensorInfo.fromJson(s)
+        );
+      }
+
+      // print("1");
+      // print(sl);
+
+      gLocationList.add(
+        LocationInfo(
+            id: l['id'],
+            name: l['name'],
+            userID: l['userID'],
+            type: l['type'],
+            displaySunBun: l['displaySunBun'],
+            requireMotionSensorCount: l['requireMotionSensorCount'],
+            detectedMotionSensorCount: l['detectedMotionSensorCount'],
+            requireDoorSensorCount: l['requireDoorSensorCount'],
+            detectedDoorSensorCount: l['detectedDoorSensorCount'],
+            createdAt: l['createdAt'],
+            updatedAt: l['updatedAt'],
+            sensors: sl
+        )
+      );
     }
 
-    print(gHubList);
-    print(gSensorList);
-    print(gLocationList);
+    // print(gHubList);
+    // print("===================");
+    // print(gSensorList);
+    // print(gLocationList);
+    // print("===================");
 
     final SharedPreferences pref = await SharedPreferences.getInstance();
 

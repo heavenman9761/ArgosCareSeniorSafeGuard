@@ -19,6 +19,7 @@ class SensorInfo {
   final String? createdAt;
   final String? updatedAt;
   final String? hubID;
+  final String? locationID;
 
   String? getID() {
     return id;
@@ -92,6 +93,10 @@ class SensorInfo {
     return hubID;
   }
 
+  String? getLocationID() {
+    return locationID;
+  }
+
   SensorInfo({
     required this.id,
     required this.sensorID,
@@ -110,7 +115,8 @@ class SensorInfo {
     required this.ownerName,
     required this.createdAt,
     required this.updatedAt,
-    required this.hubID
+    required this.hubID,
+    required this.locationID,
   });
 
   Map<String, dynamic> toMap() {
@@ -133,6 +139,7 @@ class SensorInfo {
       'createdAt': createdAt ?? '',
       'updatedAt': updatedAt ?? '',
       'hubID': hubID ?? '',
+      'locationID': locationID ?? '',
 
     };
   }
@@ -157,6 +164,7 @@ class SensorInfo {
       createdAt: json['createdAt'],
       updatedAt: json['updatedAt'],
       hubID: json['hubID'],
+      locationID: json['locationID'],
     );
   }
 
@@ -181,6 +189,7 @@ class SensorInfo {
         'createdAt: $createdAt, '
         'updatedAt: $updatedAt, '
         'hubID: $hubID, '
+        'locationID: $locationID, '
         '}';
   }
 }

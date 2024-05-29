@@ -1,16 +1,20 @@
 import 'dart:ui';
 
+import 'package:argoscareseniorsafeguard/models/sensor_infos.dart';
+
 class LocationInfo {
   final String? id;
-  final String? name;
+  late String? name;
   final String? userID;
   final String? type;
+  final int? displaySunBun;
   final int? requireMotionSensorCount;
-  final int? detectedMotionSensorCount;
+  late int? detectedMotionSensorCount;
   final int? requireDoorSensorCount;
-  final int? detectedDoorSensorCount;
+  late int? detectedDoorSensorCount;
   final String? createdAt;
   final String? updatedAt;
+  final List<SensorInfo>? sensors;
 
   String? getID() {
     return id;
@@ -20,12 +24,20 @@ class LocationInfo {
     return name;
   }
 
+  void setName(String value) {
+    name = value;
+  }
+
   String? getUserID() {
     return userID;
   }
 
   String? getType() {
     return type;
+  }
+
+  int? getDisplaySunBun() {
+    return displaySunBun;
   }
 
   int? getRequireMotionSensorCount() {
@@ -52,17 +64,31 @@ class LocationInfo {
     return updatedAt;
   }
 
+  List<SensorInfo>? getSensors() {
+    return sensors;
+  }
+
+  void setDetectedMotionSensorCount(int value) {
+    detectedMotionSensorCount = value;
+  }
+
+  void setDetectedDoorSensorCount(int value) {
+    detectedDoorSensorCount = value;
+  }
+
   LocationInfo({
     this.id,
     required this.name,
     required this.userID,
     required this.type,
+    required this.displaySunBun,
     required this.requireMotionSensorCount,
     required this.detectedMotionSensorCount,
     required this.requireDoorSensorCount,
     required this.detectedDoorSensorCount,
     this.createdAt,
     required this.updatedAt,
+    this.sensors
   });
 
   Map<String, dynamic> toMap() {
@@ -71,12 +97,14 @@ class LocationInfo {
       'name': name ?? '',
       'userID': userID ?? '',
       'type': type ?? '',
+      'displaySunBun': displaySunBun ?? 0,
       'requireMotionSensorCount': requireMotionSensorCount ?? 0,
       'detectedMotionSensorCount': detectedMotionSensorCount ?? 0,
       'requireDoorSensorCount': requireDoorSensorCount ?? 0,
       'detectedDoorSensorCount': detectedDoorSensorCount ?? 0,
       'createdAt': createdAt ?? '',
       'updatedAt': updatedAt ?? '',
+      'sensors': sensors ?? []
     };
   }
 
@@ -86,12 +114,14 @@ class LocationInfo {
       name: json['name'],
       userID: json['userID'],
       type: json['type'],
+      displaySunBun: json['displaySunBun'],
       requireMotionSensorCount: json['requireMotionSensorCount'],
       detectedMotionSensorCount: json['detectedMotionSensorCount'],
       requireDoorSensorCount: json['requireDoorSensorCount'],
       detectedDoorSensorCount: json['detectedDoorSensorCount'],
       createdAt: json['createdAt'],
       updatedAt: json['updatedAt'],
+      sensors: json['Sensor_Infos']
     );
   }
 
@@ -102,12 +132,14 @@ class LocationInfo {
         'name: $name, '
         'userID: $userID, '
         'type: $type, '
+        'displaySunBun: $displaySunBun, '
         'requireMotionSensorCount: $requireMotionSensorCount, '
         'detectedMotionSensorCount: $detectedMotionSensorCount, '
         'requireDoorSensorCount: $requireDoorSensorCount, '
         'detectedDoorSensorCount: $detectedDoorSensorCount, '
         'createdAt: $createdAt, '
         'updatedAt: $updatedAt, '
+        'sensors: $sensors, '
       '}';
   }
 }

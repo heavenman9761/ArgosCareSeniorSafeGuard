@@ -48,11 +48,11 @@ class Constants {
 }
 
 List<HubInfo> gHubList = [];
-List<SensorInfo> gSensorList = [];
+// List<SensorInfo> gSensorList = [];
 List<LocationInfo> gLocationList = [];
+// late LocationInfo gCurrentLocation;
 
 const outPadding = 16.0;
-
 
 late Dio dio;
 

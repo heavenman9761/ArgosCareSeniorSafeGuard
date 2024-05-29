@@ -92,7 +92,7 @@ class _MyDeviceWidgetState extends ConsumerState<MyDeviceWidget> {
                 child: GridView.builder(
                   padding: const EdgeInsets.all(0),
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2, mainAxisSpacing: outPadding, crossAxisSpacing: outPadding),
-                  itemCount: gLocationList.length + 1,
+                  itemCount: gLocationList.length,
                   itemBuilder: (BuildContext context, int index) {
                     return MyContainer(
                         child: Column(
@@ -364,13 +364,20 @@ class _MyDeviceWidgetState extends ConsumerState<MyDeviceWidget> {
     String? deviceID = gHubList[0].getHubID();
     debugPrint(deviceID);
 
+    print(location);
+    ref.read(currentLocationProvider.notifier).doChangeState(location!);
     ref.read(findHubStateProvider.notifier).doChangeState(ConfigState.none);
+
     Navigator.push(context, MaterialPageRoute(builder: (context) {
-      if (location == null) {
+      return AddSensorPage1(deviceID: deviceID!, userID: widget.userID,);
+      /*if (location == null) {
         return AddSensorPage1(deviceID: deviceID!);
       } else {
-        return AddSensorPage1(deviceID: deviceID!, location: location!);
-      }
+        //gCurrentLocation = location;
+        // ref.read(currentLocationProvider.notifier).changeData(location);
+
+        return AddSensorPage1(deviceID: deviceID!);
+      }*/
 
     })).then((value) {
       setState(() {
@@ -433,28 +440,15 @@ class _MyDeviceWidgetState extends ConsumerState<MyDeviceWidget> {
   }
 
   Widget _getCards(BuildContext context, WidgetRef ref, int index) {
-    String title = '';
     bool enable = false;
+    late LocationInfo location;
 
-    if (index == gLocationList.length) {
-      title = '장소 추가';
+    location = gLocationList[index];
+    if (location.getType()! == 'emergency' || location.getType()! == 'customer') {
+      enable = true;
     } else {
-      LocationInfo location = gLocationList[index];
-      title = location.getName()!;
-    }
-
-    if (gHubList.isNotEmpty) {
-      if (index != gLocationList.length) {
-        LocationInfo location = gLocationList[index];
-        if (location.getType()! == 'emergency') {
-          enable = true;
-        } else {
-          if ((location.getRequireDoorSensorCount()! > location.getDetectedDoorSensorCount()!) || location.getRequireMotionSensorCount()! > location.getDetectedMotionSensorCount()!)  {
-            enable = true;
-          }
-        }
-      } else {
-        enable = true; //장소 추가는 무조건 등록가능 하도록
+      if ((location.getRequireDoorSensorCount()! > location.getDetectedDoorSensorCount()!) || location.getRequireMotionSensorCount()! > location.getDetectedMotionSensorCount()!)  {
+        enable = true;
       }
     }
 
@@ -462,7 +456,7 @@ class _MyDeviceWidgetState extends ConsumerState<MyDeviceWidget> {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Text(
-          title,
+          location.getName()!,
           style: Theme.of(context).textTheme.titleMedium!.copyWith(color: Theme.of(context).colorScheme.onPrimaryContainer,),
         ),
         const SizedBox(height: outPadding),
@@ -477,15 +471,7 @@ class _MyDeviceWidgetState extends ConsumerState<MyDeviceWidget> {
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))
                 ),
                 onPressed: enable
-                    ? () {
-                      if (index != gLocationList.length) {
-                        LocationInfo location = gLocationList[index];
-                        _goAddSensePage(context, ref, gLocationList[index]);
-                      } else {
-                        _goAddSensePage(context, ref, null);
-                      }
-
-                    }
+                    ? () { _goAddSensePage(context, ref, gLocationList[index]); }
                     : null,
                 child: const Text('등록')
             )
