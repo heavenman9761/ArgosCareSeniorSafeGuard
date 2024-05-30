@@ -14,6 +14,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter_background_service/flutter_background_service.dart';
 
 import 'package:argoscareseniorsafeguard/mqtt/mqtt.dart';
 import 'package:argoscareseniorsafeguard/providers/providers.dart';
@@ -26,6 +27,7 @@ import 'package:argoscareseniorsafeguard/components/mydevice_widget.dart';
 import 'package:argoscareseniorsafeguard/components/profile_widget.dart';
 import 'package:argoscareseniorsafeguard/components/nofify_badge_widget.dart';
 import 'package:argoscareseniorsafeguard/models/hub_infos.dart';
+import 'package:argoscareseniorsafeguard/back_services.dart';
 
 class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key, required this.title, required this.userName, required this.userID});
@@ -45,6 +47,8 @@ class _HomePageState extends ConsumerState<HomePage> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+
+    _startBackgroundService();
   }
 
   @override
@@ -69,8 +73,20 @@ class _HomePageState extends ConsumerState<HomePage> {
     _getLastEvent();
 
     _getHubInfos();
+  }
 
+  void _startBackgroundService() async {
+    await initializeService();
+    /*FlutterBackgroundService().invoke("setAsBackground"); //// Android O 버전 이상부터는 백그라운드 실행이 제한되기 때문에 ForegroundMode로 해야 함.
 
+    final service = FlutterBackgroundService();
+    var isRunning = await service.isRunning();
+    if (isRunning) {
+      // service.invoke("stopService");
+      // service.startService();
+    } else {
+      service.startService();
+    }*/
   }
 
   @override

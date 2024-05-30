@@ -5,6 +5,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 
 import 'package:argoscareseniorsafeguard/utils/firebase_options.dart';
 import 'package:argoscareseniorsafeguard/pages/login_page.dart';
@@ -14,7 +15,8 @@ import 'package:argoscareseniorsafeguard/constants.dart';
 import 'package:argoscareseniorsafeguard/utils/fcm.dart';
 
 Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+  FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
 
   // await SystemChrome.setPreferredOrientations([
   //   DeviceOrientation.portraitUp,
@@ -65,6 +67,23 @@ class _MainAppState extends State<MainApp> {
         _locale = locale;
       });
     });
+
+    initialization();
+  }
+
+  void initialization() async {
+    // This is where you can initialize the resources needed by your app while
+    // the splash screen is displayed.  Remove the following example because
+    // delaying the user experience is a bad design practice!
+    // ignore_for_file: avoid_print
+    print('ready in 3...');
+    await Future.delayed(const Duration(seconds: 1));
+    print('ready in 2...');
+    await Future.delayed(const Duration(seconds: 1));
+    print('ready in 1...');
+    await Future.delayed(const Duration(seconds: 1));
+    print('go!');
+    FlutterNativeSplash.remove();
   }
 
   @override
@@ -104,7 +123,8 @@ class _MainAppState extends State<MainApp> {
       // home: const LoginPage()
       home: isLogin()
         ? const HomePage(title: Constants.APP_TITLE, userName: "guest", userID: '')
-        : FutureBuilder(
+        : const LoginPage()
+        /*: FutureBuilder(
             future: Future.delayed(
                 const Duration(seconds: 3), () => "Intro Completed."),
             builder: (context, snapshot) {
@@ -118,7 +138,7 @@ class _MainAppState extends State<MainApp> {
 
               );
             },
-          )
+          )*/
     );
   }
 

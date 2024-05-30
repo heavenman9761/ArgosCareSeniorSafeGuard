@@ -12,10 +12,6 @@ Future<Dio> authDio() async {
       baseUrl: uri,
   );
   var dio = Dio(options);
-  // const storage = FlutterSecureStorage(
-  //   iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock),
-  //   aOptions: AndroidOptions(encryptedSharedPreferences: true),
-  // );
 
   dio.interceptors.clear();
   dio.interceptors.add(CookieManager(CookieJar()));
