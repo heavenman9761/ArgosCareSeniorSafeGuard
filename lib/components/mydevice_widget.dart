@@ -361,15 +361,11 @@ class _MyDeviceWidgetState extends ConsumerState<MyDeviceWidget> {
   }
 
   void _goAddSensePage(BuildContext context, WidgetRef ref, LocationInfo? location) {
-    String? deviceID = gHubList[0].getHubID();
-    debugPrint(deviceID);
-
-    print(location);
     ref.read(currentLocationProvider.notifier).doChangeState(location!);
     ref.read(findHubStateProvider.notifier).doChangeState(ConfigState.none);
 
     Navigator.push(context, MaterialPageRoute(builder: (context) {
-      return AddSensorPage1(deviceID: deviceID!, userID: widget.userID,);
+      return AddSensorPage1(deviceID: gHubList[0].getHubID()!, userID: widget.userID,);
       /*if (location == null) {
         return AddSensorPage1(deviceID: deviceID!);
       } else {

@@ -7,13 +7,16 @@
 
   "app_title" : "app_title",
 
+  "login_id": "아이디",
+  "login_password": "비밀번호",
+  "login_save_login_info": "로그인 정보 저장",
+  "login_find_id": "아이디찾기",
+  "login_find_password": "비밀번호찾기",
   "login_button" : "Login",
   "login_kakao" : "KakaoTalk Login",
-  "login_welcome" : "Welcome back you've been missed!",
   "login_email" : "email",
   "login_password" : "password",
   "login_register" : "Register",
-  "login_forgot" : "Forgot Password?",
   "login_snslogin" : "Or continue with",
   "login_failure_message" : "Failure",
   "login_validation_error1" : "이메일은 필수사항입니다.",

@@ -15,6 +15,7 @@ import 'package:argoscareseniorsafeguard/constants.dart';
 import 'package:argoscareseniorsafeguard/utils/fcm.dart';
 
 Future<void> main() async {
+  print("main() ================================================================");
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
 
@@ -61,7 +62,7 @@ class _MainAppState extends State<MainApp> {
   @override
   void initState() {
     super.initState();
-    print("_MainAppState() initState ================================================================()");
+    print("initState() ================================================================");
     _fetchLocale().then((locale) {
       setState(() {
         _locale = locale;
@@ -89,7 +90,7 @@ class _MainAppState extends State<MainApp> {
   @override
   void deactivate() {
     super.deactivate();
-    print("_MainAppState() deactivate() ===============================================================");
+    print("deactivate() ===============================================================");
   }
 
   /*

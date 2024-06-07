@@ -16,6 +16,7 @@ import 'package:argoscareseniorsafeguard/models/sensor_event.dart';
 import 'package:argoscareseniorsafeguard/models/hub_infos.dart';
 import 'package:argoscareseniorsafeguard/models/sensor_infos.dart';
 import 'package:argoscareseniorsafeguard/models/location_infos.dart';
+import 'package:argoscareseniorsafeguard/models/share_infos.dart';
 
 class Constants {
   static const platform = MethodChannel('est.co.kr/IoT_Hub');
@@ -51,6 +52,8 @@ List<HubInfo> gHubList = [];
 // List<SensorInfo> gSensorList = [];
 List<LocationInfo> gLocationList = [];
 // late LocationInfo gCurrentLocation;
+
+List<ShareInfo> gShareInfo = [];
 
 const outPadding = 16.0;
 

@@ -204,7 +204,15 @@ class _HomePageState extends ConsumerState<HomePage> {
   }
 
   void _mqttStartSubscribeTo() async {
-    DBHelper sd = DBHelper();
+    if (gHubList.isNotEmpty) {
+      ref.read(commandTopicProvider.notifier).state = 'command/${gHubList[0].getHubID()!}';
+      ref.read(requestTopicProvider.notifier).state = 'request/${gHubList[0].getHubID()!}';
+      ref.read(resultTopicProvider.notifier).state = 'result/${gHubList[0].getHubID()!}';
+
+      mqttAddSubscribeTo('result/${gHubList[0].getHubID()!}');
+    }
+
+    /*DBHelper sd = DBHelper();
     List<Hub> hubList = await sd.getHubs();
     for (var hub in hubList) {
       ref.read(commandTopicProvider.notifier).state = 'command/${hub.getHubID()}';
@@ -212,7 +220,8 @@ class _HomePageState extends ConsumerState<HomePage> {
       ref.read(resultTopicProvider.notifier).state = 'result/${hub.getHubID()}';
 
       mqttAddSubscribeTo('result/${hub.getHubID()}');
-    }
+    }*/
+
     /*List<Device> hubList = await sd.getDeviceOfHubs();
     for (var hub in hubList) {
       ref.read(commandTopicProvider.notifier).state = 'command/${hub.getDeviceID()}';
@@ -346,6 +355,7 @@ class _HomePageState extends ConsumerState<HomePage> {
         updatedAt: mqttMsg['updatedAt'],
       );
       gHubList.add(hubInfo);
+      _mqttStartSubscribeTo();
     } else {
       for (HubInfo hub in gHubList) {
         if (hub.getHubID() == mqttMsg['deviceID']) {
@@ -524,7 +534,7 @@ class _HomePageState extends ConsumerState<HomePage> {
     await sd.deleteSensor(sensorID);
   }
 
-  Future<void> _saveDevice(String deviceID, String deviceType) async {
+  /*Future<void> _saveDevice(String deviceID, String deviceType) async {
     DBHelper sd = DBHelper();
     int? count = await sd.getDeviceCountByType(widget.userID, deviceType);
     count = count! + 1;
@@ -570,7 +580,7 @@ class _HomePageState extends ConsumerState<HomePage> {
 
       });
     });
-  }
+  }*/
 
   Future<void> _delDevice(String deviceID) async {
     DBHelper sd = DBHelper();
@@ -641,7 +651,7 @@ class _HomePageState extends ConsumerState<HomePage> {
     } else if (topic == ref.watch(resultTopicProvider)) {
       if (mqttMsg['event'] == 'gatewayADD') {
         if (mqttMsg['state'] == 'success') {
-          _saveDevice(mqttMsg['deviceID'], Constants.DEVICE_TYPE_HUB);
+          // _saveDevice(mqttMsg['deviceID'], Constants.DEVICE_TYPE_HUB);
           _saveHub(message);
         } else if (mqttMsg['state'] == 'failure') {
 
@@ -649,7 +659,7 @@ class _HomePageState extends ConsumerState<HomePage> {
         _goHome();
       } else if (mqttMsg['event'] == 'device_add') {
         if (mqttMsg['state'] == 'device add success') {
-          _saveDevice(mqttMsg['deviceID'], mqttMsg['device_type']);
+          // _saveDevice(mqttMsg['deviceID'], mqttMsg['device_type']);
           _saveSensor(message);
 
 
@@ -704,18 +714,18 @@ class _HomePageState extends ConsumerState<HomePage> {
           Container(color: Theme.of(context).colorScheme.primary),
           Container(
             decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    Colors.white10,
-                    Colors.white10,
-                    Colors.black12,
-                    Colors.black12,
-                    Colors.black12,
-                    Colors.black12,
-                  ],
-                )
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Colors.white10,
+                  Colors.white10,
+                  Colors.black12,
+                  Colors.black12,
+                  Colors.black12,
+                  Colors.black12,
+                ],
+              )
             ),
           ),
           Scaffold(
@@ -729,12 +739,14 @@ class _HomePageState extends ConsumerState<HomePage> {
               ),
 
               bottomNavigationBar: BottomNavigationBar(
-                  items: const <BottomNavigationBarItem>[
-                    BottomNavigationBarItem(icon: Icon(Icons.home_outlined), label: '홈',),
-                    BottomNavigationBarItem(icon: Icon(Icons.sensors_outlined), label: '내 기기',),
-                    BottomNavigationBarItem(icon: Icon(Icons.account_circle_outlined), label: '프로필',),
+                  items: <BottomNavigationBarItem>[
+                    BottomNavigationBarItem(icon: const Icon(Icons.home_outlined), label: '홈', backgroundColor: Theme.of(context).colorScheme.primary),
+                    ref.watch(alarmReceivedProvider)
+                        ? BottomNavigationBarItem(icon: const Badge(label: Text('0'), child: Icon(Icons.notifications_none_outlined), ),label: '알림', backgroundColor: Theme.of(context).colorScheme.primary)
+                        : BottomNavigationBarItem(icon: const Icon(Icons.notifications_none_outlined), label: '알림', backgroundColor: Theme.of(context).colorScheme.primary),
+                    BottomNavigationBarItem(icon: const Icon(Icons.sensors_outlined), label: '내 기기', backgroundColor: Theme.of(context).colorScheme.primary),
+                    BottomNavigationBarItem(icon: const Icon(Icons.account_circle_outlined), label: '프로필', backgroundColor: Theme.of(context).colorScheme.primary),
                   ],
-                  // selectedItemColor: Colors.lightBlue,
                   selectedItemColor: Theme.of(context).colorScheme.onPrimary,
                   unselectedItemColor: Theme.of(context).colorScheme.onPrimaryContainer,
                   backgroundColor: Theme.of(context).colorScheme.primary,
@@ -759,10 +771,10 @@ class _HomePageState extends ConsumerState<HomePage> {
     if (_selectedIndex == 0) {
       return HomeWidget(userName: widget.userName, userID: widget.userID);
 
-    } else if (_selectedIndex == 1) {
+    } else if (_selectedIndex == 2) {
       return MyDeviceWidget(userID: widget.userID);
 
-    } else if (_selectedIndex == 2) {
+    } else if (_selectedIndex == 3) {
       return ProfileWidget(userID: widget.userID);
 
     } else {

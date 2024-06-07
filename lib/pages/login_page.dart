@@ -21,6 +21,7 @@ import 'package:argoscareseniorsafeguard/main.dart';
 import 'package:argoscareseniorsafeguard/models/location_infos.dart';
 import 'package:argoscareseniorsafeguard/models/sensor_infos.dart';
 import 'package:argoscareseniorsafeguard/models/hub_infos.dart';
+import 'package:argoscareseniorsafeguard/models/share_infos.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -30,9 +31,6 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  final List<String> _languageList = ['한국어', 'English'];
-  String _selectedLanguage = '한국어';
-
   final _formKey = GlobalKey<FormState>();
 
   String email = '';
@@ -40,17 +38,46 @@ class _LoginPageState extends State<LoginPage> {
   bool isLogging = false;
   bool passwordVisible = true;
   late String userID;
+  bool _isSaveID = false;
 
   String _deviceId = 'Unknown';
   final _mobileDeviceIdentifierPlugin = MobileDeviceIdentifier();
 
-  final _mailController = TextEditingController(text: "dn9318dn@gmail.com");
+  final _mailController = TextEditingController();
+  final _passwordController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     _initDeviceId();
-    _loadLocale();
+    _loadPref();
+    // _loadLocale();
+  }
+
+  void _loadPref() async {
+    final SharedPreferences pref = await SharedPreferences.getInstance();
+    _isSaveID = pref.getBool('saveLoginID')!;
+    if (_isSaveID) {
+      const storage = FlutterSecureStorage(
+        iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock),
+        aOptions: AndroidOptions(encryptedSharedPreferences: true),
+      );
+
+      String _eee = (await storage.read(key: 'EMAIL'))!;
+      String _ppp = (await storage.read(key: 'PASSWORD'))!;
+
+      _mailController.text = _eee;
+      _passwordController.text = _ppp;
+
+      setState(() {
+
+      });
+    }
+  }
+
+  void _savePref() async {
+    final SharedPreferences pref = await SharedPreferences.getInstance();
+    pref.setBool('saveLoginID', _isSaveID);
   }
 
   Future<void> _initDeviceId() async {
@@ -74,7 +101,7 @@ class _LoginPageState extends State<LoginPage> {
     });
   }
 
-  void _loadLocale() async {
+  /*void _loadLocale() async {
     var prefs = await SharedPreferences.getInstance();
     setState(() {
       String localeStr = prefs.getString('languageCode') ?? 'ko';
@@ -82,40 +109,27 @@ class _LoginPageState extends State<LoginPage> {
       if (localeStr == "ko") { _selectedLanguage = "한국어"; }
       else if (localeStr == "en") { _selectedLanguage = "English"; }
     });
-  }
+  }*/
 
   @override
   void dispose() {
     super.dispose();
     _mailController.dispose();
+    _passwordController.dispose();
   }
 
   void _saveUserInfo(var loginResponse) async {
-    // final alarmResponse = await dio.get(
-    //     "/devices/get_alarm/$userID"
-    // );
-
-    // print(loginResponse.data);
-
     gHubList.clear();
-    // gSensorList.clear();
     gLocationList.clear();
+    gShareInfo.clear();
 
     final hList = loginResponse.data['Hub_Infos'] as List;
     for (var h in hList) {
       gHubList.add(HubInfo.fromJson(h));
     }
 
-    // final sList = loginResponse.data['Sensor_Infos'] as List;
-    // for (var s in sList) {
-    //   gSensorList.add(SensorInfo.fromJson(s));
-    // }
-
     final lList = loginResponse.data['Location_Infos'] as List;
     for (var l in lList) {
-      // print(l);
-      // gLocationList.add(LocationInfo.fromJson(l));
-
       List<SensorInfo> sl = [];
       for (var s in l['Sensor_Infos']) {
         sl.add(
@@ -123,27 +137,30 @@ class _LoginPageState extends State<LoginPage> {
         );
       }
 
-      // print("1");
-      // print(sl);
-
       gLocationList.add(
         LocationInfo(
-            id: l['id'],
-            name: l['name'],
-            userID: l['userID'],
-            type: l['type'],
-            displaySunBun: l['displaySunBun'],
-            requireMotionSensorCount: l['requireMotionSensorCount'],
-            detectedMotionSensorCount: l['detectedMotionSensorCount'],
-            requireDoorSensorCount: l['requireDoorSensorCount'],
-            detectedDoorSensorCount: l['detectedDoorSensorCount'],
-            createdAt: l['createdAt'],
-            updatedAt: l['updatedAt'],
-            sensors: sl
+          id: l['id'],
+          name: l['name'],
+          userID: l['userID'],
+          type: l['type'],
+          displaySunBun: l['displaySunBun'],
+          requireMotionSensorCount: l['requireMotionSensorCount'],
+          detectedMotionSensorCount: l['detectedMotionSensorCount'],
+          requireDoorSensorCount: l['requireDoorSensorCount'],
+          detectedDoorSensorCount: l['detectedDoorSensorCount'],
+          createdAt: l['createdAt'],
+          updatedAt: l['updatedAt'],
+          sensors: sl
         )
       );
     }
 
+    final shList = loginResponse.data['Share_Infos'] as List;
+    for (var sh in shList) {
+      gShareInfo.add(ShareInfo.fromJson(sh));
+    }
+
+    // print(gShareInfo);
     // print(gHubList);
     // print("===================");
     // print(gSensorList);
@@ -291,20 +308,6 @@ class _LoginPageState extends State<LoginPage> {
     debugPrint('batteryLevel: $result');
   }
 
-  Widget loginWidget(BuildContext context) {
-
-    if (isLogging) {
-      return const CircularProgressIndicator();
-    } else {
-      return MyButton(
-          onTap: () async {
-            signUserIn(context);
-          },
-          text: AppLocalizations.of(context)!.login_button//"Sign in",
-      );
-    }
-  }
-
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -325,38 +328,12 @@ class _LoginPageState extends State<LoginPage> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Flexible(
+                  const Flexible(
                       fit: FlexFit.tight,
-                      flex: 2,
+                      flex: 1,
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              const SizedBox(height: 50),
-                              DropdownButton<String>(
-                                value: _selectedLanguage,
-                                icon: const Icon(Icons.expand_more),
-                                underline: const SizedBox.shrink(),
-                                onChanged: (String? value) {
-                                  setState(() {
-                                    _selectedLanguage = value!;
-                                    if (value == "한국어") { MainApp.setLocale(context, const Locale("ko", "")); }
-                                    else if (value == "English") { MainApp.setLocale(context, const Locale("en", "")); }
-
-                                  });
-                                },
-                                items: _languageList.map((value) {
-                                  return DropdownMenuItem(
-                                      value: value,
-                                      child: Text(value)
-                                  );
-                                },
-                                ).toList(),
-                              ),
-                            ],
-                          ),
                           // logo
                           const Icon(
                             Icons.lock,
@@ -365,16 +342,6 @@ class _LoginPageState extends State<LoginPage> {
 
                           const SizedBox(height: 30),
 
-                          // welcome back, you've been missed!
-                          Text(
-                            AppLocalizations.of(context)!.login_welcome,
-                            style: TextStyle(
-                              color: Colors.grey[700],
-                              fontSize: 16,
-                            ),
-                          ),
-
-                          const SizedBox(height: 18),
                         ],
                       )
                   ),
@@ -384,6 +351,15 @@ class _LoginPageState extends State<LoginPage> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: [
+                              Text(AppLocalizations.of(context)!.login_id,), //아이디
+                            ],
+                          ),
+
+                          const SizedBox(height: 5,),
+
                           renderTextFormField(
                             context: context,
                             label: AppLocalizations.of(context)!.login_email,
@@ -419,6 +395,15 @@ class _LoginPageState extends State<LoginPage> {
 
                           const SizedBox(height: 10),
 
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: [
+                              Text(AppLocalizations.of(context)!.login_password)
+                            ],
+                          ),
+
+                          const SizedBox(height: 5,),
+
                           renderTextFormField(
                             context: context,
                             label: AppLocalizations.of(context)!.login_password,
@@ -434,7 +419,7 @@ class _LoginPageState extends State<LoginPage> {
                             ),
                             keyboardType: TextInputType.text,
                             obscureText: passwordVisible,
-                            initialValue: '121212',
+                            controller: _passwordController,
                             onSaved: (val) {
                               setState(() {
                                 password = val;
@@ -451,16 +436,47 @@ class _LoginPageState extends State<LoginPage> {
                             },
                           ),
 
-                          const SizedBox(height: 10),
+                          const SizedBox(height: 5),
 
-                          // forgot password?
                           Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                            padding: const EdgeInsets.symmetric(horizontal: 0.0),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.start,
                               children: [
+                                Checkbox(
+                                  value: _isSaveID,
+                                  onChanged: (value) {
+                                    setState(() {
+                                      _isSaveID = value!;
+                                      _savePref();
+                                    });
+                                  },
+                                ),
+                                Text(AppLocalizations.of(context)!.login_save_login_info, style: TextStyle(color: Colors.grey[600], )),
+                              ]
+                            )
+                          ),
+
+                          const SizedBox(height: 10),
+
+                          isLogging
+                            ? const CircularProgressIndicator()
+                            : MyButton(
+                                onTap: () async {
+                                  signUserIn(context);
+                                },
+                                text: AppLocalizations.of(context)!.login_button//"Sign in",
+                              ),
+
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                TextButton(onPressed: (){}, child: Text(AppLocalizations.of(context)!.login_find_id, style: TextStyle(color: Colors.grey[600]), )),
+                                TextButton(onPressed: (){}, child: Text(AppLocalizations.of(context)!.login_find_password, style: TextStyle(color: Colors.grey[600]), )),
                                 TextButton(
-                                  child: Text(AppLocalizations.of(context)!.login_register, style: const TextStyle(color: Colors.blue, fontWeight: FontWeight.bold,)),
+                                  child: Text(AppLocalizations.of(context)!.login_register, style: TextStyle(color: Colors.grey[600])),
                                   onPressed: () {
                                     Navigator.push(context,
                                         MaterialPageRoute(builder: (context) {
@@ -469,23 +485,9 @@ class _LoginPageState extends State<LoginPage> {
                                     );
                                   },
                                 ),
-                                Flexible(
-                                    fit: FlexFit.tight,
-                                    child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.end,
-                                      children: [
-                                        Text(AppLocalizations.of(context)!.login_forgot, style: TextStyle(color: Colors.grey[600]), ),
-                                      ],
-                                    ),
-                                )
                               ],
                             ),
                           ),
-
-                          const SizedBox(height: 10),
-
-                          // sign in button
-                          loginWidget(context),
                         ]
                       )
                   ),

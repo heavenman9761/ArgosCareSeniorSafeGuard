@@ -240,3 +240,7 @@ final alarmReceivedProvider = StateProvider<bool>((ref) {
 final phoneCertificationProvider = StateProvider<bool>((ref) {
   return false;
 });
+
+final requestShareListProviderCount = StateProvider<int>((ref) {
+  return 0;
+});
