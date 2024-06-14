@@ -15,6 +15,8 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:argoscareseniorsafeguard/mqtt/mqtt.dart';
 import 'package:argoscareseniorsafeguard/providers/providers.dart';
@@ -28,13 +30,15 @@ import 'package:argoscareseniorsafeguard/components/profile_widget.dart';
 import 'package:argoscareseniorsafeguard/components/nofify_badge_widget.dart';
 import 'package:argoscareseniorsafeguard/models/hub_infos.dart';
 import 'package:argoscareseniorsafeguard/back_services.dart';
+import 'package:argoscareseniorsafeguard/auth/auth_dio.dart';
 
 class HomePage extends ConsumerStatefulWidget {
-  const HomePage({super.key, required this.title, required this.userName, required this.userID});
+  const HomePage({super.key, required this.title, required this.userName, required this.userID, required this.requireLogin});
 
   final String title;
   final String userName;
   final String userID;
+  final bool requireLogin;
 
   @override
   ConsumerState<HomePage> createState() => _HomePageState();
@@ -43,6 +47,9 @@ class HomePage extends ConsumerStatefulWidget {
 class _HomePageState extends ConsumerState<HomePage> {
   late final List<Device> _deviceList = [];
   int _selectedIndex = 0;
+
+  String _userName = '';
+  String _userID = '';
 
   @override
   void didChangeDependencies() {
@@ -55,24 +62,76 @@ class _HomePageState extends ConsumerState<HomePage> {
   void initState() {
     super.initState();
 
+    _userName = widget.userName;
+    _userID = widget.userID;
+
+    if (widget.requireLogin) {
+      asyncInitState();
+    } else {
+      _appSetting();
+    }
+  }
+
+  void asyncInitState() async {
+    await _loginProcess().then((result) {
+      setState(() {
+      });
+
+      _appSetting();
+    });
+  }
+
+  void _appSetting() {
     getMyDeviceToken();
-
     _checkPermissions();
-
-    // _downDeviceListFromServer();
-
-    mqttInit(ref,
-        Constants.MQTT_HOST,
-        Constants.MQTT_PORT,
-        Constants.MQTT_IDENTIFIER,
-        Constants.MQTT_ID,
-        Constants.MQTT_PASSWORD);
-
+    mqttInit(ref, Constants.MQTT_HOST, Constants.MQTT_PORT, Constants.MQTT_IDENTIFIER, Constants.MQTT_ID, Constants.MQTT_PASSWORD);
     _fcmSetListener();
-
     _getLastEvent();
-
     _getHubInfos();
+  }
+
+  Future<void> _loginProcess() async {
+    // final SharedPreferences pref = await SharedPreferences.getInstance();
+    //
+    // const storage = FlutterSecureStorage(
+    //   iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock),
+    //   aOptions: AndroidOptions(encryptedSharedPreferences: true),
+    // );
+    //
+    // String? email = await storage.read(key: 'EMAIL');
+    // String? password = await storage.read(key: 'PASSWORD');
+
+    dio = await authDio();
+
+    try {
+      /*final response = await dio.post(
+          "/auth/signin",
+          data: jsonEncode({
+            "email": email,
+            "password": password
+          })
+      );
+
+      final token = response.data['token'];
+
+      await storage.write(key: 'ACCESS_TOKEN', value: token);*/
+
+      final loginResponse = await dio.get(
+          "/auth/me"
+      );
+
+      _userID = loginResponse.data['id'];
+      _userName = loginResponse.data['name'];
+
+      // await storage.write(key: 'ID', value: loginResponse.data['id']);
+      // await storage.write(key: 'EMAIL', value: loginResponse.data['email']);
+      // await storage.write(key: 'PASSWORD', value: password); //세션 종료시 다시 로그인하기 위해 필요
+
+      saveUserInfo(loginResponse);
+
+    } catch (e) {
+      // _isLogin = false;
+    }
   }
 
   void _startBackgroundService() async {
@@ -102,42 +161,42 @@ class _HomePageState extends ConsumerState<HomePage> {
   void _getLastEvent() async {
     DBHelper sd = DBHelper();
 
-    List<SensorEvent> es = await sd.findSensorLast(widget.userID, Constants.DEVICE_TYPE_ILLUMINANCE);
+    List<SensorEvent> es = await sd.findSensorLast(_userID, Constants.DEVICE_TYPE_ILLUMINANCE);
     if (es.isNotEmpty) {
       SensorEvent sensorEvent = es[0];
       String description = analysisSensorEvent(sensorEvent);
       ref.read(illuminanceSensorStateProvider.notifier).state = description;
     }
 
-    es = await sd.findSensorLast(widget.userID, Constants.DEVICE_TYPE_TEMPERATURE_HUMIDITY);
+    es = await sd.findSensorLast(_userID, Constants.DEVICE_TYPE_TEMPERATURE_HUMIDITY);
     if (es.isNotEmpty) {
       SensorEvent sensorEvent = es[0];
       String description = analysisSensorEvent(sensorEvent);
       ref.read(humiditySensorStateProvider.notifier).state = description;
     }
 
-    es = await sd.findSensorLast(widget.userID, Constants.DEVICE_TYPE_SMOKE);
+    es = await sd.findSensorLast(_userID, Constants.DEVICE_TYPE_SMOKE);
     if (es.isNotEmpty) {
       SensorEvent sensorEvent = es[0];
       String description = analysisSensorEvent(sensorEvent);
       ref.read(smokeSensorStateProvider.notifier).state = description;
     }
 
-    es = await sd.findSensorLast(widget.userID, Constants.DEVICE_TYPE_EMERGENCY);
+    es = await sd.findSensorLast(_userID, Constants.DEVICE_TYPE_EMERGENCY);
     if (es.isNotEmpty) {
       SensorEvent sensorEvent = es[0];
       String description = analysisSensorEvent(sensorEvent);
       ref.read(emergencySensorStateProvider.notifier).state = description;
     }
 
-    es = await sd.findSensorLast(widget.userID, Constants.DEVICE_TYPE_MOTION);
+    es = await sd.findSensorLast(_userID, Constants.DEVICE_TYPE_MOTION);
     if (es.isNotEmpty) {
       SensorEvent sensorEvent = es[0];
       String description = analysisSensorEvent(sensorEvent);
       ref.read(motionSensorStateProvider.notifier).state = description;
     }
 
-    es = await sd.findSensorLast(widget.userID, Constants.DEVICE_TYPE_DOOR);
+    es = await sd.findSensorLast(_userID, Constants.DEVICE_TYPE_DOOR);
     if (es.isNotEmpty) {
       SensorEvent sensorEvent = es[0];
       String description = analysisSensorEvent(sensorEvent);
@@ -209,7 +268,11 @@ class _HomePageState extends ConsumerState<HomePage> {
       ref.read(requestTopicProvider.notifier).state = 'request/${gHubList[0].getHubID()!}';
       ref.read(resultTopicProvider.notifier).state = 'result/${gHubList[0].getHubID()!}';
 
+      print('result/${gHubList[0].getHubID()!}');
+
       mqttAddSubscribeTo('result/${gHubList[0].getHubID()!}');
+    } else {
+      print("gHubList is Empty");
     }
 
     /*DBHelper sd = DBHelper();
@@ -240,7 +303,7 @@ class _HomePageState extends ConsumerState<HomePage> {
     String hubID = '';
     final mqttMsg = json.decode(message);
 
-    List<Device> deviceList = await sd.findDeviceBySensor(widget.userID, mqttMsg['device_type']);
+    List<Device> deviceList = await sd.findDeviceBySensor(_userID, mqttMsg['device_type']);
     if (deviceList.isEmpty) {
       return;
     }
@@ -255,7 +318,7 @@ class _HomePageState extends ConsumerState<HomePage> {
     SensorEvent sensorEvent = SensorEvent(
       id: mqttMsg['id'],
       hubID: mqttMsg['hubID'],
-      userID: widget.userID,
+      userID: _userID,
       deviceID: mqttMsg['deviceID'],
       deviceType: mqttMsg['device_type'],
       event: mqttMsg['event'],
@@ -270,7 +333,7 @@ class _HomePageState extends ConsumerState<HomePage> {
     );
 
     await sd.insertSensorEvent(sensorEvent).then((value) async {
-      List<Device> deviceList = await sd.findDeviceBySensor(widget.userID, mqttMsg['device_type']);
+      List<Device> deviceList = await sd.findDeviceBySensor(_userID, mqttMsg['device_type']);
 
       Device d = Device(
           deviceID: deviceList[0].deviceID,
@@ -338,7 +401,7 @@ class _HomePageState extends ConsumerState<HomePage> {
         id: mqttMsg['id'],
         hubID: mqttMsg['deviceID'],
         name: mqttMsg['name'],
-        userID: widget.userID,
+        userID: _userID,
         displaySunBun: mqttMsg['displaySunBun'],
         category: mqttMsg['category'],
         deviceType: mqttMsg['deviceType'],
@@ -366,13 +429,13 @@ class _HomePageState extends ConsumerState<HomePage> {
 
 
     /*DBHelper sd = DBHelper();
-    List<Hub> lists = await sd.findHub(widget.userID, mqttMsg['deviceID']);
+    List<Hub> lists = await sd.findHub(_userID, mqttMsg['deviceID']);
     if (lists.isEmpty) {
        Hub hub = Hub(
          id: mqttMsg['id'],
          hubID: mqttMsg['deviceID'],
          name: mqttMsg['name'],
-         userID: widget.userID,
+         userID: _userID,
          displaySunBun: mqttMsg['displaySunBun'],
          category: mqttMsg['category'],
          deviceType: mqttMsg['deviceType'],
@@ -394,7 +457,7 @@ class _HomePageState extends ConsumerState<HomePage> {
         id: mqttMsg['id'],
         hubID: mqttMsg['deviceID'],
         name: mqttMsg['name'],
-        userID: widget.userID,
+        userID: _userID,
         displaySunBun: mqttMsg['displaySunBun'],
         category: mqttMsg['category'],
         deviceType: mqttMsg['deviceType'],
@@ -432,7 +495,7 @@ class _HomePageState extends ConsumerState<HomePage> {
         id: mqttMsg['id'],
         sensorID: mqttMsg['sensorID'],
         name: sensorName,//mqttMsg['name'],
-        userID: widget.userID,//mqttMsg['userID'],
+        userID: _userID,//mqttMsg['userID'],
         displaySunBun: mqttMsg['displaySunBun'],
         category: mqttMsg['category'],
         deviceType: mqttMsg['deviceType'],
@@ -481,13 +544,13 @@ class _HomePageState extends ConsumerState<HomePage> {
     // final itemList = ref.watch(SensorList.provider);
 
     /*DBHelper sd = DBHelper();
-    List<Sensor> lists = await sd.findSensor(widget.userID, mqttMsg['sensorID']);
+    List<Sensor> lists = await sd.findSensor(_userID, mqttMsg['sensorID']);
     if (lists.isEmpty) {
       Sensor sensor = Sensor(
         id: mqttMsg['id'],
         sensorID: mqttMsg['sensorID'],
         name: mqttMsg['name'],
-        userID: widget.userID,//mqttMsg['userID'],
+        userID: _userID,//mqttMsg['userID'],
         displaySunBun: mqttMsg['displaySunBun'],
         category: mqttMsg['category'],
         deviceType: mqttMsg['deviceType'],
@@ -509,7 +572,7 @@ class _HomePageState extends ConsumerState<HomePage> {
           id: mqttMsg['id'],
           sensorID: mqttMsg['sensorID'],
           name: mqttMsg['name'],
-          userID: widget.userID,//mqttMsg['userID'],
+          userID: _userID,//mqttMsg['userID'],
           displaySunBun: mqttMsg['displaySunBun'],
           category: mqttMsg['category'],
           deviceType: mqttMsg['deviceType'],
@@ -536,9 +599,9 @@ class _HomePageState extends ConsumerState<HomePage> {
 
   /*Future<void> _saveDevice(String deviceID, String deviceType) async {
     DBHelper sd = DBHelper();
-    int? count = await sd.getDeviceCountByType(widget.userID, deviceType);
+    int? count = await sd.getDeviceCountByType(_userID, deviceType);
     count = count! + 1;
-    int? displaySunBun = await sd.getDeviceCount(widget.userID);
+    int? displaySunBun = await sd.getDeviceCount(_userID);
     String deviceName = '';
 
     if (deviceType == Constants.DEVICE_TYPE_HUB) {
@@ -562,7 +625,7 @@ class _HomePageState extends ConsumerState<HomePage> {
       deviceType: deviceType,
       deviceName: deviceName,
       displaySunBun: displaySunBun,
-      userID: widget.userID,
+      userID: _userID,
       status: "",
       shared: 0,
       ownerID: '',
@@ -769,16 +832,16 @@ class _HomePageState extends ConsumerState<HomePage> {
 
   Widget selectWidget() {
     if (_selectedIndex == 0) {
-      return HomeWidget(userName: widget.userName, userID: widget.userID);
+      return HomeWidget(userName: _userName, userID: _userID);
 
     } else if (_selectedIndex == 2) {
-      return MyDeviceWidget(userID: widget.userID);
+      return MyDeviceWidget(userID: _userID);
 
     } else if (_selectedIndex == 3) {
-      return ProfileWidget(userID: widget.userID);
+      return ProfileWidget(userID: _userID);
 
     } else {
-      return HomeWidget(userName: widget.userName, userID: widget.userID);
+      return HomeWidget(userName: _userName, userID: _userID);
     }
   }
 }

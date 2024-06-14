@@ -1,0 +1,13 @@
+<svg id="구성_요소_50_2" data-name="구성 요소 50 – 2" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="20" height="20" viewBox="0 0 20 20">
+  <defs>
+    <clipPath id="clip-path">
+      <rect id="사각형_258" data-name="사각형 258" width="19" height="19" transform="translate(0 0)" fill="#47b752"/>
+    </clipPath>
+  </defs>
+  <g id="그룹_31" data-name="그룹 31" transform="translate(1.201 1.201)">
+    <g id="그룹_30" data-name="그룹 30" transform="translate(-0.701 -0.701)" clip-path="url(#clip-path)">
+      <path id="패스_63" data-name="패스 63" d="M15.855,17.69H1.836A1.851,1.851,0,0,1,0,15.828V7.193A1.882,1.882,0,0,1,.734,5.7L7.744.37a1.824,1.824,0,0,1,2.2,0L16.956,5.7a1.884,1.884,0,0,1,.734,1.49v8.635a1.851,1.851,0,0,1-1.836,1.862m-7.009-16a.165.165,0,0,0-.1.035L1.736,7.058a.172.172,0,0,0-.067.135v8.635A.168.168,0,0,0,1.836,16H15.855a.168.168,0,0,0,.167-.169V7.193a.173.173,0,0,0-.067-.136L8.945,1.724a.167.167,0,0,0-.1-.034" transform="translate(0.69 0.69)" fill="#47b752"/>
+    </g>
+  </g>
+  <rect id="사각형_278" data-name="사각형 278" width="20" height="20" fill="none"/>
+</svg>

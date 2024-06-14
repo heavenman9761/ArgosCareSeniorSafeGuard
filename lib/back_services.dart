@@ -21,10 +21,9 @@ Future<void> initializeService() async {
 
   /// OPTIONAL, using custom notification channel id
   const AndroidNotificationChannel channel = AndroidNotificationChannel(
-    'my_foreground', // id
-    'MY FOREGROUND SERVICE', // title
-    description:
-    'This channel is used for important notifications.', // description
+    'argoscare_foreground', // id
+    'ARGOSCARE SERVICE', // title
+    description: 'This channel is used for important notifications.', // description
     importance: Importance.low, // importance must be at low or higher level
   );
 
@@ -54,10 +53,10 @@ Future<void> initializeService() async {
       autoStart: true,
       isForegroundMode: true, // Android O 버전 이상부터는 백그라운드 실행이 제한되기 때문에 ForegroundMode로 해야 함.
 
-      notificationChannelId: 'my_foreground',
-      initialNotificationTitle: 'AWESOME SERVICE',
+      notificationChannelId: 'argoscare_foreground',
+      initialNotificationTitle: 'ARGOSCARE SERVICE',
       initialNotificationContent: 'Initializing',
-      foregroundServiceNotificationId: 888,
+      foregroundServiceNotificationId: 777,
     ),
     iosConfiguration: IosConfiguration(
       // auto start service
@@ -165,15 +164,26 @@ void onStart(ServiceInstance service) async {
         /// OPTIONAL for use custom notification
         /// the notification id must be equals with AndroidConfiguration when you call configure() method.
 
-        print("This is ForegroundService.");
+
+        final SharedPreferences pref = await SharedPreferences.getInstance();
+        bool? isLogin = pref.getBool("isLogin");
+        if (isLogin != null) {
+          if (isLogin == true) {
+            print("This is ForegroundService. Login: TRUE");
+          } else {
+            print("This is ForegroundService. Login: FALSE");
+          }
+        } else {
+          print("This is ForegroundService. Login: FALSE");
+        }
         /*flutterLocalNotificationsPlugin.show(
-          888,
+          777,
           'COOL SERVICE',
           'Awesome ${DateTime.now()}',
           const NotificationDetails(
             android: AndroidNotificationDetails(
-              'my_foreground',
-              'MY FOREGROUND SERVICE',
+              'argoscare_foreground',
+              'ARGOSCARE SERVICE',
               icon: 'ic_bg_service_small',
               ongoing: true,
             ),
@@ -189,6 +199,8 @@ void onStart(ServiceInstance service) async {
     }
 
     /// you can see this log in logcat
+    ///
+
     print('Argoscare BACKGROUND SERVICE(30 Sec): ${DateTime.now()}');
 
     // test using external plugin

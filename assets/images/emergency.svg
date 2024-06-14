@@ -1,0 +1,15 @@
+<svg id="구성_요소_49_1" data-name="구성 요소 49 – 1" xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48">
+  <path id="bg" d="M47.992,24.335a52.657,52.657,0,0,0-.955-11.21c-1.391-6.709-5.4-10.773-12.114-12.082a57.038,57.038,0,0,0-21.718,0C6.494,2.325,2.374,6.389,1.064,13.1a56.458,56.458,0,0,0,0,21.819c1.282,6.491,5.184,10.582,11.7,11.919a54.422,54.422,0,0,0,21.718.136c7.858-1.555,11.7-5.837,12.878-13.719A57.779,57.779,0,0,0,47.992,24.335Z" fill="#ffefeb"/>
+  <g id="그룹_140" data-name="그룹 140" transform="translate(-204 -540)">
+    <g id="그룹_20" data-name="그룹 20" transform="translate(217 553)">
+      <path id="패스_71" data-name="패스 71" d="M6.286,0h9.429A6.286,6.286,0,0,1,22,6.286v9.429A6.286,6.286,0,0,1,15.714,22H6.286A6.286,6.286,0,0,1,0,15.714V6.286A6.286,6.286,0,0,1,6.286,0Z" fill="#ef5b54"/>
+    </g>
+    <g id="사각형_326" data-name="사각형 326" transform="translate(220 556)" fill="#fff" stroke="#ffefeb" stroke-width="0.5">
+      <rect width="16" height="16" rx="8" stroke="none"/>
+      <rect x="0.25" y="0.25" width="15.5" height="15.5" rx="7.75" fill="none"/>
+    </g>
+    <g id="그룹_127" data-name="그룹 127" transform="translate(215.471 551.471)">
+      <circle id="타원_95" data-name="타원 95" cx="6" cy="6" r="6" transform="translate(6.529 6.529)" fill="#d2463f"/>
+    </g>
+  </g>
+</svg>

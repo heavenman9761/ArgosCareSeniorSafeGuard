@@ -40,25 +40,26 @@ class HomeWidget extends ConsumerWidget {
     List<HubInfo> hubList = [];
     List<SensorInfo> sensorList = [];
 
-    final response = await dio.get(
-      "/devices/$userID",
-    );
+    if (userID != '') {
+      final response = await dio.get(
+        "/devices/$userID",
+      );
 
-    if (response.statusCode == 200) {
-      hubList.clear();
-      sensorList.clear();
+      if (response.statusCode == 200) {
+        hubList.clear();
+        sensorList.clear();
 
-      final hList = response.data as List;
-      for (var h in hList) {
-        hubList.add(HubInfo.fromJson(h));
+        final hList = response.data as List;
+        for (var h in hList) {
+          hubList.add(HubInfo.fromJson(h));
 
-        final sList = h['Sensor_Infos'] as List;
-        for (var s in sList) {
-          sensorList.add(SensorInfo.fromJson(s));
+          final sList = h['Sensor_Infos'] as List;
+          for (var s in sList) {
+            sensorList.add(SensorInfo.fromJson(s));
+          }
         }
       }
     }
-
     return sensorList;
   }
 

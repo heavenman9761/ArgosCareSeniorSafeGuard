@@ -27,17 +27,19 @@ renderTextFormField({
         prefixIcon: icon,
         suffixIcon: suffixIcon,
         enabledBorder: const OutlineInputBorder(
-          borderSide: BorderSide(color: Colors.white),
+          borderSide: BorderSide(color: Color(0xFFF0F0F0)),
+          borderRadius: BorderRadius.all(Radius.circular(8.0))
         ),
-        focusedBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: Colors.grey.shade400),
+        focusedBorder: const OutlineInputBorder(
+          borderSide: BorderSide(color: Constants.primaryColor),
+          borderRadius: BorderRadius.all(Radius.circular(8.0))
         ),
         isDense: true,
-        contentPadding: const EdgeInsets.all(8),
-        fillColor: Colors.grey.shade200,
+        contentPadding: const EdgeInsets.all(16),
+        fillColor: Colors.white,
         filled: true,
         hintText: label,
-        hintStyle: TextStyle(color: Colors.grey[500]),
+        hintStyle: const TextStyle(color: Constants.hintColor),
     ),
     onChanged: onChanged,
     controller: controller,

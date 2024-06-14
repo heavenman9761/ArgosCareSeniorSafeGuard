@@ -33,7 +33,7 @@ Could not create task ':path_provider_android:generateDebugUnitTestConfig'.
 ## 다국어 리소스 generate
 arb 의 내용을 추가할때마다 자동으로 연결되는 것이 아니라 regenerate 해주어야 한다.
  - flutter gen-l10n
- - flutter build
+ - flutter pub get
 
 ## APK 추출
  - flutter build apk --debug --target-platform=android-arm64

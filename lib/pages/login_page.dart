@@ -8,6 +8,7 @@ import 'package:dio/dio.dart';
 import 'package:mobile_device_identifier/mobile_device_identifier.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import 'package:argoscareseniorsafeguard/components/my_button.dart';
 import 'package:argoscareseniorsafeguard/components/my_textfield.dart';
@@ -56,18 +57,19 @@ class _LoginPageState extends State<LoginPage> {
 
   void _loadPref() async {
     final SharedPreferences pref = await SharedPreferences.getInstance();
-    _isSaveID = pref.getBool('saveLoginID')!;
+    _isSaveID = pref.getBool('saveLoginID') ?? false;
+    // _isSaveID ??= false;
     if (_isSaveID) {
       const storage = FlutterSecureStorage(
         iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock),
         aOptions: AndroidOptions(encryptedSharedPreferences: true),
       );
 
-      String _eee = (await storage.read(key: 'EMAIL'))!;
-      String _ppp = (await storage.read(key: 'PASSWORD'))!;
+      String email = (await storage.read(key: 'EMAIL')) ?? '';
+      String password = (await storage.read(key: 'PASSWORD')) ?? '';
 
-      _mailController.text = _eee;
-      _passwordController.text = _ppp;
+      _mailController.text = email;
+      _passwordController.text = password;
 
       setState(() {
 
@@ -118,103 +120,8 @@ class _LoginPageState extends State<LoginPage> {
     _passwordController.dispose();
   }
 
-  void _saveUserInfo(var loginResponse) async {
-    gHubList.clear();
-    gLocationList.clear();
-    gShareInfo.clear();
-
-    final hList = loginResponse.data['Hub_Infos'] as List;
-    for (var h in hList) {
-      gHubList.add(HubInfo.fromJson(h));
-    }
-
-    final lList = loginResponse.data['Location_Infos'] as List;
-    for (var l in lList) {
-      List<SensorInfo> sl = [];
-      for (var s in l['Sensor_Infos']) {
-        sl.add(
-          SensorInfo.fromJson(s)
-        );
-      }
-
-      gLocationList.add(
-        LocationInfo(
-          id: l['id'],
-          name: l['name'],
-          userID: l['userID'],
-          type: l['type'],
-          displaySunBun: l['displaySunBun'],
-          requireMotionSensorCount: l['requireMotionSensorCount'],
-          detectedMotionSensorCount: l['detectedMotionSensorCount'],
-          requireDoorSensorCount: l['requireDoorSensorCount'],
-          detectedDoorSensorCount: l['detectedDoorSensorCount'],
-          createdAt: l['createdAt'],
-          updatedAt: l['updatedAt'],
-          sensors: sl
-        )
-      );
-    }
-
-    final shList = loginResponse.data['Share_Infos'] as List;
-    for (var sh in shList) {
-      gShareInfo.add(ShareInfo.fromJson(sh));
-    }
-
-    // print(gShareInfo);
-    // print(gHubList);
-    // print("===================");
-    // print(gSensorList);
-    // print(gLocationList);
-    // print("===================");
-
-    final SharedPreferences pref = await SharedPreferences.getInstance();
-
-    pref.setString("name", loginResponse.data['name']);
-    pref.setString("protectPeople", loginResponse.data['protectPeople']);
-    pref.setString("addr_zip", loginResponse.data['addr_zip']);
-    pref.setString("addr", loginResponse.data['addr']);
-    pref.setString("mobilephone", loginResponse.data['mobilephone']);
-    pref.setString("tel", loginResponse.data['tel']);
-    pref.setString("snsId", loginResponse.data['snsId']);
-    pref.setString("provider", loginResponse.data['provider']);
-    pref.setBool("admin", loginResponse.data['admin']);
-    pref.setString("shareKey", loginResponse.data['shareKey']);
-
-    /*pref.setBool("EntireAlarm", alarmResponse.data['entireAlarm']);
-
-    pref.setBool("HumidityAlarmEnable", alarmResponse.data['humidityAlarmEnable']);
-    pref.setString("HumidityStartTime", alarmResponse.data['humidityStartTime']);
-    pref.setString("HumidityEndTime", alarmResponse.data['humidityEndTime']);
-    pref.setInt("HumidityStartValue", alarmResponse.data['humidityStartValue']);
-    pref.setInt("HumidityEndValue", alarmResponse.data['humidityEndValue']);
-    pref.setInt("TemperatureStartValue", alarmResponse.data['temperatureStartValue']);
-    pref.setInt("TemperatureEndValue", alarmResponse.data['temperatureEndValue']);
-
-    pref.setBool("EmergencyAlarmEnable", alarmResponse.data['emergencyAlarmEnable']);
-    pref.setString("EmergencyStartTime", alarmResponse.data['emergencyStartTime']);
-    pref.setString("EmergencyEndTime", alarmResponse.data['emergencyEndTime']);
-
-    pref.setBool("MotionAlarmEnable", alarmResponse.data['motionAlarmEnable']);
-    pref.setString("MotionStartTime", alarmResponse.data['motionStartTime']);
-    pref.setString("MotionEndTime", alarmResponse.data['motionEndTime']);
-
-    pref.setBool("SmokeAlarmEnable", alarmResponse.data['smokeAlarmEnable']);
-    pref.setString("SmokeStartTime", alarmResponse.data['smokeStartTime']);
-    pref.setString("SmokeEndTime", alarmResponse.data['smokeEndTime']);
-
-    pref.setBool("IlluminanceAlarmEnable", alarmResponse.data['illuminanceAlarmEnable']);
-    pref.setString("IlluminanceStartTime", alarmResponse.data['illuminanceStartTime']);
-    pref.setString("IlluminanceEndTime", alarmResponse.data['illuminanceEndTime']);
-    pref.setInt("IlluminanceStartValue", alarmResponse.data['illuminanceStartValue']);
-    pref.setInt("IlluminanceEndValue", alarmResponse.data['illuminanceEndValue']);
-
-    pref.setBool("DoorAlarmEnable", alarmResponse.data['doorAlarmEnable']);
-    pref.setString("DoorStartTime", alarmResponse.data['doorStartTime']);
-    pref.setString("DoorEndTime", alarmResponse.data['doorEndTime']);*/
-  }
-
   // sign user in method
-  void signUserIn(BuildContext context) async {
+  void _signUserIn(BuildContext context) async {
     final isValid = _formKey.currentState!.validate();
     if (isValid) {
       setState(() {
@@ -267,12 +174,12 @@ class _LoginPageState extends State<LoginPage> {
     await storage.write(key: 'EMAIL', value: loginResponse.data['email']);
     await storage.write(key: 'PASSWORD', value: password); //세션 종료시 다시 로그인하기 위해 필요
 
-    _saveUserInfo(loginResponse);
+    saveUserInfo(loginResponse);
 
     if (!context.mounted) return;
     Navigator.pushReplacement(context,
         MaterialPageRoute(builder: (context) {
-          return HomePage(title: Constants.APP_TITLE, userName: userName, userID: userID);
+          return HomePage(title: Constants.APP_TITLE, userName: userName, userID: userID, requireLogin: false,);
         },
       )
     );
@@ -317,234 +224,211 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[300],
+      backgroundColor: Constants.scaffoldBackgroundColor,
       resizeToAvoidBottomInset: false,
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          padding: EdgeInsets.all(20.h),
           child: Center(
             child: Form(
               key: _formKey,
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.start,
                 children: [
-                  const Flexible(
-                      fit: FlexFit.tight,
-                      flex: 1,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          // logo
-                          const Icon(
-                            Icons.lock,
-                            size: 100,
-                          ),
-
-                          const SizedBox(height: 30),
-
-                        ],
-                      )
+                  SizedBox(height: 14.h),
+                  SizedBox(
+                    height: 76.h,
+                    width: double.infinity,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        // const Text("로그인"),
+                        Text(AppLocalizations.of(context)!.login_button, style: TextStyle(fontSize: 20.sp, color: Colors.black, fontWeight: FontWeight.bold)),
+                      ],
+                    ),
                   ),
-                  Flexible(
-                      fit: FlexFit.tight,
-                      flex: 2,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            children: [
-                              Text(AppLocalizations.of(context)!.login_id,), //아이디
-                            ],
-                          ),
-
-                          const SizedBox(height: 5,),
-
-                          renderTextFormField(
-                            context: context,
-                            label: AppLocalizations.of(context)!.login_email,
-                            keyNumber: 1,
-                            icon: const Icon(Icons.mail, color: Colors.grey,),
-                            suffixIcon: _mailController.text.isNotEmpty ?
-                              IconButton(
-                                icon: const Icon(Icons.clear),
-                                onPressed: () {
-                                  _mailController.clear();
-                                  setState(() { });
-                                },
-                              ) : null,
-                            controller: _mailController,
-                            keyboardType: TextInputType.emailAddress,
-                            // initialValue: 'dn9318dn@gmail.com',
-                            onChanged: (val) {
-                              setState(() { });
-                            },
-                            onSaved: (val) {
-                              setState(() {
-                                email = val;
-                              });
-
-                            },
-                            validator: (val) {
-                              if (val.length < 1) {
-                                return AppLocalizations.of(context)!.login_validation_error1;
-                              }
-                              return (val as String).isValidEmailFormat() ? null : AppLocalizations.of(context)!.login_validation_error2;
-                            },
-                          ),
-
-                          const SizedBox(height: 10),
-
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            children: [
-                              Text(AppLocalizations.of(context)!.login_password)
-                            ],
-                          ),
-
-                          const SizedBox(height: 5,),
-
-                          renderTextFormField(
-                            context: context,
-                            label: AppLocalizations.of(context)!.login_password,
-                            keyNumber: 2,
-                            icon: const Icon(Icons.lock, color: Colors.grey,),
-                            suffixIcon: IconButton(
-                              icon: Icon( passwordVisible ? Icons.visibility : Icons.visibility_off, ),
-                              onPressed: () {
-                                setState(() {
-                                  passwordVisible = !passwordVisible;
-                                });
-                              },
-                            ),
-                            keyboardType: TextInputType.text,
-                            obscureText: passwordVisible,
-                            controller: _passwordController,
-                            onSaved: (val) {
-                              setState(() {
-                                password = val;
-                              });
-
-                            },
-                            validator: (val) {
-                              if (val.length < 6) {
-                                return AppLocalizations.of(context)!.login_validation_error3;
-                              }
-
-                              //return (val as String).isValidPasswordFormatType1() ? null : '비밀번호는 영문(소문자, 대문자), 숫자, 특수문자로 이루어진 6 ~ 12 자리입니다.';
-                              return (val as String).isValidOnlyNumber() ? null : AppLocalizations.of(context)!.login_validation_error4;
-                            },
-                          ),
-
-                          const SizedBox(height: 5),
-
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 0.0),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              children: [
-                                Checkbox(
-                                  value: _isSaveID,
-                                  onChanged: (value) {
-                                    setState(() {
-                                      _isSaveID = value!;
-                                      _savePref();
-                                    });
-                                  },
-                                ),
-                                Text(AppLocalizations.of(context)!.login_save_login_info, style: TextStyle(color: Colors.grey[600], )),
-                              ]
-                            )
-                          ),
-
-                          const SizedBox(height: 10),
-
-                          isLogging
-                            ? const CircularProgressIndicator()
-                            : MyButton(
-                                onTap: () async {
-                                  signUserIn(context);
-                                },
-                                text: AppLocalizations.of(context)!.login_button//"Sign in",
-                              ),
-
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: [
-                                TextButton(onPressed: (){}, child: Text(AppLocalizations.of(context)!.login_find_id, style: TextStyle(color: Colors.grey[600]), )),
-                                TextButton(onPressed: (){}, child: Text(AppLocalizations.of(context)!.login_find_password, style: TextStyle(color: Colors.grey[600]), )),
-                                TextButton(
-                                  child: Text(AppLocalizations.of(context)!.login_register, style: TextStyle(color: Colors.grey[600])),
-                                  onPressed: () {
-                                    Navigator.push(context,
-                                        MaterialPageRoute(builder: (context) {
-                                          return const RegisterPage();
-                                        })
-                                    );
-                                  },
-                                ),
-                              ],
-                            ),
-                          ),
-                        ]
-                      )
+                  SizedBox(
+                    height: 40.h,
+                    width: double.infinity,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        // const Text("로그인"),
+                        Text(AppLocalizations.of(context)!.login_id, style: TextStyle(fontSize: 12.sp, color: Colors.black, fontWeight: FontWeight.bold)),
+                      ],
+                    ),
                   ),
-                  Flexible(
-                      fit: FlexFit.tight,
-                      flex: 1,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Padding(
-                           padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: Divider(
-                                    thickness: 0.5,
-                                    color: Colors.grey[400],
-                                  ),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                                  child: Text(
-                                    AppLocalizations.of(context)!.login_snslogin,
-                                    style: TextStyle(color: Colors.grey[700]),
-                                  ),
-                                ),
-                                Expanded(
-                                  child: Divider(
-                                    thickness: 0.5,
-                                    color: Colors.grey[400],
-                                  ),
-                                ),
-                              ],
+                  renderTextFormField(
+                    context: context,
+                    label: AppLocalizations.of(context)!.login_email,
+                    keyNumber: 1,
+                    suffixIcon: _mailController.text.isNotEmpty ?
+                    IconButton(
+                      icon: const Icon(Icons.clear),
+                      onPressed: () {
+                        _mailController.clear();
+                        setState(() { });
+                      },
+                    ) : null,
+                    controller: _mailController,
+                    keyboardType: TextInputType.emailAddress,
+                    // initialValue: 'dn9318dn@gmail.com',
+                    onChanged: (val) {
+                      setState(() { });
+                    },
+                    onSaved: (val) {
+                      setState(() {
+                        email = val;
+                      });
+
+                    },
+                    validator: (val) {
+                      if (val.length < 1) {
+                        return AppLocalizations.of(context)!.login_validation_error1;
+                      }
+                      return (val as String).isValidEmailFormat() ? null : AppLocalizations.of(context)!.login_validation_error2;
+                    },
+                  ),
+                  SizedBox(height: 12.h,),
+                  SizedBox(
+                    height: 40.h,
+                    width: double.infinity,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        // const Text("로그인"),
+                        Text(AppLocalizations.of(context)!.login_password, style: TextStyle(fontSize: 12.sp, color: Colors.black, fontWeight: FontWeight.bold)),
+                      ],
+                    ),
+                  ),
+                  renderTextFormField(
+                    context: context,
+                    label: AppLocalizations.of(context)!.login_password,
+                    keyNumber: 2,
+                    suffixIcon: IconButton(
+                      icon: Icon( passwordVisible ? Icons.visibility : Icons.visibility_off, ),
+                      onPressed: () {
+                        setState(() {
+                          passwordVisible = !passwordVisible;
+                        });
+                      },
+                    ),
+                    keyboardType: TextInputType.text,
+                    obscureText: passwordVisible,
+                    controller: _passwordController,
+                    onSaved: (val) {
+                      setState(() {
+                        password = val;
+                      });
+
+                    },
+                    validator: (val) {
+                      if (val.length < 6) {
+                        return AppLocalizations.of(context)!.login_validation_error3;
+                      }
+
+                      //return (val as String).isValidPasswordFormatType1() ? null : '비밀번호는 영문(소문자, 대문자), 숫자, 특수문자로 이루어진 6 ~ 12 자리입니다.';
+                      return (val as String).isValidOnlyNumber() ? null : AppLocalizations.of(context)!.login_validation_error4;
+                    },
+                  ),
+                  SizedBox(height: 20.h),
+                  Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        Transform.scale(
+                          scale: 1.2,
+                          child: Checkbox(
+                            value: _isSaveID,
+                            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(3),
                             ),
+                            side: MaterialStateBorderSide.resolveWith(
+                                  (states) => BorderSide(width: 1.0, color: Colors.grey.shade400),
+                            ),
+                            onChanged: (value) {
+                              setState(() {
+                                _isSaveID = value!;
+                                _savePref();
+                              });
+                            },
                           ),
+                        ),
 
-                          const SizedBox(height: 10),
+                        Text(AppLocalizations.of(context)!.login_save_login_info, style: const TextStyle(color: Colors.black, )),
+                      ]
+                  ),
+                  SizedBox(height: 20.h),
+                  isLogging
+                      ? const CircularProgressIndicator()
+                      : MyButton(
+                          onTap: () async { _signUserIn(context); },
+                          text: AppLocalizations.of(context)!.login_button//"Sign in",
+                      ),
+                  SizedBox(height: 20.h),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        TextButton(onPressed: (){}, child: Text(AppLocalizations.of(context)!.login_find_id, style: TextStyle(color: Colors.grey[600]), )),
+                        TextButton(onPressed: (){}, child: Text(AppLocalizations.of(context)!.login_find_password, style: TextStyle(color: Colors.grey[600]), )),
+                        TextButton(
+                          child: Text(AppLocalizations.of(context)!.login_register, style: TextStyle(color: Colors.grey[600])),
+                          onPressed: () {
+                            Navigator.push(context,
+                                MaterialPageRoute(builder: (context) {
+                                  return const RegisterPage();
+                                })
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: 13.h),
+                  Row(
+                    children: [
+                      const Expanded(
+                        child: Divider(
+                          thickness: 0.5,
+                          color: Constants.dividerColor,
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                        child: Text(
+                          AppLocalizations.of(context)!.login_snslogin,
+                          style: const TextStyle(color: Constants.dividerColor,),
+                        ),
+                      ),
+                      const Expanded(
+                        child: Divider(
+                          thickness: 0.5,
+                          color: Constants.dividerColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 27.h),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children:  [
+                      SquareTile(
+                        imagePath: 'assets/images/google.png',
+                        onTap: () {
+                          _loginGoogle(context);
+                        },
+                      ),
+                      SizedBox(width: 50.w,),
+                      SquareTile(
+                        imagePath: 'assets/images/kakao.png',
+                        onTap: () {
+                          _loginKaKao(context);
+                        },
+                      ),
 
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children:  [
-                              SquareTile(
-                                imagePath: 'assets/images/kakao.png',
-                                onTap: () {
-                                  _loginKaKao(context);
-                                },
-                              ),
-                              SquareTile(
-                                imagePath: 'assets/images/google.png',
-                                onTap: () {
-                                  _loginGoogle(context);
-                                },
-                              ),
-                            ],
-                          ),
-                        ],
-                      )
+                    ],
                   ),
                 ],
               ),

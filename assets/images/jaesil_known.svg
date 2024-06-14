@@ -1,0 +1,7 @@
+<svg id="구성_요소_41_1" data-name="구성 요소 41 – 1" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20">
+  <g id="그룹_54" data-name="그룹 54" transform="translate(0.906 2.306)">
+    <path id="Icon_carbon-home" data-name="Icon carbon-home" d="M10.589,2.377a.624.624,0,0,0-.753,0L1.125,9.009l.754.93,1.065-.811v7.327a1.2,1.2,0,0,0,1.212,1.184H16.281a1.2,1.2,0,0,0,1.212-1.184V9.134l1.065.811.754-.93ZM4.156,16.456V8.206L10.218,3.6l6.062,4.617v8.244Z" transform="translate(-1.125 -2.251)" fill="#fff"/>
+  </g>
+  <rect id="사각형_285" data-name="사각형 285" width="20" height="20" fill="none"/>
+  <path id="Icon_box-question-mark" data-name="Icon box-question-mark" d="M13,6a2.5,2.5,0,0,0-2.5,2.5h1a1.5,1.5,0,0,1,3,0c0,.535-.227.733-.74,1.128a6.135,6.135,0,0,0-.613.519A1.948,1.948,0,0,0,12.5,11.5v1h1v-1a1.039,1.039,0,0,1,.354-.642,5.247,5.247,0,0,1,.515-.434A2.245,2.245,0,0,0,15.5,8.5,2.5,2.5,0,0,0,13,6Zm-.5,7h1v1h-1Z" transform="translate(-3 1)" fill="#fff"/>
+</svg>

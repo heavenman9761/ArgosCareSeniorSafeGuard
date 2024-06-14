@@ -12,7 +12,8 @@ extension InputValidate on String {
 
   bool isValidTelNumberFormat() {
     //일반 전화번호: /^\d{2,3}-\d{3,4}-\d{4}$/;
-    return RegExp(r'^\d{2,3}-\d{3,4}-\d{4}$').hasMatch(this);
+    //return RegExp(r'^\d{2,3}-\d{3,4}-\d{4}$').hasMatch(this);
+    return RegExp(r'^([0-9]{2,3})-?([0-9]{3,4})-?[0-9]{4}$').hasMatch(this);
   }
 
   bool isValidZipAddrNumberFormat() {
@@ -37,6 +38,11 @@ extension InputValidate on String {
   //숫자로 이루어진 n~m 자릿수
   bool isValidOnlyNumber() {
     return RegExp(r'^[0-9]{6,12}$').hasMatch(this);
+  }
+
+  //숫자로 이루어진 n~m 자릿수
+  bool isValidOnlyNumberForAge() {
+    return RegExp(r'^[0-9]{2,3}$').hasMatch(this);
   }
 
   /*

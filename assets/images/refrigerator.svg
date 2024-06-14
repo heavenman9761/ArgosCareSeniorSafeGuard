@@ -1,0 +1,10 @@
+<svg id="구성_요소_47_1" data-name="구성 요소 47 – 1" xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48">
+  <path id="bg" d="M47.992,24.335a52.657,52.657,0,0,0-.955-11.21c-1.391-6.709-5.4-10.773-12.114-12.082a57.038,57.038,0,0,0-21.718,0C6.494,2.325,2.374,6.389,1.064,13.1a56.458,56.458,0,0,0,0,21.819c1.282,6.491,5.184,10.582,11.7,11.919a54.422,54.422,0,0,0,21.718.136c7.858-1.555,11.7-5.837,12.878-13.719A57.779,57.779,0,0,0,47.992,24.335Z" fill="#ebf5fe"/>
+  <g id="그룹_118" data-name="그룹 118" transform="translate(-9138 -5670)">
+    <path id="사각형_312" data-name="사각형 312" d="M2,0H8A0,0,0,0,1,8,0V24a0,0,0,0,1,0,0H2a2,2,0,0,1-2-2V2A2,2,0,0,1,2,0Z" transform="translate(9152 5682)" fill="#3c8ace"/>
+    <path id="사각형_313" data-name="사각형 313" d="M0,0H10a2,2,0,0,1,2,2V22a2,2,0,0,1-2,2H0a0,0,0,0,1,0,0V0A0,0,0,0,1,0,0Z" transform="translate(9160 5682)" fill="#5aaeee"/>
+    <rect id="사각형_314" data-name="사각형 314" width="4" height="8" rx="0.5" transform="translate(9165 5686)" fill="#ebf5fe"/>
+    <rect id="사각형_315" data-name="사각형 315" width="1" height="5" rx="0.5" transform="translate(9161 5691)" fill="#ebf5fe"/>
+    <rect id="사각형_316" data-name="사각형 316" width="1" height="5" rx="0.5" transform="translate(9158 5691)" fill="#ebf5fe"/>
+  </g>
+</svg>

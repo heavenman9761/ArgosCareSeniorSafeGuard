@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="16.102" height="16" viewBox="0 0 16.102 16">
+  <g id="구성_요소_37_1" data-name="구성 요소 37 – 1" transform="translate(0.041)">
+    <g id="Icon_solar-wi-fi-router-minimalistic-linear" data-name="Icon solar-wi-fi-router-minimalistic-linear" transform="translate(3.236 10.056)">
+      <path id="패스_32" data-name="패스 32" d="M8.864,23.182a.682.682,0,1,1-.682-.682A.682.682,0,0,1,8.864,23.182Zm2.046,0a.682.682,0,1,1-.682-.682A.682.682,0,0,1,10.91,23.182Z" transform="translate(-7.5 -22.5)" fill="#47b752"/>
+    </g>
+    <rect id="사각형_222" data-name="사각형 222" width="16" height="16" fill="none"/>
+    <g id="그룹_13" data-name="그룹 13" transform="translate(0.459 1.739)">
+      <path id="패스_33" data-name="패스 33" d="M3,21.02c0-1.424,0-2.135.442-2.578S4.6,18,6.02,18h9.061c1.424,0,2.135,0,2.578.442S18.1,19.6,18.1,21.02s0,2.135-.442,2.578-1.154.442-2.578.442H6.02c-1.424,0-2.135,0-2.578-.442S3,22.444,3,21.02Z" transform="translate(-3 -11.717)" fill="none" stroke="#47b752" stroke-width="1"/>
+      <path id="패스_34" data-name="패스 34" d="M24.75,15.765V13.5" transform="translate(-13.801 -9.482)" fill="none" stroke="#47b752" stroke-linecap="round" stroke-width="1"/>
+      <line id="선_22" data-name="선 22" y1="2.957" x2="2.957" transform="translate(9.399)" fill="none" stroke="#47b752" stroke-linecap="round" stroke-width="1"/>
+      <line id="선_23" data-name="선 23" x2="2.957" y2="2.957" transform="translate(9.399)" fill="none" stroke="#47b752" stroke-linecap="round" stroke-width="1"/>
+    </g>
+  </g>
+</svg>

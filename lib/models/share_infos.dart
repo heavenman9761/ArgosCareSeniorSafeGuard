@@ -4,7 +4,7 @@ class ShareInfo {
   final String? ownerID;
   final String? ownerMail;
   final String? ownerName;
-  final String? protectPeople;
+  final String? parentName;
   final bool? state;
   final String? createdAt;
   final String? updatedAt;
@@ -29,8 +29,8 @@ class ShareInfo {
     return ownerName;
   }
 
-  String? getProtectPeople() {
-    return protectPeople;
+  String? getParentName() {
+    return parentName;
   }
 
   bool? getState() {
@@ -51,7 +51,7 @@ class ShareInfo {
     required this.ownerID,
     required this.ownerMail,
     required this.ownerName,
-    required this.protectPeople,
+    required this.parentName,
     required this.state,
     required this.createdAt,
     required this.updatedAt
@@ -64,7 +64,7 @@ class ShareInfo {
       'ownerID': ownerID ?? '',
       'ownerMail': ownerMail ?? '',
       'ownerName': ownerName ?? '',
-      'protectPeople': protectPeople ?? '',
+      'parentName': parentName ?? '',
       'state': state ?? false,
       'createdAt': createdAt ?? '',
       'updatedAt': updatedAt ?? '',
@@ -78,7 +78,7 @@ class ShareInfo {
       ownerID: json['ownerID'],
       ownerMail: json['ownerMail'],
       ownerName: json['ownerName'],
-      protectPeople: json['protectPeople'],
+      parentName: json['parentName'],
       state: json['state'],
       createdAt: json['createdAt'],
       updatedAt: json['updatedAt'],
@@ -93,7 +93,7 @@ class ShareInfo {
         'ownerID: $ownerID, '
         'ownerMail: $ownerMail, '
         'ownerName: $ownerName, '
-        'protectPeople: $protectPeople, '
+        'parentName: $parentName, '
         'state: $state, '
         'createdAt: $createdAt, '
         'updatedAt: $updatedAt, '

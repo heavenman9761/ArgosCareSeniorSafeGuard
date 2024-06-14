@@ -10,6 +10,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:dio/dio.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:argoscareseniorsafeguard/utils/device_info.dart';
 import 'package:argoscareseniorsafeguard/models/sensor_event.dart';
@@ -40,6 +41,15 @@ class Constants {
 
   static const APP_TITLE = 'Argos Care';
 
+  static const borderColor = Color(0xFFF0F0F0);
+  static const scaffoldBackgroundColor = Color(0xFFF9F9F9);
+  static const dividerColor = Color(0xFF818181);
+  static const hintColor = Color(0xFFCBCBCB);
+  static const primaryColor = Color(0xFF47B752);
+  static const primaryButtonColor = Color(0xFF47B752);
+  static const primaryButtonTextColor = Color(0xFFFFFFFF);
+  static const secondaryColor = Color(0xFFEBF7EC);
+
   static final ButtonStyle elevatedButtonStyle = ElevatedButton.styleFrom(
     foregroundColor: Colors.white60,
     backgroundColor: Colors.lightBlue, // text color
@@ -47,6 +57,8 @@ class Constants {
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
   );
 }
+
+
 
 List<HubInfo> gHubList = [];
 // List<SensorInfo> gSensorList = [];
@@ -58,6 +70,109 @@ List<ShareInfo> gShareInfo = [];
 const outPadding = 16.0;
 
 late Dio dio;
+
+String gCookie = '';
+
+void saveUserInfo(var loginResponse) async {
+  gHubList.clear();
+  gLocationList.clear();
+  gShareInfo.clear();
+
+  final hList = loginResponse.data['Hub_Infos'] as List;
+  for (var h in hList) {
+    gHubList.add(HubInfo.fromJson(h));
+  }
+
+  final lList = loginResponse.data['Location_Infos'] as List;
+  for (var l in lList) {
+    List<SensorInfo> sl = [];
+    for (var s in l['Sensor_Infos']) {
+      sl.add(
+          SensorInfo.fromJson(s)
+      );
+    }
+
+    gLocationList.add(
+        LocationInfo(
+            id: l['id'],
+            name: l['name'],
+            userID: l['userID'],
+            type: l['type'],
+            displaySunBun: l['displaySunBun'],
+            requireMotionSensorCount: l['requireMotionSensorCount'],
+            detectedMotionSensorCount: l['detectedMotionSensorCount'],
+            requireDoorSensorCount: l['requireDoorSensorCount'],
+            detectedDoorSensorCount: l['detectedDoorSensorCount'],
+            createdAt: l['createdAt'],
+            updatedAt: l['updatedAt'],
+            sensors: sl
+        )
+    );
+  }
+
+  final shList = loginResponse.data['Share_Infos'] as List;
+  for (var sh in shList) {
+    gShareInfo.add(ShareInfo.fromJson(sh));
+  }
+
+  // print(gShareInfo);
+  // print(gHubList);
+  // print("===================");
+  // print(gSensorList);
+  // print(gLocationList);
+  // print("===================");
+
+  final SharedPreferences pref = await SharedPreferences.getInstance();
+
+  pref.setString("name", loginResponse.data['name']);
+  pref.setString("parentName", loginResponse.data['parentName']);
+  pref.setInt("parentAge", loginResponse.data['parentAge']);
+  pref.setString("parentPhone", loginResponse.data['parentPhone']);
+  pref.setInt("parentSex", loginResponse.data['parentSex']);
+  pref.setString("addr_zip", loginResponse.data['addr_zip']);
+  pref.setString("addr", loginResponse.data['addr']);
+  pref.setString("addr_detail", loginResponse.data['addr_detail']);
+  pref.setString("mobilephone", loginResponse.data['mobilephone']);
+  pref.setString("tel", loginResponse.data['tel']);
+  pref.setString("snsId", loginResponse.data['snsId']);
+  pref.setString("provider", loginResponse.data['provider']);
+  pref.setBool("admin", loginResponse.data['admin']);
+  pref.setString("shareKey", loginResponse.data['shareKey']);
+  pref.setBool("isLogin", true);
+
+
+  /*pref.setBool("EntireAlarm", alarmResponse.data['entireAlarm']);
+
+    pref.setBool("HumidityAlarmEnable", alarmResponse.data['humidityAlarmEnable']);
+    pref.setString("HumidityStartTime", alarmResponse.data['humidityStartTime']);
+    pref.setString("HumidityEndTime", alarmResponse.data['humidityEndTime']);
+    pref.setInt("HumidityStartValue", alarmResponse.data['humidityStartValue']);
+    pref.setInt("HumidityEndValue", alarmResponse.data['humidityEndValue']);
+    pref.setInt("TemperatureStartValue", alarmResponse.data['temperatureStartValue']);
+    pref.setInt("TemperatureEndValue", alarmResponse.data['temperatureEndValue']);
+
+    pref.setBool("EmergencyAlarmEnable", alarmResponse.data['emergencyAlarmEnable']);
+    pref.setString("EmergencyStartTime", alarmResponse.data['emergencyStartTime']);
+    pref.setString("EmergencyEndTime", alarmResponse.data['emergencyEndTime']);
+
+    pref.setBool("MotionAlarmEnable", alarmResponse.data['motionAlarmEnable']);
+    pref.setString("MotionStartTime", alarmResponse.data['motionStartTime']);
+    pref.setString("MotionEndTime", alarmResponse.data['motionEndTime']);
+
+    pref.setBool("SmokeAlarmEnable", alarmResponse.data['smokeAlarmEnable']);
+    pref.setString("SmokeStartTime", alarmResponse.data['smokeStartTime']);
+    pref.setString("SmokeEndTime", alarmResponse.data['smokeEndTime']);
+
+    pref.setBool("IlluminanceAlarmEnable", alarmResponse.data['illuminanceAlarmEnable']);
+    pref.setString("IlluminanceStartTime", alarmResponse.data['illuminanceStartTime']);
+    pref.setString("IlluminanceEndTime", alarmResponse.data['illuminanceEndTime']);
+    pref.setInt("IlluminanceStartValue", alarmResponse.data['illuminanceStartValue']);
+    pref.setInt("IlluminanceEndValue", alarmResponse.data['illuminanceEndValue']);
+
+    pref.setBool("DoorAlarmEnable", alarmResponse.data['doorAlarmEnable']);
+    pref.setString("DoorStartTime", alarmResponse.data['doorStartTime']);
+    pref.setString("DoorEndTime", alarmResponse.data['doorEndTime']);*/
+}
 
 var logger = Logger(
   printer: PrettyPrinter(),
