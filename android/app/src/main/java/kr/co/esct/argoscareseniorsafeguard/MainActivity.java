@@ -13,6 +13,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.LocationManager;
+import android.net.wifi.WifiManager;
 import android.os.Build.VERSION;
 import android.os.Build.VERSION_CODES;
 import android.os.Handler;
@@ -249,21 +250,28 @@ public class MainActivity extends FlutterActivity {
         sharedPreferences = getSharedPreferences(AppConstants.ESP_PREFERENCES, Context.MODE_PRIVATE);
         provisionManager = ESPProvisionManager.getInstance(getApplicationContext());
 
-        if (VERSION.SDK_INT >= VERSION_CODES.P) {
+        WifiManager wifi = (WifiManager)getSystemService(Context.WIFI_SERVICE);
+        if (wifi.isWifiEnabled()){
+            if (VERSION.SDK_INT >= VERSION_CODES.P) {
 
-            if (!isLocationEnabled()) {
-                askForLocation();
-                closeErrorActivity("Can't find device");
+                if (!isLocationEnabled()) {
+                    askForLocation();
+                    closeErrorActivity("Can't find device");
+                }
             }
-        }
 
-        final BluetoothManager bluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
-        BluetoothAdapter bleAdapter = bluetoothManager.getAdapter();
+            final BluetoothManager bluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
+            BluetoothAdapter bleAdapter = bluetoothManager.getAdapter();
 
-        if (!bleAdapter.isEnabled()) {
-
+            if (!bleAdapter.isEnabled()) {
+                Log.d("mings", "Bluetooth is disabled.");
+                closeErrorActivity("Bluetooth is disabled.");
+            } else {
+                startProvisioningFlow();
+            }
         } else {
-            startProvisioningFlow();
+            Log.d("mings", "Wifi manager is disabled.");
+            closeErrorActivity("Wifi manager is disabled.");
         }
     }
 
@@ -668,7 +676,7 @@ public class MainActivity extends FlutterActivity {
     };
 
     private void closeErrorActivity(String msg) {
-        if (provisionManager.getEspDevice() != null) {
+        if (provisionManager != null && provisionManager.getEspDevice() != null) {
             provisionManager.getEspDevice().disconnectDevice();
         }
         EventBus.getDefault().unregister(this);

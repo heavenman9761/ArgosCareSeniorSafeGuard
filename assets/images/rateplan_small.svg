@@ -1,0 +1,11 @@
+<svg id="구성_요소_82_1" data-name="구성 요소 82 – 1" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+  <g id="Icon_akar-coin" data-name="Icon akar-coin" transform="translate(-16.5 -9)">
+    <g id="구성_요소_81_1" data-name="구성 요소 81 – 1" transform="translate(16.5 9)">
+      <rect id="사각형_12842" data-name="사각형 12842" width="16" height="16" fill="none"/>
+    </g>
+  </g>
+  <g id="Icon_majestic-coins-line" data-name="Icon majestic-coins-line" transform="translate(-3.127 -4.452)">
+    <path id="패스_224154" data-name="패스 224154" d="M20.925,9.734c0-1.234-2.334-2.234-5.213-2.234S10.5,8.5,10.5,9.734m10.425,0v2.979c0,.76-.883,1.43-2.234,1.833a10.549,10.549,0,0,1-2.979.4,10.576,10.576,0,0,1-2.979-.4c-1.35-.4-2.234-1.074-2.234-1.833V9.734m10.425,0c0,.76-.883,1.43-2.234,1.833a10.549,10.549,0,0,1-2.979.4,10.576,10.576,0,0,1-2.979-.4c-1.35-.4-2.234-1.074-2.234-1.833" transform="translate(-3.021)" fill="none" stroke="#404040" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/>
+    <path id="패스_224155" data-name="패스 224155" d="M4.5,15.952v2.979c0,.76.884,1.43,2.234,1.833a10.549,10.549,0,0,0,2.979.4,10.576,10.576,0,0,0,2.979-.4c1.35-.4,2.234-1.074,2.234-1.833v-.745M4.5,15.952c0-.891,1.218-1.661,2.979-2.019M4.5,15.952c0,.76.884,1.43,2.234,1.833a10.549,10.549,0,0,0,2.979.4,11.785,11.785,0,0,0,1.489-.092" transform="translate(0 -3.24)" fill="none" stroke="#404040" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/>
+  </g>
+</svg>

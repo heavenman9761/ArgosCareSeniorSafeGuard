@@ -11,6 +11,7 @@ import 'package:dio/dio.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import 'package:argoscareseniorsafeguard/utils/device_info.dart';
 import 'package:argoscareseniorsafeguard/models/sensor_event.dart';
@@ -49,6 +50,8 @@ class Constants {
   static const primaryButtonColor = Color(0xFF47B752);
   static const primaryButtonTextColor = Color(0xFFFFFFFF);
   static const secondaryColor = Color(0xFFEBF7EC);
+
+  static const titleFontSize = 20;
 
   static final ButtonStyle elevatedButtonStyle = ElevatedButton.styleFrom(
     foregroundColor: Colors.white60,
@@ -185,6 +188,7 @@ var loggerNoStack = Logger(
 enum ConfigState {
   none,
   findingHub, findingHubError, findingHubPermissionError, findingHubDone, findingHubEmpty,
+  bluetoothNotEnabledError, wifiNotEnabledError,
   settingMqtt, settingMqttError, settingMqttDone,
   settingWifiScan, settingWifiScanError, settingWifiScanDone,
   settingWifi, settingWifiError, settingWifiDone,

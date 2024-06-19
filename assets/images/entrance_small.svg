@@ -1,0 +1,14 @@
+<svg id="구성_요소_67_1" data-name="구성 요소 67 – 1" xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 28 28">
+  <path id="bg" d="M28,14.2a30.717,30.717,0,0,0-.557-6.539A8.338,8.338,0,0,0,20.372.609,33.272,33.272,0,0,0,7.7.609,8.271,8.271,0,0,0,.621,7.641a32.934,32.934,0,0,0,0,12.728,8.187,8.187,0,0,0,6.828,6.953,31.746,31.746,0,0,0,12.669.08c4.584-.907,6.828-3.4,7.512-8A33.7,33.7,0,0,0,28,14.2Z" transform="translate(0 0)" fill="#f3f3ff"/>
+  <g id="그룹_117" data-name="그룹 117" transform="translate(-9267 -5717.727)">
+    <rect id="사각형_310" data-name="사각형 310" width="13" height="18" rx="2" transform="translate(9273 5722.727)" fill="#888cf7"/>
+    <rect id="사각형_311" data-name="사각형 311" width="9" height="3" rx="1" transform="translate(9280 5735.727)" fill="#585dd5"/>
+    <circle id="타원_101" data-name="타원 101" cx="1.091" cy="1.091" r="1.091" transform="translate(9274.818 5725.182)" fill="#f3f3ff"/>
+    <circle id="타원_102" data-name="타원 102" cx="1.091" cy="1.091" r="1.091" transform="translate(9278.454 5725.182)" fill="#f3f3ff"/>
+    <circle id="타원_103" data-name="타원 103" cx="1.091" cy="1.091" r="1.091" transform="translate(9282.091 5725.182)" fill="#f3f3ff"/>
+    <circle id="타원_101-2" data-name="타원 101" cx="1.091" cy="1.091" r="1.091" transform="translate(9274.818 5728.818)" fill="#f3f3ff"/>
+    <circle id="타원_102-2" data-name="타원 102" cx="1.091" cy="1.091" r="1.091" transform="translate(9278.454 5728.818)" fill="#f3f3ff"/>
+    <circle id="타원_103-2" data-name="타원 103" cx="1.091" cy="1.091" r="1.091" transform="translate(9282.091 5728.818)" fill="#f3f3ff"/>
+    <circle id="타원_102-3" data-name="타원 102" cx="1.091" cy="1.091" r="1.091" transform="translate(9278.454 5732.455)" fill="#f3f3ff"/>
+  </g>
+</svg>

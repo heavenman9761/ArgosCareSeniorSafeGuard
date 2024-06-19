@@ -68,6 +68,7 @@ dependencies:
   path_provider: ^2.1.3
   flutter_screenutil: ^5.9.3
   flutter_svg: ^2.0.10+1
+  lottie: ^3.1.2
 
 dev_dependencies:
   flutter_test:
@@ -105,14 +106,33 @@ flutter:
     - assets/images/bottombar_device_select.svg
     - assets/images/bottombar_profile_select.svg
     - assets/images/bottombar_profile_unselect.svg
-    - assets/images/jaesil_known.svg
-    - assets/images/parent_known.svg
+    - assets/images/jaesil_unknown.svg
+    - assets/images/parent_unknown.svg
     - assets/images/register_parent.svg
     - assets/images/hub_small.svg
     - assets/images/entrance.svg
     - assets/images/refrigerator.svg
     - assets/images/toilet.svg
     - assets/images/emergency.svg
+    - assets/images/entrance_small.svg
+    - assets/images/refrigerator_small.svg
+    - assets/images/toilet_small.svg
+    - assets/images/emergency_small.svg
+    - assets/images/button_close.svg
+    - assets/images/hub.png
+    - assets/images/not_find_hub.png
+    - assets/images/done.svg
+    - assets/images/error.svg
+    - assets/images/setting.svg
+    - assets/images/door_sensor.svg
+    - assets/images/motion_sensor.svg
+    - assets/images/delete.svg
+    - assets/images/calendar_small.svg
+    - assets/images/parent_male.png
+    - assets/images/alarm_small.svg
+    - assets/images/rateplan_small.svg
+    - assets/images/share_small.svg
+    - assets/animations/processing.json
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
 

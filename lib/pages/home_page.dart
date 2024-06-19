@@ -17,6 +17,7 @@ import 'package:intl/intl.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import 'package:argoscareseniorsafeguard/mqtt/mqtt.dart';
 import 'package:argoscareseniorsafeguard/providers/providers.dart';
@@ -31,6 +32,7 @@ import 'package:argoscareseniorsafeguard/components/nofify_badge_widget.dart';
 import 'package:argoscareseniorsafeguard/models/hub_infos.dart';
 import 'package:argoscareseniorsafeguard/back_services.dart';
 import 'package:argoscareseniorsafeguard/auth/auth_dio.dart';
+import 'package:argoscareseniorsafeguard/components/notice_widget.dart';
 
 class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key, required this.title, required this.userName, required this.userID, required this.requireLogin});
@@ -772,54 +774,57 @@ class _HomePageState extends ConsumerState<HomePage> {
       }
     });
 
-    return Stack(
-        children: [
-          Container(color: Theme.of(context).colorScheme.primary),
-          Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  Colors.white10,
-                  Colors.white10,
-                  Colors.black12,
-                  Colors.black12,
-                  Colors.black12,
-                  Colors.black12,
-                ],
-              )
-            ),
+    return Scaffold(
+        backgroundColor: Constants.scaffoldBackgroundColor,
+        bottomNavigationBar: Container(
+          decoration: const BoxDecoration(
+            border: Border(top: BorderSide(color: Constants.primaryColor, width: 1.0)), // 라인효과
           ),
-          Scaffold(
-              backgroundColor: Colors.transparent,//Colors.grey[300],
-              appBar: AppBar(
-                //backgroundColor: Colors.white,
-                backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-                title: const Text(Constants.APP_TITLE),
-                centerTitle: true,
-                actions: const [ NotifyBadgeWidget(), ],
-              ),
+          child: BottomNavigationBar(
+              items: <BottomNavigationBarItem>[
+                BottomNavigationBarItem(
+                    icon: SvgPicture.asset('assets/images/bottombar_home_unselect.svg'),
+                    activeIcon: SvgPicture.asset('assets/images/bottombar_home_select.svg'),
+                    label: '홈',
+                    backgroundColor: Constants.scaffoldBackgroundColor
+                ),
+                ref.watch(alarmReceivedProvider)
+                    ? BottomNavigationBarItem(
+                        icon: Badge(label: const Text('0'), child: SvgPicture.asset('assets/images/bottombar_notify_unselect.svg')),
+                        activeIcon: Badge(label: const Text('0'), child: SvgPicture.asset('assets/images/bottombar_notify_select.svg')),
+                        label: '알림',
+                        backgroundColor: Constants.scaffoldBackgroundColor
+                    )
+                    : BottomNavigationBarItem(
+                        icon: SvgPicture.asset('assets/images/bottombar_notify_unselect.svg'),
+                        activeIcon: SvgPicture.asset('assets/images/bottombar_notify_select.svg'),
+                        label: '알림',
+                        backgroundColor: Constants.scaffoldBackgroundColor
+                    ),
+                BottomNavigationBarItem(
+                    icon: SvgPicture.asset('assets/images/bottombar_device_unselect.svg'),
+                    activeIcon: SvgPicture.asset('assets/images/bottombar_device_select.svg'),
+                    label: '내기기',
+                    backgroundColor: Constants.scaffoldBackgroundColor
+                ),
+                BottomNavigationBarItem(
+                    icon: SvgPicture.asset('assets/images/bottombar_profile_unselect.svg'),
+                    activeIcon: SvgPicture.asset('assets/images/bottombar_profile_select.svg'),
+                    label: '프로필',
+                    backgroundColor: Constants.scaffoldBackgroundColor
+                ),
+              ],
+              showSelectedLabels: false,
+              showUnselectedLabels: false,
+              // selectedItemColor: Constants.primaryColor,
+              // unselectedItemColor: Theme.of(context).colorScheme.onPrimaryContainer,
+              // backgroundColor: Theme.of(context).colorScheme.primary,
+              currentIndex: _selectedIndex,
+              onTap: _onItemTapped
+          ),
+        ),
 
-              bottomNavigationBar: BottomNavigationBar(
-                  items: <BottomNavigationBarItem>[
-                    BottomNavigationBarItem(icon: const Icon(Icons.home_outlined), label: '홈', backgroundColor: Theme.of(context).colorScheme.primary),
-                    ref.watch(alarmReceivedProvider)
-                        ? BottomNavigationBarItem(icon: const Badge(label: Text('0'), child: Icon(Icons.notifications_none_outlined), ),label: '알림', backgroundColor: Theme.of(context).colorScheme.primary)
-                        : BottomNavigationBarItem(icon: const Icon(Icons.notifications_none_outlined), label: '알림', backgroundColor: Theme.of(context).colorScheme.primary),
-                    BottomNavigationBarItem(icon: const Icon(Icons.sensors_outlined), label: '내 기기', backgroundColor: Theme.of(context).colorScheme.primary),
-                    BottomNavigationBarItem(icon: const Icon(Icons.account_circle_outlined), label: '프로필', backgroundColor: Theme.of(context).colorScheme.primary),
-                  ],
-                  selectedItemColor: Theme.of(context).colorScheme.onPrimary,
-                  unselectedItemColor: Theme.of(context).colorScheme.onPrimaryContainer,
-                  backgroundColor: Theme.of(context).colorScheme.primary,
-                  currentIndex: _selectedIndex,
-                  onTap: _onItemTapped
-              ),
-
-              body: selectWidget()
-          )
-        ]
+        body: selectWidget()
     );
 
   }
@@ -834,11 +839,14 @@ class _HomePageState extends ConsumerState<HomePage> {
     if (_selectedIndex == 0) {
       return HomeWidget(userName: _userName, userID: _userID);
 
+    } else if (_selectedIndex == 1) {
+      return NoticeWidget(userName: _userName, userID: _userID);
+
     } else if (_selectedIndex == 2) {
-      return MyDeviceWidget(userID: _userID);
+      return MyDeviceWidget(userName: _userName, userID: _userID);
 
     } else if (_selectedIndex == 3) {
-      return ProfileWidget(userID: _userID);
+      return ProfileWidget(userName: _userName, userID: _userID);
 
     } else {
       return HomeWidget(userName: _userName, userID: _userID);

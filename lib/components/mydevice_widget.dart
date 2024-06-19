@@ -1,5 +1,10 @@
+// import 'package:argoscareseniorsafeguard/main.dart';
+import 'package:argoscareseniorsafeguard/pages/add_location_first.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import 'package:argoscareseniorsafeguard/database/db.dart';
 import 'package:argoscareseniorsafeguard/constants.dart';
@@ -12,10 +17,12 @@ import 'package:argoscareseniorsafeguard/models/hub.dart';
 import 'package:argoscareseniorsafeguard/models/sensor.dart';
 import 'package:argoscareseniorsafeguard/models/location_infos.dart';
 import 'package:argoscareseniorsafeguard/components/my_container.dart';
+import 'package:argoscareseniorsafeguard/pages/add_location_first.dart';
 
 class MyDeviceWidget extends ConsumerStatefulWidget {
-  const MyDeviceWidget({super.key, required this.userID});
+  const MyDeviceWidget({super.key, required this.userName, required this.userID});
   final String userID;
+  final String userName;
 
   @override
   ConsumerState<MyDeviceWidget> createState() => _MyDeviceWidgetState();
@@ -77,113 +84,233 @@ class _MyDeviceWidgetState extends ConsumerState<MyDeviceWidget> {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.all(outPadding),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: outPadding,),
-
-            _topCard(context, ref),
-
-            const SizedBox(height: outPadding,),
-
-            Expanded(
-                child: GridView.builder(
-                  padding: const EdgeInsets.all(0),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2, mainAxisSpacing: outPadding, crossAxisSpacing: outPadding),
-                  itemCount: gLocationList.length,
-                  itemBuilder: (BuildContext context, int index) {
-                    return MyContainer(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            _getCards(context, ref, index),
-                          ],
-                        ));
-                  },
-                ))
-            /*Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text("기기 조회",
-                      style: Theme.of(context).textTheme.headlineSmall!.copyWith(color: Theme.of(context).colorScheme.onPrimary, fontWeight: FontWeight.bold)
-                  ),
-                  ElevatedButton(onPressed: () { _action(context, ref); }, style: Constants.elevatedButtonStyle, child: const Text('기기 등록')),
-                ]
-            ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(0.0),
-                child: FutureBuilder<List<Device>>(
-                  future: _getDeviceList(),
-                  builder: (context, snapshot) {
-                    final List<Device>? devices = snapshot.data;
-                    if (snapshot.connectionState != ConnectionState.done) {
-                      return Center(
-                        child: waitWidget(),
-                      );
-                    }
-                    if (snapshot.hasError) {
-                      return Center(
-                        child: Text(snapshot.error.toString()),
-                      );
-                    }
-                    if (snapshot.hasData) {
-                      if (devices != null) {
-                        if (devices.isEmpty) {
-                          return const Center(
-                            child: Text("등록된 센서가 없습니다.\n기기 등록에서 센서를 등록하세요.", textAlign: TextAlign.center),
-                          );
-                        }
-                        return ListView.builder(
-                            itemCount: devices.length,
-                            itemBuilder: (context, index) {
-                              if (devices[index].getDeviceType() == Constants.DEVICE_TYPE_HUB) {
-                                _existHub = true;
-                                return myListTile(context, devices[index]);
-
-                              } else if (devices[index].getDeviceType() == Constants.DEVICE_TYPE_ILLUMINANCE) {
-                                return myListTile(context, devices[index]);
-
-                              } else if (devices[index].getDeviceType() == Constants.DEVICE_TYPE_TEMPERATURE_HUMIDITY) {
-                                return myListTile(context, devices[index]);
-
-                              } else if (devices[index].getDeviceType() == Constants.DEVICE_TYPE_SMOKE) {
-                                return myListTile(context, devices[index]);
-
-                              } else if (devices[index].getDeviceType() == Constants.DEVICE_TYPE_EMERGENCY) {
-                                return myListTile(context, devices[index]);
-
-                              } else if (devices[index].getDeviceType() == Constants.DEVICE_TYPE_MOTION) {
-                                return myListTile(context, devices[index]);
-
-                              } else if (devices[index].getDeviceType() == Constants.DEVICE_TYPE_DOOR) {
-                                return myListTile(context, devices[index]);
-
-                              }
-                              return null;
-                            }
-
-                        );
-
-                      } else {
-                        return Center(
-                          child: waitWidget(),
-                        );
-                      }
-                    } else {
-                      return Center(
-                        child: waitWidget(),
-                      );
-                    }
-                  },
+      child: Scaffold(
+        backgroundColor: Constants.scaffoldBackgroundColor,
+        body: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              Container(
+                // color: Colors.blueAccent,
+                height: 52.h,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Text(AppLocalizations.of(context)!.app_title, style: TextStyle(fontSize: 16.sp, color: Colors.black, fontWeight: FontWeight.bold), ),
+                  ],
                 ),
               ),
-            ),*/
-          ]
-        )
+              SizedBox(
+                // color: Colors.blueAccent,
+                height: 76.h,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Text("내 기기", style: TextStyle(fontSize: 20.sp, color: Colors.black, fontWeight: FontWeight.bold), ),
+                      const Spacer(),
+                      SizedBox(
+                        width: 24.w,
+                        height: 24.h,
+                        // color: Colors.redAccent,
+                        child: IconButton(
+                          constraints: BoxConstraints(maxHeight: 48.h, maxWidth: 48.w),
+                          padding: EdgeInsets.zero,
+                          color: Constants.primaryColor,
+                          icon: const Icon(Icons.add),
+                          onPressed: () {
+                            debugPrint('icon press');
+                          },
+                        ),
+                      )
+
+                    ],
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
+                child: Container( //허브 정보
+                  // color: Colors.blueAccent,
+                    height: 120.h,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(10),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.withOpacity(0.1),
+                          spreadRadius: 1,
+                          blurRadius: 10,
+                          offset: const Offset(0, 3), // changes position of shadow
+                        ),
+                      ],
+                    ),
+                    child: Padding(
+                      padding: EdgeInsets.all(16.0.h),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                              children: [
+                                Image.asset('assets/images/hub.png', width: 28.w, height: 28.h,),
+                                SizedBox(width: 8.w,),
+                                Text("허브", style: TextStyle(fontSize: 16.sp, color: Colors.black, fontWeight: FontWeight.bold), ),
+                                const Spacer(),
+                                SizedBox(
+                                  width: 24.w,
+                                  height: 24.h,
+                                  // color: Colors.redAccent,
+                                  child: IconButton(
+                                    constraints: BoxConstraints(maxHeight: 48.h, maxWidth: 48.w),
+                                    padding: EdgeInsets.zero,
+                                    color: Constants.primaryColor,
+                                    icon: SvgPicture.asset('assets/images/setting.svg', width: 24.w, height: 24.h),
+                                    onPressed: () {
+                                      debugPrint('icon press');
+                                    },
+                                  ),
+                                )
+                              ]
+                          ),
+                          const Divider(color: Color(0xFFDAF1DC),),
+                          Expanded(
+                              child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  children: [
+                                    gHubList.isEmpty
+                                    ? Text("허브가 설치되지 않았습니다.", style: TextStyle(fontSize: 14.sp, color: Constants.dividerColor, fontWeight: FontWeight.bold), )
+                                    : Text('설치일자: ${gHubList[0].getCreatedAt()}', style: TextStyle(fontSize: 14.sp, color: Constants.dividerColor, fontWeight: FontWeight.bold), ),
+                                  ]
+                              )
+                          )
+                        ],
+                      ),
+                    )
+                ),
+              ),
+              // SizedBox(height: 8.h,),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+                child: SizedBox(
+                  // color: Colors.redAccent,
+                  height: 370.h,
+                  child: ListView.builder(
+                      itemCount: 4,
+                      itemBuilder: (BuildContext context, int index) {
+                        return _sensorInfo(context, index);
+                      }),
+                ),
+              )
+            ]
+        ),
       )
+    );
+  }
+
+  Widget _sensorInfo(BuildContext context, int index) {
+    late SvgPicture picture;
+    late String title;
+    late Color color;
+    double _height = 0.0;
+    if (index == 0) {
+      picture = SvgPicture.asset('assets/images/entrance_small.svg', width: 28.w, height: 28.h,);
+      color = Constants.dividerColor;
+      title = AppLocalizations.of(context)!.location_entrance;
+      _height = 152.h;
+    } else if (index == 1) {
+      picture = SvgPicture.asset('assets/images/refrigerator_small.svg', width: 28.w, height: 28.h,);
+      color = const Color(0xFFF7B63A);
+      title = AppLocalizations.of(context)!.location_refrigerator;
+      _height = 120.h;
+    } else if (index == 2) {
+      picture = SvgPicture.asset('assets/images/toilet_small.svg', width: 28.w, height: 28.h,);
+      color = Constants.dividerColor;
+      title = AppLocalizations.of(context)!.location_toilet;
+      _height = 120.h;
+    } else if (index == 3) {
+      color = Constants.dividerColor;
+      picture = SvgPicture.asset('assets/images/emergency_small.svg', width: 28.w, height: 28.h,);
+      title = AppLocalizations.of(context)!.location_emergency;
+      _height = 120.h;
+    }
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(0, 0, 0, 16),
+      child: Container( //허브 정보
+        // color: Colors.blueAccent,
+          height: _height,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: Constants.borderColor),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.1),
+                spreadRadius: 1,
+                blurRadius: 10,
+                offset: const Offset(0, 3), // changes position of shadow
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(height: 16.h,),
+              Row(
+                  children: [
+                    SizedBox(width: 16.w,),
+                    picture,
+                    SizedBox(width: 8.w,),
+                    Text(title, style: TextStyle(fontSize: 16.sp, color: Colors.black, fontWeight: FontWeight.bold), ),
+                    const Spacer(),
+                    SizedBox(
+                      width: 24.w,
+                      height: 24.h,
+                      // color: Colors.redAccent,
+                      child: IconButton(
+                        constraints: BoxConstraints(maxHeight: 48.h, maxWidth: 48.w),
+                        padding: EdgeInsets.zero,
+                        color: Constants.primaryColor,
+                        icon: SvgPicture.asset('assets/images/setting.svg', width: 24.w, height: 24.h),
+                        onPressed: () {
+                          Navigator.push(context, MaterialPageRoute(builder: (context) {
+                            return AddLocationFirst(userName: widget.userName, userID: widget.userID);
+                          }));
+                        },
+                      ),
+                    ),
+                    SizedBox(width: 16.w,),
+                  ]
+              ),
+              SizedBox(height: 4.h,),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  SizedBox(width: 16.h,),
+                  const Expanded(
+                    child: Divider(color: Color(0xFFDAF1DC), thickness: 1),
+                  ),
+                  SizedBox(width: 16.h,),
+                ],
+              ),
+              Expanded(
+                  child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        SizedBox(width: 16.w,),
+                        Text("센서가 설치되지 않았습니다.", style: TextStyle(fontSize: 14.sp, color: Constants.dividerColor, fontWeight: FontWeight.bold), ),
+                      ]
+                  )
+              )
+            ],
+          )
+      ),
     );
   }
 
