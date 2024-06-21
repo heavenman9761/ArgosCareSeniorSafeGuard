@@ -18,8 +18,8 @@ import 'package:argoscareseniorsafeguard/components/my_button.dart';
 import 'package:argoscareseniorsafeguard/providers/providers.dart';
 import 'package:argoscareseniorsafeguard/models/accesspoint.dart';
 import 'package:argoscareseniorsafeguard/mqtt/mqtt.dart';
-import 'package:argoscareseniorsafeguard/components/custom_password_dialog.dart';
-import 'package:argoscareseniorsafeguard/components/custom_wifilist_dialog.dart';
+import 'package:argoscareseniorsafeguard/dialogs/custom_password_dialog.dart';
+import 'package:argoscareseniorsafeguard/dialogs/custom_wifilist_dialog.dart';
 
 class PairingHub extends ConsumerStatefulWidget {
   const PairingHub({super.key});
@@ -196,7 +196,7 @@ class _PairingHubState extends ConsumerState<PairingHub> {
             color: Constants.borderColor,
             width: 1
         ),
-        color: Constants.scaffoldBackgroundColor,
+        color: Colors.white, //Constants.scaffoldBackgroundColor,
         borderRadius: BorderRadius.circular(10),
         boxShadow: [
           BoxShadow(
@@ -328,29 +328,29 @@ class _PairingHubState extends ConsumerState<PairingHub> {
               }
             });
           } else {
-            if (ref.watch(findHubStateProvider) == ConfigState.bluetoothNotEnabledError
-              || ref.watch(findHubStateProvider) == ConfigState.wifiNotEnabledError) {
+            if (ref.watch(findHubStateProvider) == FindHubState.bluetoothNotEnabledError
+              || ref.watch(findHubStateProvider) == FindHubState.wifiNotEnabledError) {
 
             } else {
-              ref.read(findHubStateProvider.notifier).doChangeState(ConfigState.findingHubEmpty);
+              ref.read(findHubStateProvider.notifier).doChangeState(FindHubState.findingHubEmpty);
             }
           }
         });
       } else {
-        ref.read(findHubStateProvider.notifier).doChangeState(ConfigState.findingHubPermissionError);
+        ref.read(findHubStateProvider.notifier).doChangeState(FindHubState.findingHubPermissionError);
       }
     });
   }
 
   Widget _getSheetCloseButton(WidgetRef ref) {
     bool view = false;
-    if (ref.watch(findHubStateProvider) == ConfigState.findingHub
-        || ref.watch(findHubStateProvider) == ConfigState.settingMqtt
-        || ref.watch(findHubStateProvider) == ConfigState.settingMqttDone
-        || ref.watch(findHubStateProvider) == ConfigState.settingWifiScan
-        || ref.watch(findHubStateProvider) == ConfigState.settingWifiScanDone
-        || ref.watch(findHubStateProvider) == ConfigState.settingWifi
-        || ref.watch(findHubStateProvider) == ConfigState.settingWifiDone) {
+    if (ref.watch(findHubStateProvider) == FindHubState.findingHub
+        || ref.watch(findHubStateProvider) == FindHubState.settingMqtt
+        || ref.watch(findHubStateProvider) == FindHubState.settingMqttDone
+        || ref.watch(findHubStateProvider) == FindHubState.settingWifiScan
+        || ref.watch(findHubStateProvider) == FindHubState.settingWifiScanDone
+        || ref.watch(findHubStateProvider) == FindHubState.settingWifi
+        || ref.watch(findHubStateProvider) == FindHubState.settingWifiDone) {
       view = false;
     } else {
       view = true;
@@ -378,25 +378,25 @@ class _PairingHubState extends ConsumerState<PairingHub> {
 
   Widget _getSheetTitle(WidgetRef ref) {
     late String title;
-    if (ref.watch(findHubStateProvider) == ConfigState.findingHub
-        || ref.watch(findHubStateProvider) == ConfigState.settingMqtt
-        || ref.watch(findHubStateProvider) == ConfigState.settingMqttDone
-        || ref.watch(findHubStateProvider) == ConfigState.settingWifiScan
-        || ref.watch(findHubStateProvider) == ConfigState.settingWifiScanDone
-        || ref.watch(findHubStateProvider) == ConfigState.settingWifi
-        || ref.watch(findHubStateProvider) == ConfigState.settingWifiDone) {
+    if (ref.watch(findHubStateProvider) == FindHubState.findingHub
+        || ref.watch(findHubStateProvider) == FindHubState.settingMqtt
+        || ref.watch(findHubStateProvider) == FindHubState.settingMqttDone
+        || ref.watch(findHubStateProvider) == FindHubState.settingWifiScan
+        || ref.watch(findHubStateProvider) == FindHubState.settingWifiScanDone
+        || ref.watch(findHubStateProvider) == FindHubState.settingWifi
+        || ref.watch(findHubStateProvider) == FindHubState.settingWifiDone) {
       title = AppLocalizations.of(context)!.paring_hub_sheet_title_search;
-    } else if (ref.watch(findHubStateProvider) == ConfigState.findingHubEmpty
-        || ref.watch(findHubStateProvider) == ConfigState.findingHubDone) {
+    } else if (ref.watch(findHubStateProvider) == FindHubState.findingHubEmpty
+        || ref.watch(findHubStateProvider) == FindHubState.findingHubDone) {
       title = AppLocalizations.of(context)!.paring_hub_sheet_title_result;
-    } else if (ref.watch(findHubStateProvider) == ConfigState.findingHubPermissionError) {
+    } else if (ref.watch(findHubStateProvider) == FindHubState.findingHubPermissionError) {
       title = AppLocalizations.of(context)!.paring_hub_sheet_title_permission_error;
-    } else if (ref.watch(findHubStateProvider) == ConfigState.findingHubError
-        || ref.watch(findHubStateProvider) == ConfigState.settingMqttError
-        || ref.watch(findHubStateProvider) == ConfigState.settingWifiScanError
-        || ref.watch(findHubStateProvider) == ConfigState.settingWifiError
-        || ref.watch(findHubStateProvider) == ConfigState.bluetoothNotEnabledError
-        || ref.watch(findHubStateProvider) == ConfigState.wifiNotEnabledError) {
+    } else if (ref.watch(findHubStateProvider) == FindHubState.findingHubError
+        || ref.watch(findHubStateProvider) == FindHubState.settingMqttError
+        || ref.watch(findHubStateProvider) == FindHubState.settingWifiScanError
+        || ref.watch(findHubStateProvider) == FindHubState.settingWifiError
+        || ref.watch(findHubStateProvider) == FindHubState.bluetoothNotEnabledError
+        || ref.watch(findHubStateProvider) == FindHubState.wifiNotEnabledError) {
       title = AppLocalizations.of(context)!.paring_hub_sheet_title_error;
     } else {
       title = '';
@@ -411,42 +411,42 @@ class _PairingHubState extends ConsumerState<PairingHub> {
 
   Widget _getSheetMessage(WidgetRef ref) {
     late String message;
-    if (ref.watch(findHubStateProvider) == ConfigState.findingHub) {
+    if (ref.watch(findHubStateProvider) == FindHubState.findingHub) {
       message = AppLocalizations.of(context)!.paring_hub_searching;
 
-    } else if (ref.watch(findHubStateProvider) == ConfigState.findingHubEmpty) {
+    } else if (ref.watch(findHubStateProvider) == FindHubState.findingHubEmpty) {
       message = AppLocalizations.of(context)!.paring_hub_searching_not_find;
 
-    } else if (ref.watch(findHubStateProvider) == ConfigState.findingHubPermissionError) {
+    } else if (ref.watch(findHubStateProvider) == FindHubState.findingHubPermissionError) {
       message = AppLocalizations.of(context)!.paring_hub_searching_allow_permission;
 
-    } else if (ref.watch(findHubStateProvider) == ConfigState.findingHubError
-        || ref.watch(findHubStateProvider) == ConfigState.settingMqttError
-        || ref.watch(findHubStateProvider) == ConfigState.settingWifiScanError
-        || ref.watch(findHubStateProvider) == ConfigState.settingWifiError) {
+    } else if (ref.watch(findHubStateProvider) == FindHubState.findingHubError
+        || ref.watch(findHubStateProvider) == FindHubState.settingMqttError
+        || ref.watch(findHubStateProvider) == FindHubState.settingWifiScanError
+        || ref.watch(findHubStateProvider) == FindHubState.settingWifiError) {
       message = AppLocalizations.of(context)!.paring_hub_searching_error;
 
-    } else if (ref.watch(findHubStateProvider) == ConfigState.bluetoothNotEnabledError) {
+    } else if (ref.watch(findHubStateProvider) == FindHubState.bluetoothNotEnabledError) {
       message = AppLocalizations.of(context)!.paring_hub_searching_bluetooth_not_enabled_error;
 
-    } else if (ref.watch(findHubStateProvider) == ConfigState.wifiNotEnabledError) {
+    } else if (ref.watch(findHubStateProvider) == FindHubState.wifiNotEnabledError) {
       message = AppLocalizations.of(context)!.paring_hub_searching_wifi_not_enabled_error;
 
-    } else if (ref.watch(findHubStateProvider) == ConfigState.findingHubDone) {
+    } else if (ref.watch(findHubStateProvider) == FindHubState.findingHubDone) {
       message = AppLocalizations.of(context)!.paring_hub_searching_found;
 
-    } else if (ref.watch(findHubStateProvider) == ConfigState.settingMqtt) {
+    } else if (ref.watch(findHubStateProvider) == FindHubState.settingMqtt) {
       message = AppLocalizations.of(context)!.paring_hub_searching_setting;
 
-    } else if (ref.watch(findHubStateProvider) == ConfigState.settingMqttDone) {
+    } else if (ref.watch(findHubStateProvider) == FindHubState.settingMqttDone) {
       message = AppLocalizations.of(context)!.paring_hub_searching_setting_done;
 
-    } else if (ref.watch(findHubStateProvider) == ConfigState.settingWifiScan
-        || ref.watch(findHubStateProvider) == ConfigState.settingWifiScanDone
-        || ref.watch(findHubStateProvider) == ConfigState.settingWifi) {
+    } else if (ref.watch(findHubStateProvider) == FindHubState.settingWifiScan
+        || ref.watch(findHubStateProvider) == FindHubState.settingWifiScanDone
+        || ref.watch(findHubStateProvider) == FindHubState.settingWifi) {
       message = AppLocalizations.of(context)!.paring_hub_searching_setting_wifi;
 
-    } else if (ref.watch(findHubStateProvider) == ConfigState.settingWifiDone) {
+    } else if (ref.watch(findHubStateProvider) == FindHubState.settingWifiDone) {
       message = AppLocalizations.of(context)!.paring_hub_searching_done;
 
     } else {
@@ -461,23 +461,23 @@ class _PairingHubState extends ConsumerState<PairingHub> {
   }
 
   Widget _getSheetImage(WidgetRef ref) {
-    if (ref.watch(findHubStateProvider) == ConfigState.findingHub
-        || ref.watch(findHubStateProvider) == ConfigState.settingMqtt
-        || ref.watch(findHubStateProvider) == ConfigState.settingMqttDone
-        || ref.watch(findHubStateProvider) == ConfigState.settingWifiScan
-        || ref.watch(findHubStateProvider) == ConfigState.settingWifiScanDone
-        || ref.watch(findHubStateProvider) == ConfigState.settingWifi) {
+    if (ref.watch(findHubStateProvider) == FindHubState.findingHub
+        || ref.watch(findHubStateProvider) == FindHubState.settingMqtt
+        || ref.watch(findHubStateProvider) == FindHubState.settingMqttDone
+        || ref.watch(findHubStateProvider) == FindHubState.settingWifiScan
+        || ref.watch(findHubStateProvider) == FindHubState.settingWifiScanDone
+        || ref.watch(findHubStateProvider) == FindHubState.settingWifi) {
       return Lottie.asset('assets/animations/processing.json', width: 100.w, height: 80.h);
 
-    } else if (ref.watch(findHubStateProvider) == ConfigState.findingHubPermissionError
-        || ref.watch(findHubStateProvider) == ConfigState.findingHubError
-        || ref.watch(findHubStateProvider) == ConfigState.findingHubError
-        || ref.watch(findHubStateProvider) == ConfigState.settingMqttError
-        || ref.watch(findHubStateProvider) == ConfigState.settingWifiScanError
-        || ref.watch(findHubStateProvider) == ConfigState.settingWifiError
-        || ref.watch(findHubStateProvider) == ConfigState.bluetoothNotEnabledError
-        || ref.watch(findHubStateProvider) == ConfigState.wifiNotEnabledError
-        || ref.watch(findHubStateProvider) == ConfigState.findingHubEmpty) {
+    } else if (ref.watch(findHubStateProvider) == FindHubState.findingHubPermissionError
+        || ref.watch(findHubStateProvider) == FindHubState.findingHubError
+        || ref.watch(findHubStateProvider) == FindHubState.findingHubError
+        || ref.watch(findHubStateProvider) == FindHubState.settingMqttError
+        || ref.watch(findHubStateProvider) == FindHubState.settingWifiScanError
+        || ref.watch(findHubStateProvider) == FindHubState.settingWifiError
+        || ref.watch(findHubStateProvider) == FindHubState.bluetoothNotEnabledError
+        || ref.watch(findHubStateProvider) == FindHubState.wifiNotEnabledError
+        || ref.watch(findHubStateProvider) == FindHubState.findingHubEmpty) {
       return SizedBox(
           width: 96.w,
           height: 76.h,
@@ -505,8 +505,8 @@ class _PairingHubState extends ConsumerState<PairingHub> {
             ],
           )
       );
-    } else if (ref.watch(findHubStateProvider) == ConfigState.findingHubDone
-        || ref.watch(findHubStateProvider) == ConfigState.settingWifiDone) {
+    } else if (ref.watch(findHubStateProvider) == FindHubState.findingHubDone
+        || ref.watch(findHubStateProvider) == FindHubState.settingWifiDone) {
       return SizedBox(
           width: 96.w,
           height: 76.h,
@@ -540,15 +540,15 @@ class _PairingHubState extends ConsumerState<PairingHub> {
   }
 
   Widget _getSheetRetryButton(WidgetRef ref) {
-    if (ref.watch(findHubStateProvider) == ConfigState.findingHubEmpty
-        || ref.watch(findHubStateProvider) == ConfigState.findingHubPermissionError
-        || ref.watch(findHubStateProvider) == ConfigState.findingHubError
-        || ref.watch(findHubStateProvider) == ConfigState.findingHubError
-        || ref.watch(findHubStateProvider) == ConfigState.settingMqttError
-        || ref.watch(findHubStateProvider) == ConfigState.settingWifiScanError
-        || ref.watch(findHubStateProvider) == ConfigState.bluetoothNotEnabledError
-        || ref.watch(findHubStateProvider) == ConfigState.wifiNotEnabledError
-        || ref.watch(findHubStateProvider) == ConfigState.settingWifiError) {
+    if (ref.watch(findHubStateProvider) == FindHubState.findingHubEmpty
+        || ref.watch(findHubStateProvider) == FindHubState.findingHubPermissionError
+        || ref.watch(findHubStateProvider) == FindHubState.findingHubError
+        || ref.watch(findHubStateProvider) == FindHubState.findingHubError
+        || ref.watch(findHubStateProvider) == FindHubState.settingMqttError
+        || ref.watch(findHubStateProvider) == FindHubState.settingWifiScanError
+        || ref.watch(findHubStateProvider) == FindHubState.bluetoothNotEnabledError
+        || ref.watch(findHubStateProvider) == FindHubState.wifiNotEnabledError
+        || ref.watch(findHubStateProvider) == FindHubState.settingWifiError) {
       return Padding(
         padding: EdgeInsets.all(20.h),
         child: MyButton(
@@ -592,23 +592,23 @@ class _PairingHubState extends ConsumerState<PairingHub> {
 
   Future<List<String>> _findHub() async {
     try {
-      ref.read(findHubStateProvider.notifier).doChangeState(ConfigState.findingHub);
+      ref.read(findHubStateProvider.notifier).doChangeState(FindHubState.findingHub);
 
       final Iterable result = await Constants.platform.invokeMethod('findEsp32');
 
-      ref.read(findHubStateProvider.notifier).doChangeState(ConfigState.findingHubDone);
+      ref.read(findHubStateProvider.notifier).doChangeState(FindHubState.findingHubDone);
       return result.cast<String>().toList();
       print(result);
     } on PlatformException catch (e) {
       logger.e(e.message);
       if (e.message == "Bluetooth is disabled.") {
-        ref.read(findHubStateProvider.notifier).doChangeState(ConfigState.bluetoothNotEnabledError);
+        ref.read(findHubStateProvider.notifier).doChangeState(FindHubState.bluetoothNotEnabledError);
 
       } else if (e.message == "Wifi manager is disabled.") {
-        ref.read(findHubStateProvider.notifier).doChangeState(ConfigState.wifiNotEnabledError);
+        ref.read(findHubStateProvider.notifier).doChangeState(FindHubState.wifiNotEnabledError);
 
       } else {
-        ref.read(findHubStateProvider.notifier).doChangeState(ConfigState.findingHubError);
+        ref.read(findHubStateProvider.notifier).doChangeState(FindHubState.findingHubError);
       }
 
 
@@ -618,7 +618,7 @@ class _PairingHubState extends ConsumerState<PairingHub> {
 
   Future<String> _settingHub(String hubName) async {
     try {
-      ref.read(findHubStateProvider.notifier).doChangeState(ConfigState.settingMqtt);
+      ref.read(findHubStateProvider.notifier).doChangeState(FindHubState.settingMqtt);
 
       const storage = FlutterSecureStorage(
         iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock),
@@ -638,12 +638,12 @@ class _PairingHubState extends ConsumerState<PairingHub> {
 
       debugPrint('received from java [hubID]: $result');
 
-      ref.read(findHubStateProvider.notifier).doChangeState(ConfigState.settingMqttDone);
+      ref.read(findHubStateProvider.notifier).doChangeState(FindHubState.settingMqttDone);
 
       return result;
     } on PlatformException catch (e) {
       debugPrint(e.message);
-      ref.read(findHubStateProvider.notifier).doChangeState(ConfigState.settingMqttError);
+      ref.read(findHubStateProvider.notifier).doChangeState(FindHubState.settingMqttError);
       return '';
     }
   }
@@ -652,7 +652,7 @@ class _PairingHubState extends ConsumerState<PairingHub> {
     String strApList;
 
     try {
-      ref.read(findHubStateProvider.notifier).doChangeState(ConfigState.settingWifiScan);
+      ref.read(findHubStateProvider.notifier).doChangeState(FindHubState.settingWifiScan);
 
       final result = await Constants.platform.invokeMethod('_wifiProvision');
       strApList = result.toString();
@@ -665,11 +665,11 @@ class _PairingHubState extends ConsumerState<PairingHub> {
         accessPoints.add(ap);
       }
 
-      ref.read(findHubStateProvider.notifier).doChangeState(ConfigState.settingWifiScanDone);
+      ref.read(findHubStateProvider.notifier).doChangeState(FindHubState.settingWifiScanDone);
 
       return accessPoints.isNotEmpty ? true : false;
     } on PlatformException catch (e) {
-      ref.read(findHubStateProvider.notifier).doChangeState(ConfigState.settingWifiScanError);
+      ref.read(findHubStateProvider.notifier).doChangeState(FindHubState.settingWifiScanError);
 
       logger.e(e.message);
 
@@ -679,7 +679,7 @@ class _PairingHubState extends ConsumerState<PairingHub> {
 
   Future<void> _setWifiConfig() async {
     try {
-      ref.read(findHubStateProvider.notifier).doChangeState(ConfigState.settingWifi);
+      ref.read(findHubStateProvider.notifier).doChangeState(FindHubState.settingWifi);
 
       logger.i("_setWifiConfig() $wifiPassword ${selectedAp.toString()}");
 
@@ -691,7 +691,7 @@ class _PairingHubState extends ConsumerState<PairingHub> {
 
       logger.i('received from java: $result');
 
-      ref.read(findHubStateProvider.notifier).doChangeState(ConfigState.settingWifiDone);
+      ref.read(findHubStateProvider.notifier).doChangeState(FindHubState.settingWifiDone);
       ref
           .read(resultTopicProvider.notifier)
           .state = 'result/$_hubID';
@@ -705,7 +705,7 @@ class _PairingHubState extends ConsumerState<PairingHub> {
       }
     } on PlatformException catch (e) {
       logger.e(e.message);
-      ref.read(findHubStateProvider.notifier).doChangeState(ConfigState.settingWifiError);
+      ref.read(findHubStateProvider.notifier).doChangeState(FindHubState.settingWifiError);
     }
   }
 

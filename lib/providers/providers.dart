@@ -16,16 +16,28 @@ final mqttCurrentStateProvider = StateNotifierProvider<MqttConnectionStateNotifi
   return MqttConnectionStateNotifier();
 });
 
-class FindHubStateNotifier extends StateNotifier<ConfigState> {
-  FindHubStateNotifier(): super(ConfigState.none);
+class FindHubStateNotifier extends StateNotifier<FindHubState> {
+  FindHubStateNotifier(): super(FindHubState.none);
 
-  void doChangeState(ConfigState findHubState) {
+  void doChangeState(FindHubState findHubState) {
     state = findHubState;
   }
 }
 
-final findHubStateProvider = StateNotifierProvider<FindHubStateNotifier, ConfigState>((ref) {
+final findHubStateProvider = StateNotifierProvider<FindHubStateNotifier, FindHubState>((ref) {
   return FindHubStateNotifier();
+});
+
+class FindSensorStateNotifier extends StateNotifier<FindSensorState> {
+  FindSensorStateNotifier(): super(FindSensorState.none);
+
+  void doChangeState(FindSensorState findSensorState) {
+    state = findSensorState;
+  }
+}
+
+final findSensorStateProvider = StateNotifierProvider<FindSensorStateNotifier, FindSensorState>((ref) {
+  return FindSensorStateNotifier();
 });
 
 
@@ -41,33 +53,6 @@ class CurrentLocationNotifier extends StateNotifier<LocationInfo?> {
 final currentLocationProvider = StateNotifierProvider<CurrentLocationNotifier, LocationInfo?>((ref) {
   return CurrentLocationNotifier();
 });
-
-//--------- Sensor 찾을때 사용하는 Provider ---------------------------------------------------
-/*class FindSensorNotifier extends StateNotifier<List<SensorInfo>> {
-  FindSensorNotifier() : super([]);
-
-  void changeData(SensorInfo sensor) {
-    state = [...state, sensor];
-  }
-}
-
-final StateNotifierProvider<FindSensorNotifier, List<SensorInfo>> findSensorProvider =
-  StateNotifierProvider((ref) => FindSensorNotifier());*/
-
-
-/*class SensorList extends StateNotifier<List<SensorInfo>> {
-  SensorList() : super([]);
-
-  static final provider = StateNotifierProvider<SensorList, List<SensorInfo>>((ref) => SensorList());
-
-  late SensorInfo _current;
-  SensorInfo get current => _current;
-
-  void addItem(SensorInfo item) {
-    _current = item;
-    state = [...state, item];
-  }
-}*/
 
 //-------------------------------------------------------------------------------------------
 

@@ -58,16 +58,16 @@ class _AddSensorPage1State extends ConsumerState<AddSensorPage1> {
 
   @override
   Widget build(BuildContext context) {
-    ref.listen(findHubStateProvider, (previous, next) {
-      logger.i('current state: ${ref.watch(findHubStateProvider)}');
-      if (ref.watch(findHubStateProvider) == ConfigState.findingSensor) {
+    ref.listen(findSensorStateProvider, (previous, next) {
+      logger.i('current state: ${ref.watch(findSensorStateProvider)}');
+      if (ref.watch(findSensorStateProvider) == FindSensorState.findingSensor) {
         _showFindSensorModalSheet();
 
-      } else if (ref.watch(findHubStateProvider) == ConfigState.findingSensorDone) {
+      } else if (ref.watch(findSensorStateProvider) == FindSensorState.findingSensorDone) {
         _stopTimer();
         Navigator.pop(context);
 
-      } else if (ref.watch(findHubStateProvider) == ConfigState.findingSensorError) {
+      } else if (ref.watch(findSensorStateProvider) == FindSensorState.findingSensorEmpty) {
         Navigator.pop(context);
 
       }
@@ -473,7 +473,7 @@ class _AddSensorPage1State extends ConsumerState<AddSensorPage1> {
           _failureDialog(context, "장소명 입력", "장소명이 잘못되었습니다.");
         }
       }
-      ref.read(findHubStateProvider.notifier).doChangeState(ConfigState.findingSensor);
+      ref.read(findSensorStateProvider.notifier).doChangeState(FindSensorState.findingSensor);
       mqttSendCommand(MqttCommand.mcParing, widget.deviceID);
 
       _startTimer();
@@ -594,7 +594,7 @@ class _AddSensorPage1State extends ConsumerState<AddSensorPage1> {
   void _startTimer() {
     _isRunning = true;
     _timer = Timer.periodic(const Duration(seconds: 60), (timer) {
-      ref.read(findHubStateProvider.notifier).doChangeState(ConfigState.findingSensorError);
+      ref.read(findSensorStateProvider.notifier).doChangeState(FindSensorState.findingSensorEmpty);
     });
   }
 

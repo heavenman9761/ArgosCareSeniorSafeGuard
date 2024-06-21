@@ -69,6 +69,7 @@ dependencies:
   flutter_screenutil: ^5.9.3
   flutter_svg: ^2.0.10+1
   lottie: ^3.1.2
+  table_calendar: ^3.1.2
 
 dev_dependencies:
   flutter_test:
@@ -132,6 +133,11 @@ flutter:
     - assets/images/alarm_small.svg
     - assets/images/rateplan_small.svg
     - assets/images/share_small.svg
+    - assets/images/install_date_small.svg
+    - assets/images/sensor_info_small.svg
+    - assets/images/add_sensor.svg
+    - assets/images/textfield_delete.svg
+    - assets/images/alarm_small_green.svg
     - assets/animations/processing.json
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware

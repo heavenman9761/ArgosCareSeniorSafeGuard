@@ -17,6 +17,7 @@ import 'package:argoscareseniorsafeguard/constants.dart';
 import 'package:argoscareseniorsafeguard/models/hub_infos.dart';
 import 'package:argoscareseniorsafeguard/models/sensor_infos.dart';
 import 'package:argoscareseniorsafeguard/pages/pairing_hub.dart';
+import 'package:argoscareseniorsafeguard/pages/home/report.dart';
 
 class HomeWidget extends ConsumerWidget {
   const HomeWidget({super.key, required this.userName, required this.userID});
@@ -365,7 +366,7 @@ class HomeWidget extends ConsumerWidget {
                     ),
             ),
           ),
-          Positioned(
+          /*Positioned(
             top: 380.h,
             left: 20.w,
             right: 20.w,
@@ -399,8 +400,8 @@ class HomeWidget extends ConsumerWidget {
                 ),
               ),
             ),
-          )
-          /*Positioned( //장소별 알림 영역
+          )*/
+          Positioned( //장소별 알림 영역
             top: 380.h,
             left: 20.w,
             right: 20.w,
@@ -414,32 +415,39 @@ class HomeWidget extends ConsumerWidget {
                   gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2, mainAxisSpacing: 20.w, crossAxisSpacing: 20.h),
                   itemCount: 4,
                   itemBuilder: (BuildContext context, int index) {
-                    return Container(
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                            color: Constants.borderColor,
-                            width: 1
-                        ),
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(10),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey.withOpacity(0.1),
-                            spreadRadius: 1,
-                            blurRadius: 5,
-                            offset: const Offset(0, 1), // changes position of shadow
+                    return InkWell(
+                      onTap: () { Navigator.push(context,
+                          MaterialPageRoute(builder: (context) {
+                            return Report(locationIndex: index);
+                          }));
+                      },
+                      child: Container(
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                              color: Constants.borderColor,
+                              width: 1
                           ),
-                        ],
-                      ),
-                      child: Padding(
-                          padding: EdgeInsets.all(10.0.h),
-                          child: _locationInfo(context, index)
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(10),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey.withOpacity(0.1),
+                              spreadRadius: 1,
+                              blurRadius: 5,
+                              offset: const Offset(0, 1), // changes position of shadow
+                            ),
+                          ],
+                        ),
+                        child: Padding(
+                            padding: EdgeInsets.all(10.0.h),
+                            child: _locationInfo(context, index)
+                        ),
                       ),
                     );
                   },
                 )
             ),
-          )*/
+          )
         ],
       )
     );

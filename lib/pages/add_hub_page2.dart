@@ -47,7 +47,7 @@ class _AddHubPage2State extends ConsumerState<AddHubPage2> {
   void initState() {
     super.initState();
 
-    ref.read(findHubStateProvider.notifier).doChangeState(ConfigState.none);
+    ref.read(findHubStateProvider.notifier).doChangeState(FindHubState.none);
     _pairingHub(context);
   }
 
@@ -86,11 +86,11 @@ class _AddHubPage2State extends ConsumerState<AddHubPage2> {
               }
             });
           } else {
-            ref.read(findHubStateProvider.notifier).doChangeState(ConfigState.findingHubEmpty);
+            ref.read(findHubStateProvider.notifier).doChangeState(FindHubState.findingHubEmpty);
           }
         });
       } else {
-          ref.read(findHubStateProvider.notifier).doChangeState(ConfigState.findingHubPermissionError);
+          ref.read(findHubStateProvider.notifier).doChangeState(FindHubState.findingHubPermissionError);
       }
     });
   }
@@ -135,18 +135,18 @@ class _AddHubPage2State extends ConsumerState<AddHubPage2> {
 
   Future<List<String>> _findHub() async {
     try {
-      ref.read(findHubStateProvider.notifier).doChangeState(ConfigState.findingHub);
+      ref.read(findHubStateProvider.notifier).doChangeState(FindHubState.findingHub);
 
       final Iterable result =
           await Constants.platform.invokeMethod('findEsp32');
 
-      ref.read(findHubStateProvider.notifier).doChangeState(ConfigState.findingHubDone);
+      ref.read(findHubStateProvider.notifier).doChangeState(FindHubState.findingHubDone);
 
       return result.cast<String>().toList();
 
     } on PlatformException catch (e) {
       logger.e(e);
-      ref.read(findHubStateProvider.notifier).doChangeState(ConfigState.findingHubError);
+      ref.read(findHubStateProvider.notifier).doChangeState(FindHubState.findingHubError);
 
       return [];
     }
@@ -154,7 +154,7 @@ class _AddHubPage2State extends ConsumerState<AddHubPage2> {
 
   Future<String> _settingHub(String hubName) async {
     try {
-      ref.read(findHubStateProvider.notifier).doChangeState(ConfigState.settingMqtt);
+      ref.read(findHubStateProvider.notifier).doChangeState(FindHubState.settingMqtt);
 
       const storage = FlutterSecureStorage(
         iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock),
@@ -174,12 +174,12 @@ class _AddHubPage2State extends ConsumerState<AddHubPage2> {
 
       debugPrint('received from java [hubID]: $result');
 
-      ref.read(findHubStateProvider.notifier).doChangeState(ConfigState.settingMqttDone);
+      ref.read(findHubStateProvider.notifier).doChangeState(FindHubState.settingMqttDone);
 
       return result;
     } on PlatformException catch (e) {
       debugPrint(e.message);
-      ref.read(findHubStateProvider.notifier).doChangeState(ConfigState.settingMqttError);
+      ref.read(findHubStateProvider.notifier).doChangeState(FindHubState.settingMqttError);
       return '';
 
     }
@@ -189,7 +189,7 @@ class _AddHubPage2State extends ConsumerState<AddHubPage2> {
     String strApList;
 
     try {
-      ref.read(findHubStateProvider.notifier).doChangeState(ConfigState.settingWifiScan);
+      ref.read(findHubStateProvider.notifier).doChangeState(FindHubState.settingWifiScan);
 
       final result = await Constants.platform.invokeMethod('_wifiProvision');
       strApList = result.toString();
@@ -202,12 +202,12 @@ class _AddHubPage2State extends ConsumerState<AddHubPage2> {
         accessPoints.add(ap);
       }
 
-      ref.read(findHubStateProvider.notifier).doChangeState(ConfigState.settingWifiScanDone);
+      ref.read(findHubStateProvider.notifier).doChangeState(FindHubState.settingWifiScanDone);
 
       return accessPoints.isNotEmpty ? true : false;
     } on PlatformException catch (e) {
       setState(() {
-        ref.read(findHubStateProvider.notifier).doChangeState(ConfigState.settingWifiScanError);
+        ref.read(findHubStateProvider.notifier).doChangeState(FindHubState.settingWifiScanError);
       });
 
       logger.e(e.message);
@@ -218,7 +218,7 @@ class _AddHubPage2State extends ConsumerState<AddHubPage2> {
 
   Future<void> _setWifiConfig() async {
     try {
-      ref.read(findHubStateProvider.notifier).doChangeState(ConfigState.settingWifi);
+      ref.read(findHubStateProvider.notifier).doChangeState(FindHubState.settingWifi);
 
       logger.i("_setWifiConfig() $wifiPassword ${selectedAp.toString()}");
 
@@ -230,7 +230,7 @@ class _AddHubPage2State extends ConsumerState<AddHubPage2> {
 
       logger.i('received from java: $result');
 
-      ref.read(findHubStateProvider.notifier).doChangeState(ConfigState.settingWifiDone);
+      ref.read(findHubStateProvider.notifier).doChangeState(FindHubState.settingWifiDone);
       ref.read(resultTopicProvider.notifier).state = 'result/$_hubID';
       ref.read(requestTopicProvider.notifier).state = 'request/$_hubID';
 
@@ -241,7 +241,7 @@ class _AddHubPage2State extends ConsumerState<AddHubPage2> {
 
     } on PlatformException catch (e) {
       logger.e(e.message);
-      ref.read(findHubStateProvider.notifier).doChangeState(ConfigState.settingWifiError);
+      ref.read(findHubStateProvider.notifier).doChangeState(FindHubState.settingWifiError);
     }
   }
 
@@ -282,37 +282,37 @@ class _AddHubPage2State extends ConsumerState<AddHubPage2> {
   }
 
   Widget controlUI() {
-    if (ref.watch(findHubStateProvider) == ConfigState.findingHub) {
+    if (ref.watch(findHubStateProvider) == FindHubState.findingHub) {
       return processWidget("허브를 찾고 있습니다.");
 
-    } else if (ref.watch(findHubStateProvider) == ConfigState.findingHubEmpty) {
+    } else if (ref.watch(findHubStateProvider) == FindHubState.findingHubEmpty) {
       return retryWidget("허브를 찾을 수 없습니다.\n다시 시도해보시기 바랍니다.");
 
-    } else if (ref.watch(findHubStateProvider) == ConfigState.findingHubPermissionError) {
+    } else if (ref.watch(findHubStateProvider) == FindHubState.findingHubPermissionError) {
       return retryWidget("사용 권한을 허용하시고\n다시 시도해보시기 바랍니다.");
 
-    } else if (ref.watch(findHubStateProvider) == ConfigState.findingHubError
-        || ref.watch(findHubStateProvider) == ConfigState.findingHubError
-        || ref.watch(findHubStateProvider) == ConfigState.settingMqttError
-        || ref.watch(findHubStateProvider) == ConfigState.settingWifiScanError
-        || ref.watch(findHubStateProvider) == ConfigState.settingWifiError) {
+    } else if (ref.watch(findHubStateProvider) == FindHubState.findingHubError
+        || ref.watch(findHubStateProvider) == FindHubState.findingHubError
+        || ref.watch(findHubStateProvider) == FindHubState.settingMqttError
+        || ref.watch(findHubStateProvider) == FindHubState.settingWifiScanError
+        || ref.watch(findHubStateProvider) == FindHubState.settingWifiError) {
       return retryWidget("오류가 발생 했습니다.\n다시 시도해보시기 바랍니다.");
 
-    } else if (ref.watch(findHubStateProvider) == ConfigState.findingHubDone) {
+    } else if (ref.watch(findHubStateProvider) == FindHubState.findingHubDone) {
       return processWidget('허브를 찾았습니다.');
 
-    } else if (ref.watch(findHubStateProvider) == ConfigState.settingMqtt) {
+    } else if (ref.watch(findHubStateProvider) == FindHubState.settingMqtt) {
       return processWidget('서버 셋팅을 하고 있습니다.');
 
-    } else if (ref.watch(findHubStateProvider) == ConfigState.settingMqttDone) {
+    } else if (ref.watch(findHubStateProvider) == FindHubState.settingMqttDone) {
       return processWidget('서버 셋팅이 완료되었습니다.');
 
-    } else if (ref.watch(findHubStateProvider) == ConfigState.settingWifiScan
-              || ref.watch(findHubStateProvider) == ConfigState.settingWifiScanDone
-              || ref.watch(findHubStateProvider) == ConfigState.settingWifi) {
+    } else if (ref.watch(findHubStateProvider) == FindHubState.settingWifiScan
+              || ref.watch(findHubStateProvider) == FindHubState.settingWifiScanDone
+              || ref.watch(findHubStateProvider) == FindHubState.settingWifi) {
       return processWidget('WIFI 설정 중입니다.');
 
-    } else if (ref.watch(findHubStateProvider) == ConfigState.settingWifiDone) {
+    } else if (ref.watch(findHubStateProvider) == FindHubState.settingWifiDone) {
       return lastWidget();
 
     } else {

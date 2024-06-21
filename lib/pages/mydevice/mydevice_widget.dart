@@ -1,5 +1,4 @@
 // import 'package:argoscareseniorsafeguard/main.dart';
-import 'package:argoscareseniorsafeguard/pages/add_location_first.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -17,7 +16,8 @@ import 'package:argoscareseniorsafeguard/models/hub.dart';
 import 'package:argoscareseniorsafeguard/models/sensor.dart';
 import 'package:argoscareseniorsafeguard/models/location_infos.dart';
 import 'package:argoscareseniorsafeguard/components/my_container.dart';
-import 'package:argoscareseniorsafeguard/pages/add_location_first.dart';
+import 'package:argoscareseniorsafeguard/pages/mydevice/add_sensor_first.dart';
+import 'package:argoscareseniorsafeguard/pages/mydevice/add_location_new.dart';
 
 class MyDeviceWidget extends ConsumerStatefulWidget {
   const MyDeviceWidget({super.key, required this.userName, required this.userID});
@@ -121,7 +121,12 @@ class _MyDeviceWidgetState extends ConsumerState<MyDeviceWidget> {
                           color: Constants.primaryColor,
                           icon: const Icon(Icons.add),
                           onPressed: () {
-                            debugPrint('icon press');
+                            Navigator.push(context, MaterialPageRoute(builder: (context) {
+                              return AddLocationNew(userName: widget.userName, userID: widget.userID);
+
+                            })).then((onValue) => setState(() {
+
+                            }));
                           },
                         ),
                       )
@@ -199,7 +204,7 @@ class _MyDeviceWidgetState extends ConsumerState<MyDeviceWidget> {
                   // color: Colors.redAccent,
                   height: 370.h,
                   child: ListView.builder(
-                      itemCount: 4,
+                      itemCount: gLocationList.length,
                       itemBuilder: (BuildContext context, int index) {
                         return _sensorInfo(context, index);
                       }),
@@ -214,34 +219,39 @@ class _MyDeviceWidgetState extends ConsumerState<MyDeviceWidget> {
   Widget _sensorInfo(BuildContext context, int index) {
     late SvgPicture picture;
     late String title;
-    late Color color;
-    double _height = 0.0;
-    if (index == 0) {
+    double height = 0.0;
+
+    if (gLocationList[index].type == "entrance") { //현관
       picture = SvgPicture.asset('assets/images/entrance_small.svg', width: 28.w, height: 28.h,);
-      color = Constants.dividerColor;
       title = AppLocalizations.of(context)!.location_entrance;
-      _height = 152.h;
-    } else if (index == 1) {
+      height = 152.h;
+
+    } else if (gLocationList[index].type == "refrigerator") { //냉장고
       picture = SvgPicture.asset('assets/images/refrigerator_small.svg', width: 28.w, height: 28.h,);
-      color = const Color(0xFFF7B63A);
       title = AppLocalizations.of(context)!.location_refrigerator;
-      _height = 120.h;
-    } else if (index == 2) {
+      height = 120.h;
+
+    } else if (gLocationList[index].type == "toilet") { //화장실
       picture = SvgPicture.asset('assets/images/toilet_small.svg', width: 28.w, height: 28.h,);
-      color = Constants.dividerColor;
       title = AppLocalizations.of(context)!.location_toilet;
-      _height = 120.h;
-    } else if (index == 3) {
-      color = Constants.dividerColor;
+      height = 120.h;
+
+    } else if (gLocationList[index].type == "emergency") { //SOS
       picture = SvgPicture.asset('assets/images/emergency_small.svg', width: 28.w, height: 28.h,);
       title = AppLocalizations.of(context)!.location_emergency;
-      _height = 120.h;
+      height = 120.h;
+
+    } else if (gLocationList[index].type == "customer") { //사용자 추가 장소
+      picture = SvgPicture.asset('assets/images/entrance_small.svg', width: 28.w, height: 28.h,);
+      title = gLocationList[index].getName()!;
+      height = 120.h;
     }
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(0, 0, 0, 16),
       child: Container( //허브 정보
         // color: Colors.blueAccent,
-          height: _height,
+          height: height,
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(10),
@@ -277,8 +287,11 @@ class _MyDeviceWidgetState extends ConsumerState<MyDeviceWidget> {
                         color: Constants.primaryColor,
                         icon: SvgPicture.asset('assets/images/setting.svg', width: 24.w, height: 24.h),
                         onPressed: () {
+                          ref.read(currentLocationProvider.notifier).doChangeState(gLocationList[index]);
+                          ref.read(findSensorStateProvider.notifier).doChangeState(FindSensorState.none);
+
                           Navigator.push(context, MaterialPageRoute(builder: (context) {
-                            return AddLocationFirst(userName: widget.userName, userID: widget.userID);
+                            return AddSensorFirst(userName: widget.userName, userID: widget.userID, hubID: gHubList[0].getHubID()!,);
                           }));
                         },
                       ),
@@ -399,7 +412,7 @@ class _MyDeviceWidgetState extends ConsumerState<MyDeviceWidget> {
   }
 
   void _goAddHubPage(BuildContext context, WidgetRef ref) {
-    ref.read(findHubStateProvider.notifier).doChangeState(ConfigState.none);
+    ref.read(findHubStateProvider.notifier).doChangeState(FindHubState.none);
     Navigator.push(context, MaterialPageRoute(builder: (context) {
       return const AddHubPage1();
     })).then((value) {
@@ -489,7 +502,7 @@ class _MyDeviceWidgetState extends ConsumerState<MyDeviceWidget> {
 
   void _goAddSensePage(BuildContext context, WidgetRef ref, LocationInfo? location) {
     ref.read(currentLocationProvider.notifier).doChangeState(location!);
-    ref.read(findHubStateProvider.notifier).doChangeState(ConfigState.none);
+    ref.read(findHubStateProvider.notifier).doChangeState(FindHubState.none);
 
     Navigator.push(context, MaterialPageRoute(builder: (context) {
       return AddSensorPage1(deviceID: gHubList[0].getHubID()!, userID: widget.userID,);

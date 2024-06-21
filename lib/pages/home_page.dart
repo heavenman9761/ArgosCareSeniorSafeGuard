@@ -25,14 +25,14 @@ import 'package:argoscareseniorsafeguard/pages/add_hub_page1.dart';
 import 'package:argoscareseniorsafeguard/pages/add_sensor_page1.dart';
 import 'package:argoscareseniorsafeguard/constants.dart';
 import 'package:argoscareseniorsafeguard/database/db.dart';
-import 'package:argoscareseniorsafeguard/components/home_widget.dart';
-import 'package:argoscareseniorsafeguard/components/mydevice_widget.dart';
-import 'package:argoscareseniorsafeguard/components/profile_widget.dart';
+import 'package:argoscareseniorsafeguard/pages/home/home_widget.dart';
+import 'package:argoscareseniorsafeguard/pages/mydevice/mydevice_widget.dart';
+import 'package:argoscareseniorsafeguard/pages/profile/profile_widget.dart';
 import 'package:argoscareseniorsafeguard/components/nofify_badge_widget.dart';
 import 'package:argoscareseniorsafeguard/models/hub_infos.dart';
 import 'package:argoscareseniorsafeguard/back_services.dart';
 import 'package:argoscareseniorsafeguard/auth/auth_dio.dart';
-import 'package:argoscareseniorsafeguard/components/notice_widget.dart';
+import 'package:argoscareseniorsafeguard/pages/notice/notice_widget.dart';
 
 class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key, required this.title, required this.userName, required this.userID, required this.requireLogin});
@@ -238,13 +238,13 @@ class _HomePageState extends ConsumerState<HomePage> {
 
   void _addDevice() async {
     /*if (_deviceList.isEmpty) {
-      ref.read(findHubStateProvider.notifier).doChangeState(ConfigState.none);
+      ref.read(findHubStateProvider.notifier).doChangeState(FindHubState.none);
       Navigator.push(context, MaterialPageRoute(builder: (context) {
         return const AddHubPage1();
       }));
     } else {
       String? deviceID = _deviceList[0].getDeviceID();
-      ref.read(findHubStateProvider.notifier).doChangeState(ConfigState.none);
+      ref.read(findHubStateProvider.notifier).doChangeState(FindHubState.none);
       Navigator.push(context, MaterialPageRoute(builder: (context) {
         return AddSensorPage1(deviceID: deviceID!);
       }));
@@ -518,9 +518,6 @@ class _HomePageState extends ConsumerState<HomePage> {
     //gCurrentLocation.sensors?.add(sensor);
     ref.watch(currentLocationProvider)!.sensors!.add(sensor);
 
-    // ref.watch(SensorList.provider.notifier).addItem(sensor);
-    ref.read(findHubStateProvider.notifier).doChangeState(ConfigState.findingSensorDone);
-
     if (sensor.getLocationID() != '') {
       final res = await dio.put(
         "/devices/setLocation",
@@ -537,6 +534,8 @@ class _HomePageState extends ConsumerState<HomePage> {
         ref.watch(currentLocationProvider)!.setDetectedMotionSensorCount(res.data['detectedMotionSensorCount']);
       }
     }
+
+    ref.read(findSensorStateProvider.notifier).doChangeState(FindSensorState.findingSensorDone);
 
 
     // Get the current item
@@ -707,7 +706,7 @@ class _HomePageState extends ConsumerState<HomePage> {
 
       if (mqttMsg['event'] == 'boot' && mqttMsg['reason'] == 'power reconnect' && mqttMsg['state'] == 'power_on') {
         //paring 명령후 허브에서 가끔씩 재부팅이 된다. 허브 오류인 듯.
-        if (ref.watch(findHubStateProvider) == ConfigState.findingSensor) {
+        if (ref.watch(findSensorStateProvider) == FindSensorState.findingSensor) {
           // final topic = ref.watch(commandTopicProvider);
           mqttSendCommand(MqttCommand.mcParing, mqttMsg['deviceID']);
         }

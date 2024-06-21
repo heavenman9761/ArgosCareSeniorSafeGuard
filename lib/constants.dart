@@ -96,20 +96,20 @@ void saveUserInfo(var loginResponse) async {
     }
 
     gLocationList.add(
-        LocationInfo(
-            id: l['id'],
-            name: l['name'],
-            userID: l['userID'],
-            type: l['type'],
-            displaySunBun: l['displaySunBun'],
-            requireMotionSensorCount: l['requireMotionSensorCount'],
-            detectedMotionSensorCount: l['detectedMotionSensorCount'],
-            requireDoorSensorCount: l['requireDoorSensorCount'],
-            detectedDoorSensorCount: l['detectedDoorSensorCount'],
-            createdAt: l['createdAt'],
-            updatedAt: l['updatedAt'],
-            sensors: sl
-        )
+      LocationInfo(
+        id: l['id'],
+        name: l['name'],
+        userID: l['userID'],
+        type: l['type'],
+        displaySunBun: l['displaySunBun'],
+        requireMotionSensorCount: l['requireMotionSensorCount'],
+        detectedMotionSensorCount: l['detectedMotionSensorCount'],
+        requireDoorSensorCount: l['requireDoorSensorCount'],
+        detectedDoorSensorCount: l['detectedDoorSensorCount'],
+        createdAt: l['createdAt'],
+        updatedAt: l['updatedAt'],
+        sensors: sl
+      )
     );
   }
 
@@ -185,15 +185,17 @@ var loggerNoStack = Logger(
   printer: PrettyPrinter(methodCount: 0),
 );
 
-enum ConfigState {
+enum FindHubState {
   none,
   findingHub, findingHubError, findingHubPermissionError, findingHubDone, findingHubEmpty,
   bluetoothNotEnabledError, wifiNotEnabledError,
   settingMqtt, settingMqttError, settingMqttDone,
   settingWifiScan, settingWifiScanError, settingWifiScanDone,
   settingWifi, settingWifiError, settingWifiDone,
+}
 
-  findingSensor, findingSensorError, findingSensorDone
+enum FindSensorState {
+  none, findingSensor, findingSensorEmpty, findingSensorDone
 }
 
 double deviceCardHeight = 40;
