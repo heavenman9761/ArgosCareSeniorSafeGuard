@@ -32,7 +32,6 @@ class AddSensorFirst extends ConsumerStatefulWidget {
 
 class _AddSensorFirstState extends ConsumerState<AddSensorFirst> {
   TextEditingController controller = TextEditingController();
-  String _locationName = '';
 
   @override
   void initState() {
@@ -47,7 +46,6 @@ class _AddSensorFirstState extends ConsumerState<AddSensorFirst> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // controller.text = gLocationList[widget.locationIndex].getName()!;
     controller.text = ref.watch(currentLocationProvider)!.getName()!;
   }
 
@@ -64,7 +62,7 @@ class _AddSensorFirstState extends ConsumerState<AddSensorFirst> {
               // color: Colors.blueAccent,
               height: 52.h,
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
+                padding: EdgeInsets.fromLTRB(20.w, 0, 20.w, 0),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.start,
                   crossAxisAlignment: CrossAxisAlignment.center,
@@ -91,7 +89,7 @@ class _AddSensorFirstState extends ConsumerState<AddSensorFirst> {
               // color: Colors.blueAccent,
               height: 76.h,
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
+                padding: EdgeInsets.fromLTRB(20.w, 0, 20.w, 0),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.start,
                   crossAxisAlignment: CrossAxisAlignment.center,
@@ -105,7 +103,7 @@ class _AddSensorFirstState extends ConsumerState<AddSensorFirst> {
               // color: Colors.redAccent,
                 height: 40.h,
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
+                  padding: EdgeInsets.fromLTRB(20.w, 0, 20.w, 0),
                   child: Row(
                     children: [
                       Text("장소명", style: TextStyle(fontSize: 12.sp, color: const Color(0xFF404040)), ),
@@ -144,7 +142,7 @@ class _AddSensorFirstState extends ConsumerState<AddSensorFirst> {
               // color: Colors.redAccent,
                 height: 40.h,
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
+                  padding: EdgeInsets.fromLTRB(20.w, 0, 20.w, 0),
                   child: Row(
                     children: [
                       Text("센서정보", style: TextStyle(fontSize: 12.sp, color: const Color(0xFF404040)), ),
@@ -172,6 +170,10 @@ class _AddSensorFirstState extends ConsumerState<AddSensorFirst> {
         onTap: () {
           Navigator.push(context, MaterialPageRoute(builder: (context) {
             return AddSensorSecond(userName: widget.userName, userID: widget.userID, hubID: widget.hubID);
+          })).then((onValue) => setState(() {
+            setState(() {
+
+            });
           }));
         },
       ),
@@ -179,15 +181,14 @@ class _AddSensorFirstState extends ConsumerState<AddSensorFirst> {
   }
 
   Widget _getButton() {
-
     LocationInfo locationInfo = ref.watch(currentLocationProvider)!;
-
+    print(locationInfo);
     if (locationInfo.getType()! == 'emergency' || locationInfo.getType()! == 'customer') {
       return _addSensorBtn();
 
     } else {
       if (locationInfo.getRequireDoorSensorCount()! > locationInfo.getDetectedDoorSensorCount()! ||
-          locationInfo.getRequireDoorSensorCount()! > locationInfo.getDetectedDoorSensorCount()!) {
+          locationInfo.getRequireMotionSensorCount()! > locationInfo.getDetectedMotionSensorCount()!) {
         return _addSensorBtn();
 
       } else {  //센서 추가 비활성화
@@ -255,7 +256,7 @@ class _AddSensorFirstState extends ConsumerState<AddSensorFirst> {
           child: Column(
             children: [
               Padding(
-                padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
+                padding: EdgeInsets.fromLTRB(20.w, 0, 20.w, 0),
                 child: Container(
                   height: 120.h,
                   decoration: BoxDecoration(
@@ -272,7 +273,7 @@ class _AddSensorFirstState extends ConsumerState<AddSensorFirst> {
                             children: [
                               Icon(Icons.sensor_door_outlined, size: 16.w,),
                               SizedBox(width: 5.w),
-                              Text("문열림센서", style: TextStyle(fontSize: 12.sp, color: const Color(0xFF0F0F0F), )),
+                              Text("문열림 센서", style: TextStyle(fontSize: 12.sp, color: const Color(0xFF0F0F0F), )),
                             ]
                         ),
 
@@ -287,7 +288,7 @@ class _AddSensorFirstState extends ConsumerState<AddSensorFirst> {
                                 mainAxisAlignment: MainAxisAlignment.end,
                                 children: [
                                   existDoorSensor
-                                      ? Text(doorSensor.getCreatedAt()!, style: TextStyle(fontSize: 12.sp, color: const Color(0xFF0F0F0F), ))
+                                      ? Text(doorSensor.getCreatedAt()!.substring(0, 16), style: TextStyle(fontSize: 12.sp, color: const Color(0xFF0F0F0F), ))
                                       : Text("설치되지 않음", style: TextStyle(fontSize: 12.sp, color: const Color(0xFF0F0F0F), ))
                                 ]
                             )
@@ -304,11 +305,11 @@ class _AddSensorFirstState extends ConsumerState<AddSensorFirst> {
                                 mainAxisAlignment: MainAxisAlignment.end,
                                 children: [
                                   existDoorSensor
-                                    ? Text(doorSensor.getCreatedAt()!, style: TextStyle(fontSize: 12.sp, color: const Color(0xFF0F0F0F), ))
+                                    ? Text(doorSensor.getSensorID()!, style: TextStyle(fontSize: 12.sp, color: const Color(0xFF0F0F0F), ))
                                     : Text("설치되지 않음", style: TextStyle(fontSize: 12.sp, color: const Color(0xFF0F0F0F), )),
                                   existDoorSensor ? SizedBox(width: 5.w) : const SizedBox(),
                                   existDoorSensor
-                                    ?  Container(
+                                    ?  SizedBox(
                                         // color: Colors.redAccent,
                                         width: 16.w, height: 16.h,
                                         child: IconButton(
@@ -335,7 +336,7 @@ class _AddSensorFirstState extends ConsumerState<AddSensorFirst> {
               SizedBox(height: 16.h,),
 
               Padding(
-                padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
+                padding: EdgeInsets.fromLTRB(20.w, 0, 20.w, 0),
                 child: Container(
                   height: 120.h,
                   decoration: BoxDecoration(
@@ -352,7 +353,7 @@ class _AddSensorFirstState extends ConsumerState<AddSensorFirst> {
                             children: [
                               Icon(Icons.sensor_door_outlined, size: 16.w,),
                               SizedBox(width: 5.w),
-                              Text("움직임센서", style: TextStyle(fontSize: 12.sp, color: const Color(0xFF0F0F0F), )),
+                              Text("움직임 센서", style: TextStyle(fontSize: 12.sp, color: const Color(0xFF0F0F0F), )),
                             ]
                         ),
 
@@ -367,7 +368,7 @@ class _AddSensorFirstState extends ConsumerState<AddSensorFirst> {
                                 mainAxisAlignment: MainAxisAlignment.end,
                                 children: [
                                   existMotionSensor
-                                    ? Text(motionSensor.getCreatedAt()!, style: TextStyle(fontSize: 12.sp, color: const Color(0xFF0F0F0F), ))
+                                    ? Text(motionSensor.getCreatedAt()!.substring(0, 16), style: TextStyle(fontSize: 12.sp, color: const Color(0xFF0F0F0F), ))
                                     : Text("설치되지 않음", style: TextStyle(fontSize: 12.sp, color: const Color(0xFF0F0F0F), ))
                                 ]
                             )
@@ -384,7 +385,7 @@ class _AddSensorFirstState extends ConsumerState<AddSensorFirst> {
                                 mainAxisAlignment: MainAxisAlignment.end,
                                 children: [
                                   existMotionSensor
-                                    ? Text(motionSensor.getID()!, style: TextStyle(fontSize: 12.sp, color: const Color(0xFF0F0F0F), ))
+                                    ? Text(motionSensor.getSensorID()!, style: TextStyle(fontSize: 12.sp, color: const Color(0xFF0F0F0F), overflow: TextOverflow.ellipsis, ))
                                     : Text("설치되지 않음", style: TextStyle(fontSize: 12.sp, color: const Color(0xFF0F0F0F), )),
                                   existMotionSensor ? SizedBox(width: 5.w) : const SizedBox(),
                                   existMotionSensor
@@ -437,7 +438,7 @@ class _AddSensorFirstState extends ConsumerState<AddSensorFirst> {
           child: Column(
             children: [
               Padding(
-                padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
+                padding: EdgeInsets.fromLTRB(20.w, 0, 20.w, 0),
                 child: Container(
                   height: 120.h,
                   decoration: BoxDecoration(
@@ -454,7 +455,7 @@ class _AddSensorFirstState extends ConsumerState<AddSensorFirst> {
                             children: [
                               Icon(Icons.sensor_door_outlined, size: 16.w,),
                               SizedBox(width: 5.w),
-                              Text("문열림센서", style: TextStyle(fontSize: 12.sp, color: const Color(0xFF0F0F0F), )),
+                              Text("문열림 센서", style: TextStyle(fontSize: 12.sp, color: const Color(0xFF0F0F0F), )),
                             ]
                         ),
 
@@ -469,7 +470,7 @@ class _AddSensorFirstState extends ConsumerState<AddSensorFirst> {
                                 mainAxisAlignment: MainAxisAlignment.end,
                                 children: [
                                   existDoorSensor
-                                      ? Text(doorSensor.getCreatedAt()!, style: TextStyle(fontSize: 12.sp, color: const Color(0xFF0F0F0F), ))
+                                      ? Text(doorSensor.getCreatedAt()!.substring(0, 16), style: TextStyle(fontSize: 12.sp, color: const Color(0xFF0F0F0F), ))
                                       : Text("설치되지 않음", style: TextStyle(fontSize: 12.sp, color: const Color(0xFF0F0F0F), ))
                                 ]
                             )
@@ -486,7 +487,7 @@ class _AddSensorFirstState extends ConsumerState<AddSensorFirst> {
                                 mainAxisAlignment: MainAxisAlignment.end,
                                 children: [
                                   existDoorSensor
-                                      ? Text(doorSensor.getCreatedAt()!, style: TextStyle(fontSize: 12.sp, color: const Color(0xFF0F0F0F), ))
+                                      ? Text(doorSensor.getSensorID()!, style: TextStyle(fontSize: 12.sp, color: const Color(0xFF0F0F0F), ))
                                       : Text("설치되지 않음", style: TextStyle(fontSize: 12.sp, color: const Color(0xFF0F0F0F), )),
                                   existDoorSensor ? SizedBox(width: 5.w) : const SizedBox(),
                                   existDoorSensor
@@ -521,15 +522,15 @@ class _AddSensorFirstState extends ConsumerState<AddSensorFirst> {
   }
 
   Widget _getToiletSensorsInfo() {
-    late SensorInfo doorSensor;
+    late SensorInfo motionSensor;
     List<SensorInfo> sensorList = ref.watch(currentLocationProvider)!.getSensors()!;
 
-    bool existDoorSensor = false;
+    bool existMotionSensor = false;
 
     for (var s in sensorList) {
-      if (s.getDeviceType() == "door_sensor") { //emergency_button
-        doorSensor = s;
-        existDoorSensor = true;
+      if (s.getDeviceType() == "motion_sensor") { //emergency_button
+        motionSensor = s;
+        existMotionSensor = true;
       }
     }
 
@@ -539,7 +540,7 @@ class _AddSensorFirstState extends ConsumerState<AddSensorFirst> {
           child: Column(
             children: [
               Padding(
-                padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
+                padding: EdgeInsets.fromLTRB(20.w, 0, 20.w, 0),
                 child: Container(
                   height: 120.h,
                   decoration: BoxDecoration(
@@ -556,7 +557,7 @@ class _AddSensorFirstState extends ConsumerState<AddSensorFirst> {
                             children: [
                               Icon(Icons.sensor_door_outlined, size: 16.w,),
                               SizedBox(width: 5.w),
-                              Text("문열림센서", style: TextStyle(fontSize: 12.sp, color: const Color(0xFF0F0F0F), )),
+                              Text("움직임 센서", style: TextStyle(fontSize: 12.sp, color: const Color(0xFF0F0F0F), )),
                             ]
                         ),
 
@@ -570,8 +571,8 @@ class _AddSensorFirstState extends ConsumerState<AddSensorFirst> {
                             Row(
                                 mainAxisAlignment: MainAxisAlignment.end,
                                 children: [
-                                  existDoorSensor
-                                      ? Text(doorSensor.getCreatedAt()!, style: TextStyle(fontSize: 12.sp, color: const Color(0xFF0F0F0F), ))
+                                  existMotionSensor
+                                      ? Text(motionSensor.getCreatedAt()!.substring(0, 16), style: TextStyle(fontSize: 12.sp, color: const Color(0xFF0F0F0F), ))
                                       : Text("설치되지 않음", style: TextStyle(fontSize: 12.sp, color: const Color(0xFF0F0F0F), ))
                                 ]
                             )
@@ -587,24 +588,24 @@ class _AddSensorFirstState extends ConsumerState<AddSensorFirst> {
                             Row(
                                 mainAxisAlignment: MainAxisAlignment.end,
                                 children: [
-                                  existDoorSensor
-                                      ? Text(doorSensor.getCreatedAt()!, style: TextStyle(fontSize: 12.sp, color: const Color(0xFF0F0F0F), ))
+                                  existMotionSensor
+                                      ? Text(motionSensor.getSensorID()!, style: TextStyle(fontSize: 12.sp, color: const Color(0xFF0F0F0F), ))
                                       : Text("설치되지 않음", style: TextStyle(fontSize: 12.sp, color: const Color(0xFF0F0F0F), )),
-                                  existDoorSensor ? SizedBox(width: 5.w) : const SizedBox(),
-                                  existDoorSensor
-                                      ?  Container(
-                                    // color: Colors.redAccent,
-                                    width: 16.w, height: 16.h,
-                                    child: IconButton(
-                                      constraints: const BoxConstraints(maxHeight: 16, maxWidth: 16),
-                                      splashRadius: 16,
-                                      padding: EdgeInsets.zero,
-                                      icon: Icon(Icons.copy, size: 16.w,),
-                                      onPressed: () {
-                                        debugPrint('icon press');
-                                      },
-                                    ),
-                                  )
+                                  existMotionSensor ? SizedBox(width: 5.w) : const SizedBox(),
+                                  existMotionSensor
+                                      ?  SizedBox(
+                                            // color: Colors.redAccent,
+                                            width: 16.w, height: 16.h,
+                                            child: IconButton(
+                                              constraints: const BoxConstraints(maxHeight: 16, maxWidth: 16),
+                                              splashRadius: 16,
+                                              padding: EdgeInsets.zero,
+                                              icon: Icon(Icons.copy, size: 16.w,),
+                                              onPressed: () {
+                                                debugPrint('icon press');
+                                              },
+                                            ),
+                                          )
                                       : const SizedBox()
                                 ]
                             )
@@ -640,79 +641,87 @@ class _AddSensorFirstState extends ConsumerState<AddSensorFirst> {
             child: Column(
               children: [
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
-                  child:ListView.builder(
-                    itemCount: sosSensors.length,
-                    itemBuilder: (ctx, index) {
-                      return Container(
-                        height: 120.h,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF5F5F5),
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: Constants.borderColor),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Row(
-                                  children: [
-                                    Icon(Icons.sensor_door_outlined, size: 16.w,),
-                                    SizedBox(width: 5.w),
-                                    Text("문열림센서", style: TextStyle(fontSize: 12.sp, color: const Color(0xFF0F0F0F), )),
-                                  ]
-                              ),
-
-                              const Divider(),
-                              Row(
-                                children: [
-                                  SvgPicture.asset("assets/images/install_date_small.svg", width: 16.w, height: 16.h),
-                                  SizedBox(width: 5.w,),
-                                  Text("설치일자", style: TextStyle(fontSize: 12.sp, color: const Color(0xFF0F0F0F), )),
-                                  const Spacer(),
-                                  Row(
-                                      mainAxisAlignment: MainAxisAlignment.end,
-                                      children: [
-                                        Text(sosSensors[index].getCreatedAt()!, style: TextStyle(fontSize: 12.sp, color: const Color(0xFF0F0F0F), ))
-                                      ]
-                                  )
-                                ],
-                              ),
-                              SizedBox(height: 10.h,),
-                              Row(
-                                children: [
-                                  SvgPicture.asset("assets/images/sensor_info_small.svg", width: 16.w, height: 16.h),
-                                  SizedBox(width: 5.w,),
-                                  Text("ID", style: TextStyle(fontSize: 12.sp, color: const Color(0xFF0F0F0F), )),
-                                  const Spacer(),
-                                  Row(
-                                      mainAxisAlignment: MainAxisAlignment.end,
-                                      children: [
-                                        Text(sosSensors[index].getCreatedAt()!, style: TextStyle(fontSize: 12.sp, color: const Color(0xFF0F0F0F), )),
-                                        SizedBox(width: 5.w),
-                                        Container(
-                                          // color: Colors.redAccent,
-                                          width: 16.w, height: 16.h,
-                                          child: IconButton(
-                                            constraints: const BoxConstraints(maxHeight: 16, maxWidth: 16),
-                                            splashRadius: 16,
-                                            padding: EdgeInsets.zero,
-                                            icon: Icon(Icons.copy, size: 16.w,),
-                                            onPressed: () {
-                                              debugPrint('icon press');
-                                            },
-                                          ),
-                                        )
-                                      ]
-                                  )
-                                ],
-                              ),
-                            ],
+                  padding: EdgeInsets.fromLTRB(20.w, 0, 20.w, 0),
+                  child: Container(
+                    height: 350.h,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF5F5F5),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: Constants.borderColor),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        children: [
+                          Row(
+                              children: [
+                                Icon(Icons.sensor_door_outlined, size: 16.w,),
+                                SizedBox(width: 5.w),
+                                Text("SOS 센서", style: TextStyle(fontSize: 12.sp, color: const Color(0xFF0F0F0F), )),
+                              ]
                           ),
-                        ),
-                      );
-                    }
+
+                          const Divider(),
+
+                          Container(
+                            height: 260.h,
+                            child: ListView.builder(
+                              itemCount: sosSensors.length,
+                              itemBuilder: (ctx, index) {
+                                return Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        SvgPicture.asset("assets/images/install_date_small.svg", width: 16.w, height: 16.h),
+                                        SizedBox(width: 5.w,),
+                                        Text("설치일자", style: TextStyle(fontSize: 12.sp, color: const Color(0xFF0F0F0F), )),
+                                        const Spacer(),
+                                        Row(
+                                            mainAxisAlignment: MainAxisAlignment.end,
+                                            children: [
+                                              Text(sosSensors[index].getCreatedAt()!.substring(0, 16), style: TextStyle(fontSize: 12.sp, color: const Color(0xFF0F0F0F), ))
+                                            ]
+                                        )
+                                      ],
+                                    ),
+                                    SizedBox(height: 10.h,),
+                                    Row(
+                                      children: [
+                                        SvgPicture.asset("assets/images/sensor_info_small.svg", width: 16.w, height: 16.h),
+                                        SizedBox(width: 5.w,),
+                                        Text("ID", style: TextStyle(fontSize: 12.sp, color: const Color(0xFF0F0F0F), )),
+                                        const Spacer(),
+                                        Row(
+                                            mainAxisAlignment: MainAxisAlignment.end,
+                                            children: [
+                                              Text(sosSensors[index].getSensorID()!, style: TextStyle(fontSize: 12.sp, color: const Color(0xFF0F0F0F), )),
+                                              SizedBox(width: 5.w),
+                                              Container(
+                                                // color: Colors.redAccent,
+                                                width: 16.w, height: 16.h,
+                                                child: IconButton(
+                                                  constraints: const BoxConstraints(maxHeight: 16, maxWidth: 16),
+                                                  splashRadius: 16,
+                                                  padding: EdgeInsets.zero,
+                                                  icon: Icon(Icons.copy, size: 16.w,),
+                                                  onPressed: () {
+                                                    debugPrint('icon press');
+                                                  },
+                                                ),
+                                              )
+                                            ]
+                                        )
+                                      ],
+                                    ),
+                                  ],
+                                );
+                              }
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   )
                 ),
               ],
@@ -732,7 +741,7 @@ class _AddSensorFirstState extends ConsumerState<AddSensorFirst> {
           child: Column(
             children: [
               Padding(
-                padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
+                padding: EdgeInsets.fromLTRB(20.w, 0, 20.w, 0),
                 child: Container(
                   height: 120.h,
                   decoration: BoxDecoration(

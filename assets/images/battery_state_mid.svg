@@ -1,0 +1,9 @@
+<svg id="구성_요소_71_1" data-name="구성 요소 71 – 1" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+  <rect id="사각형_12816" data-name="사각형 12816" width="24" height="24" fill="none"/>
+  <g id="Icon_feather-battery" data-name="Icon feather-battery" transform="translate(0.191 -2.623)">
+    <path id="패스_224147" data-name="패스 224147" d="M3.374,9h13.12a1.874,1.874,0,0,1,1.874,1.874v7.5a1.874,1.874,0,0,1-1.874,1.874H3.374A1.874,1.874,0,0,1,1.5,18.371v-7.5A1.874,1.874,0,0,1,3.374,9Z" transform="translate(0)" fill="none" stroke="#47b752" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/>
+  </g>
+  <rect id="사각형_12856" data-name="사각형 12856" width="2.5" height="4" rx="0.5" transform="translate(19 10)" fill="#47b752"/>
+  <rect id="사각형_12857" data-name="사각형 12857" width="3.5" height="8" rx="1" transform="translate(13 8)" fill="#47b752"/>
+  <rect id="사각형_12858" data-name="사각형 12858" width="3.5" height="8" rx="1" transform="translate(8.5 8)" fill="#47b752"/>
+</svg>

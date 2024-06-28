@@ -45,7 +45,7 @@ class _NoticeWidgetState extends State<NoticeWidget> {
       // color: Colors.blueAccent,
       height: 76.h,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
+        padding: EdgeInsets.fromLTRB(20.w, 0, 20.w, 0),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -150,7 +150,7 @@ class _NoticeWidgetState extends State<NoticeWidget> {
                       constraints: BoxConstraints(maxHeight: 48.h, maxWidth: 48.w),
                       padding: EdgeInsets.zero,
                       color: Constants.dividerColor,
-                      icon: const Icon(Icons.arrow_forward_ios_rounded),
+                      icon: const Icon(Icons.arrow_forward_ios_rounded, size: 18),
                       onPressed: () {
                         debugPrint('icon press');
                       },

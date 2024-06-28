@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:argoscareseniorsafeguard/pages/register_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
@@ -23,6 +22,8 @@ import 'package:argoscareseniorsafeguard/models/location_infos.dart';
 import 'package:argoscareseniorsafeguard/models/sensor_infos.dart';
 import 'package:argoscareseniorsafeguard/models/hub_infos.dart';
 import 'package:argoscareseniorsafeguard/models/share_infos.dart';
+import 'package:argoscareseniorsafeguard/pages/terms_page.dart';
+import 'package:argoscareseniorsafeguard/dialogs/custom_alert_dialog.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -39,6 +40,7 @@ class _LoginPageState extends State<LoginPage> {
   bool isLogging = false;
   bool passwordVisible = true;
   late String userID;
+  late String userMail;
   bool _isSaveID = false;
 
   String _deviceId = 'Unknown';
@@ -146,13 +148,28 @@ class _LoginPageState extends State<LoginPage> {
 
       } catch (e) {
         debugPrint(e.toString());
-        if (!context.mounted) return;
-        _failureDialog(context, AppLocalizations.of(context)!.login_button, AppLocalizations.of(context)!.login_failure_message);
         setState(() {
           isLogging = false;
         });
+        _showAlertDialog(AppLocalizations.of(context)!.login_button, AppLocalizations.of(context)!.login_failure_message);
       }
     }
+  }
+
+  void _showAlertDialog(String title, String message) {
+    showDialog(
+        barrierDismissible: false,
+        context: context,
+        builder: (context) {
+          return Dialog(
+            backgroundColor: Constants.scaffoldBackgroundColor,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            insetPadding: EdgeInsets.all(20.w),
+            child: CustomAlertDialog(title: title, message: message),
+          );
+        }
+    ).then((val) {
+    });
   }
 
   void _processLogin(BuildContext context, Response response) async {
@@ -169,6 +186,7 @@ class _LoginPageState extends State<LoginPage> {
 
     final String userName = loginResponse.data['name'];
     userID = loginResponse.data['id'];
+    userMail = loginResponse.data['email'];
 
     await storage.write(key: 'ID', value: loginResponse.data['id']);
     await storage.write(key: 'EMAIL', value: loginResponse.data['email']);
@@ -179,13 +197,13 @@ class _LoginPageState extends State<LoginPage> {
     if (!context.mounted) return;
     Navigator.pushReplacement(context,
         MaterialPageRoute(builder: (context) {
-          return HomePage(title: Constants.APP_TITLE, userName: userName, userID: userID, requireLogin: false,);
+          return HomePage(title: Constants.APP_TITLE, userName: userName, userID: userID, userMail: userMail,);
         },
       )
     );
   }
 
-  void _failureDialog(BuildContext context, String title, String msg) {
+  /*void _failureDialog(BuildContext context, String title, String msg) {
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -208,7 +226,7 @@ class _LoginPageState extends State<LoginPage> {
         );
       },
     );
-  }
+  }*/
 
   void _iostest() async {
     final int result = await Constants.platform.invokeMethod('getBatteryLevel');
@@ -376,9 +394,10 @@ class _LoginPageState extends State<LoginPage> {
                         TextButton(
                           child: Text(AppLocalizations.of(context)!.login_register, style: TextStyle(color: Colors.grey[600])),
                           onPressed: () {
+
                             Navigator.push(context,
                                 MaterialPageRoute(builder: (context) {
-                                  return const RegisterPage();
+                                  return const TermsPage();
                                 })
                             );
                           },
@@ -448,7 +467,7 @@ class _LoginPageState extends State<LoginPage> {
 
     if (!isInstalled) {
       if (!context.mounted) return;
-      _failureDialog(context, AppLocalizations.of(context)!.login_kakao, AppLocalizations.of(context)!.login_kakao_not_installed);
+      _showAlertDialog(AppLocalizations.of(context)!.login_kakao, AppLocalizations.of(context)!.login_kakao_not_installed);
       return;
     }
 
@@ -500,11 +519,12 @@ class _LoginPageState extends State<LoginPage> {
       _processLogin(context, response);
 
     } catch (error) {
-      if (!context.mounted) return;
-      _failureDialog(context, AppLocalizations.of(context)!.login_kakao, AppLocalizations.of(context)!.login_kakao_failure_message);
       setState(() {
         isLogging = false;
       });
+
+      if (!context.mounted) return;
+      _showAlertDialog(AppLocalizations.of(context)!.login_kakao, AppLocalizations.of(context)!.login_kakao_failure_message);
     }
   }
 }

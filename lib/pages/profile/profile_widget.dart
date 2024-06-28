@@ -11,12 +11,14 @@ import 'package:argoscareseniorsafeguard/constants.dart';
 import 'package:argoscareseniorsafeguard/pages/profile.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:argoscareseniorsafeguard/pages/share_manage.dart';
+import 'package:argoscareseniorsafeguard/pages/profile/parent_edit.dart';
 
 class ProfileWidget extends StatefulWidget {
   final String userID;
   final String userName;
+  final String userMail;
 
-  const ProfileWidget({super.key, required this.userName, required this.userID});
+  const ProfileWidget({super.key, required this.userName, required this.userID, required this.userMail});
 
   @override
   State<ProfileWidget> createState() => _ProfileWidgetState();
@@ -66,7 +68,7 @@ class _ProfileWidgetState extends State<ProfileWidget> {
               // color: Colors.blueAccent,
               height: 76.h,
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
+                padding: EdgeInsets.fromLTRB(20.w, 0, 20.w, 0),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.start,
                   crossAxisAlignment: CrossAxisAlignment.center,
@@ -84,7 +86,7 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                           _showCategory("프로필", Icon(Icons.account_circle_outlined, size: 16.h,)),
               
                           Padding( //보호자
-                            padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
+                            padding: EdgeInsets.fromLTRB(20.w, 0, 20.w, 0),
                             child: Container(
                               // color: Colors.blueAccent,
                                 height: 88.h,
@@ -145,7 +147,7 @@ class _ProfileWidgetState extends State<ProfileWidget> {
               
                                                 SizedBox(height: 4.h,),
               
-                                                Text('홍철수(qwer@gmail.com)', style: TextStyle(fontSize: 12.sp, color: Constants.dividerColor), ),
+                                                Text('${widget.userName}(${widget.userMail})', style: TextStyle(fontSize: 12.sp, color: Constants.dividerColor), overflow: TextOverflow.ellipsis),
                                               ],
                                             ),
                                           ),
@@ -159,7 +161,7 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                           SizedBox(height: 16.h),
               
                           Padding( //대상자
-                            padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
+                            padding: EdgeInsets.fromLTRB(20.w, 0, 20.w, 0),
                             child: Container(
                               // color: Colors.blueAccent,
                                 height: 88.h,
@@ -180,7 +182,13 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                                     child: Row(
                                       mainAxisAlignment: MainAxisAlignment.start,
                                       children: [
-                                        Image(image: const AssetImage('assets/images/parent_male.png'), width: 52.w, height: 52.h,),
+                                        //Image(image: const AssetImage('assets/images/parent_male.png'), width: 52.w, height: 52.h,),
+                                        gParentInfo['parentSex'] == -1
+                                            ? SvgPicture.asset('assets/images/parent_unknown.svg', width: 52.w, height: 52.h,)
+                                            : (gParentInfo['parentSex'] == 1
+                                                  ? Image(image: AssetImage('assets/images/parent_male.png'), width: 52.w, height: 52.h,)
+                                                  : Image(image: AssetImage('assets/images/parent_female.png'), width: 52.w, height: 52.h,)
+                                              ),
               
                                         SizedBox(width: 16.w),
               
@@ -212,7 +220,15 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                                                             padding: const EdgeInsets.all(0),
                                                             side: const BorderSide(width: 1.0, color: Constants.primaryColor),
                                                           ),
-                                                          onPressed: () {},
+                                                          onPressed: () {
+                                                            Navigator.push(context, MaterialPageRoute(builder: (context) {
+                                                              return ParentEdit(userID: widget.userID);
+                                                            })).then((onValue) {
+                                                              setState(() {
+
+                                                              });
+                                                            });
+                                                          },
                                                           child: Text('편집', style: TextStyle(fontSize: 12.sp, color: Constants.primaryColor), ),)
                                                     )
                                                   ],
@@ -220,7 +236,11 @@ class _ProfileWidgetState extends State<ProfileWidget> {
               
                                                 SizedBox(height: 4.h,),
               
-                                                Text("홍길동 | 남 | 78 | 01012345678", style: TextStyle(fontSize: 12.sp, color: Constants.dividerColor), ),
+                                                Text(
+                                                    "${gParentInfo['parentName']} | ${gParentInfo['parentSex'] == 1 ? '남' : '여'} | ${gParentInfo['parentAge']}세 | ${gParentInfo['parentPhone']}",
+                                                    style: TextStyle(fontSize: 12.sp, color: Constants.dividerColor),
+                                                    overflow: TextOverflow.ellipsis
+                                                ),
                                               ],
                                             ),
                                           ),
@@ -433,7 +453,7 @@ class _ProfileWidgetState extends State<ProfileWidget> {
       // color: Colors.redAccent,
         height: 40.h,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
+          padding: EdgeInsets.fromLTRB(20.w, 0, 20.w, 0),
           child: Row(
             children: [
               image,
@@ -447,7 +467,7 @@ class _ProfileWidgetState extends State<ProfileWidget> {
 
   Widget _showDetail(String title, Widget control) {
     return Padding( //알림
-      padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
+      padding: EdgeInsets.fromLTRB(20.w, 0, 20.w, 0),
       child: Container(
         // color: Colors.blueAccent,
           height: 60.h,

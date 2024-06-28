@@ -18,51 +18,51 @@ class _CustomAlertDialogState extends State<CustomAlertDialog> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 160,
+      height: 218,
       decoration: BoxDecoration(
         color: Constants.scaffoldBackgroundColor,
         borderRadius: BorderRadius.circular(20),
       ),
       child: Column(
         children: [
-          SizedBox(height: 30.h,),
+          const SizedBox(height: 30,),
 
-          Text(widget.title, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.sp),),
-
-          SizedBox(height: 18.h),
-
-          Row(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              SizedBox(width: 24.w,),
-              Text(widget.message, style: TextStyle(fontSize: 14.sp), textAlign: TextAlign.start,),
-            ],
+          SizedBox(
+            height: 18,
+            child: Text(widget.title, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.sp),),
           ),
 
-          const SizedBox(height: 30),
+          const SizedBox(height: 18),
 
-          Expanded(
+          SizedBox(
+            height: 42,
             child: Row(
+              mainAxisAlignment: MainAxisAlignment.start,
               children: [
-                Expanded(
-                  flex: 1,
-                  child: GestureDetector(
-                    child: Container(
-                      decoration: const BoxDecoration(
-                        color: Constants.primaryColor,
-                        border: Border(right: BorderSide(color: Colors.grey, width: 1),),
-                        borderRadius: BorderRadius.only(bottomRight: Radius.circular(20), bottomLeft: Radius.circular(20)),
-                      ),
-                      child: Center(
-                        child: Text(AppLocalizations.of(context)!.ok, style: TextStyle(fontSize: 14.sp, color: Colors.white),),
-                      ),
-                    ),
-                    onTap: () {
-                      Navigator.of(context).pop('ok'); // replace with your own functions
-                    },
-                  ),
-                ),
+                const SizedBox(width: 24,),
+                Text(widget.message, style: TextStyle(fontSize: 14.sp), textAlign: TextAlign.start,),
               ],
+            ),
+          ),
+
+          const SizedBox(height: 60),
+
+          Container(
+            height: 50,
+            child: GestureDetector(
+              child: Container(
+                decoration: const BoxDecoration(
+                  color: Constants.primaryColor,
+                  border: Border(right: BorderSide(color: Colors.grey, width: 1),),
+                  borderRadius: BorderRadius.only(bottomRight: Radius.circular(20), bottomLeft: Radius.circular(20)),
+                ),
+                child: Center(
+                  child: Text(AppLocalizations.of(context)!.ok, style: TextStyle(fontSize: 14.sp, color: Colors.white),),
+                ),
+              ),
+              onTap: () {
+                Navigator.of(context).pop('ok'); // replace with your own functions
+              },
             ),
           )
         ],

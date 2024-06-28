@@ -98,7 +98,6 @@ flutter:
   assets:
     - assets/images/kakao.png
     - assets/images/google.png
-    - assets/images/intro_image.png
     - assets/images/bottombar_home_unselect.svg
     - assets/images/bottombar_home_select.svg
     - assets/images/bottombar_notify_unselect.svg
@@ -111,6 +110,7 @@ flutter:
     - assets/images/parent_unknown.svg
     - assets/images/register_parent.svg
     - assets/images/hub_small.svg
+    - assets/images/hub_small2.svg
     - assets/images/entrance.svg
     - assets/images/refrigerator.svg
     - assets/images/toilet.svg
@@ -130,6 +130,7 @@ flutter:
     - assets/images/delete.svg
     - assets/images/calendar_small.svg
     - assets/images/parent_male.png
+    - assets/images/parent_female.png
     - assets/images/alarm_small.svg
     - assets/images/rateplan_small.svg
     - assets/images/share_small.svg
@@ -138,6 +139,23 @@ flutter:
     - assets/images/add_sensor.svg
     - assets/images/textfield_delete.svg
     - assets/images/alarm_small_green.svg
+    - assets/images/door_sensor_small.svg
+    - assets/images/motion_sensor_small.svg
+    - assets/images/battery_state_high.svg
+    - assets/images/battery_state_mid.svg
+    - assets/images/new_location.svg
+    - assets/images/entrance_open.svg
+    - assets/images/entrance_close.svg
+    - assets/images/toilet_motion.svg
+    - assets/images/refrigerator_event.svg
+    - assets/images/emergency_event.svg
+    - assets/images/done_grey.svg
+    - assets/images/select_number.svg
+    - assets/images/call.svg
+    - assets/images/intro_image.svg
+    - assets/images/refrigerator_close.svg
+    - assets/images/refrigerator_open.svg
+    - assets/images/entrance_motion.svg
     - assets/animations/processing.json
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
@@ -171,7 +189,26 @@ flutter:
           weight: 800
         - asset: assets/fonts/Pretendard-Black.ttf
           weight: 900
-
+    - family: SCDream
+      fonts:
+        - asset: assets/fonts/SCDream1.otf #Thin
+          weight: 100
+        - asset: assets/fonts/SCDream2.otf #ExtraLight
+          weight: 200
+        - asset: assets/fonts/SCDream3.otf #Light
+          weight: 300
+        - asset: assets/fonts/SCDream4.otf #Regular
+          weight: 400
+        - asset: assets/fonts/SCDream5.otf #Medium
+          weight: 500
+        - asset: assets/fonts/SCDream6.otf #SemiBold
+          weight: 600
+        - asset: assets/fonts/SCDream7.otf #Bold
+          weight: 700
+        - asset: assets/fonts/SCDream8.otf #ExtraBold
+          weight: 800
+        - asset: assets/fonts/SCDream9.otf #Black
+          weight: 900
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages
 

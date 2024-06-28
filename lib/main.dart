@@ -10,7 +10,6 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import 'package:argoscareseniorsafeguard/utils/firebase_options.dart';
@@ -19,11 +18,13 @@ import 'package:argoscareseniorsafeguard/pages/Intro_page.dart';
 import 'package:argoscareseniorsafeguard/pages/home_page.dart';
 import 'package:argoscareseniorsafeguard/constants.dart';
 import 'package:argoscareseniorsafeguard/utils/fcm.dart';
-import 'package:argoscareseniorsafeguard/auth/auth_dio.dart';
 import 'package:argoscareseniorsafeguard/utils/theme.dart';
+import 'package:argoscareseniorsafeguard/auth/auth_dio.dart';
+
 bool _isLogin = false;
 String userName = '';
 String userID = '';
+String userMail = '';
 
 Future<void> main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
@@ -49,58 +50,26 @@ Future<void> checkLogin() async {
   final SharedPreferences pref = await SharedPreferences.getInstance();
   _isLogin = pref.getBool('isLogin') ?? false;
 
-  /*const storage = FlutterSecureStorage(
-    iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock),
-    aOptions: AndroidOptions(encryptedSharedPreferences: true),
-  );
+  if (_isLogin) { //이전에 로그인 했으므로 그 정보를 이용하여 다시 로그인 한다.
+    dio = await authDio();
 
-  String? email = await storage.read(key: 'EMAIL');
-  String? password = await storage.read(key: 'PASSWORD');
+    try {
+      final loginResponse = await dio.get(
+          "/auth/me"
+      );
 
+      userID = loginResponse.data['id'];
+      userName = loginResponse.data['name'];
+      userMail = loginResponse.data['email'];
 
-  if (_isLogin != null) {
-    if (_isLogin! && email != '' && password != '') {
-      dio = await authDio();
+      saveUserInfo(loginResponse);
 
-      try {
-        final response = await dio.post(
-            "/auth/signin",
-            data: jsonEncode({
-              "email": email,
-              "password": password
-            })
-        );
-
-        final token = response.data['token'];
-
-        await storage.write(key: 'ACCESS_TOKEN', value: token);
-
-        final loginResponse = await dio.get(
-            "/auth/me"
-        );
-
-        userID = loginResponse.data['id'];
-        userName = loginResponse.data['name'];
-
-        await storage.write(key: 'ID', value: loginResponse.data['id']);
-        await storage.write(key: 'EMAIL', value: loginResponse.data['email']);
-        await storage.write(key: 'PASSWORD', value: password); //세션 종료시 다시 로그인하기 위해 필요
-
-        saveUserInfo(loginResponse);
-
-      } catch (e) {
-        _isLogin = false;
-      }
-    } else {
-      _isLogin = false;
+    } catch (e) {
+      // _isLogin = false;
     }
-
-  } else {
-    _isLogin = false;
-  }*/
+  }
 }
 
-// const seedColor = Color(0xff00ffff);
 const seedColor = Colors.indigo;
 
 class MainApp extends StatefulWidget {
@@ -135,23 +104,6 @@ class _MainAppState extends State<MainApp> {
       });
     });
 
-    initialization();
-  }
-
-  void initialization() async {
-    /*if (!_isLogin) {
-      print('ready in 3...');
-      await Future.delayed(const Duration(seconds: 3));
-
-      FlutterNativeSplash.remove();
-    } else {
-      FlutterNativeSplash.remove();
-    }*/
-    /*await precacheImage(
-      const Image(image: AssetImage('assets/images/intro_image.png'),).image,
-      context,
-    );*/
-
     FlutterNativeSplash.remove();
   }
 
@@ -174,9 +126,10 @@ class _MainAppState extends State<MainApp> {
   }
 
   final List<String> imageUrls = [
-    'assets/images/intro_image.png',
+    // 'assets/images/intro_image.png',
     'assets/images/hub.png',
-    'assets/images/parent_male.png'
+    'assets/images/parent_male.png',
+    'assets/images/parent_female.png'
   ];
 
   @override
@@ -206,9 +159,9 @@ class _MainAppState extends State<MainApp> {
                 fontFamily: "Pretendard"
             ),*/
             // home: const LoginPage()
+            // home: const IntroScreen()
             home: _isLogin
-                ? HomePage(title: Constants.APP_TITLE, userName: userName, userID: userID, requireLogin: _isLogin,)
-            //: const LoginPage()
+                ? HomePage(title: Constants.APP_TITLE, userName: userName, userID: userID, userMail: userMail,)
                 : FutureBuilder(
                     future: Future.delayed(
                         const Duration(seconds: 2), () => "Intro Completed."),

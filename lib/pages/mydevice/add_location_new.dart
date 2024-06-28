@@ -39,7 +39,7 @@ class _AddLocationNewState extends State<AddLocationNew> {
               // color: Colors.blueAccent,
               height: 52.h,
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
+                padding: EdgeInsets.fromLTRB(20.w, 0, 20.w, 0),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.start,
                   crossAxisAlignment: CrossAxisAlignment.center,
@@ -67,7 +67,7 @@ class _AddLocationNewState extends State<AddLocationNew> {
               // color: Colors.blueAccent,
               height: 76.h,
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
+                padding: EdgeInsets.fromLTRB(20.w, 0, 20.w, 0),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.start,
                   crossAxisAlignment: CrossAxisAlignment.center,
@@ -81,7 +81,7 @@ class _AddLocationNewState extends State<AddLocationNew> {
               // color: Colors.redAccent,
                 height: 40.h,
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
+                  padding: EdgeInsets.fromLTRB(20.w, 0, 20.w, 0),
                   child: Row(
                     children: [
                       Text("장소명", style: TextStyle(fontSize: 12.sp, color: const Color(0xFF404040)), ),

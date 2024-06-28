@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:argoscareseniorsafeguard/dialogs/custom_confirm_dialog.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -10,6 +11,8 @@ import 'package:dio/dio.dart';
 import 'package:mobile_device_identifier/mobile_device_identifier.dart';
 import 'package:flutter/services.dart';
 import 'package:remedi_kopo/remedi_kopo.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import 'package:argoscareseniorsafeguard/utils/string_extensions.dart';
 import 'package:argoscareseniorsafeguard/components/my_button.dart';
@@ -17,9 +20,12 @@ import 'package:argoscareseniorsafeguard/components/my_textfield.dart';
 import 'package:argoscareseniorsafeguard/constants.dart';
 import 'package:argoscareseniorsafeguard/pages/phone_certification.dart';
 import 'package:argoscareseniorsafeguard/providers/providers.dart';
+import 'package:argoscareseniorsafeguard/dialogs/custom_alert_dialog.dart';
+import 'package:argoscareseniorsafeguard/pages/register_parent.dart';
 
 class RegisterPage extends ConsumerStatefulWidget {
-  const RegisterPage({super.key});
+  const RegisterPage({super.key, required this.optionalCheck});
+  final bool optionalCheck;
 
   @override
   ConsumerState<RegisterPage> createState() => _RegisterPageState();
@@ -39,9 +45,6 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
   String _detailAddr = '';
   bool _passwordVisible = true;
   bool _confirmPasswordVisible = true;
-  String _parentName = '';
-  int _parentAge = 0;
-  String _parentPhone = '';
 
   final _nameController = TextEditingController();
   final _mailController = TextEditingController();
@@ -51,9 +54,6 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
   final _zipController = TextEditingController();
   final _addrController = TextEditingController();
   final _detailAddrController = TextEditingController();
-  final _parentNameController = TextEditingController();
-  final _parentAgeController = TextEditingController();
-  final _parentPhoneController = TextEditingController();
 
   final FocusNode _nameFocusNode = FocusNode();
   final FocusNode _emailFocusNode = FocusNode();
@@ -64,9 +64,6 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
   final FocusNode _zipAddrFocusNode = FocusNode();
   final FocusNode _addrFocusNode = FocusNode();
   final FocusNode _detailAddrFocusNode = FocusNode();
-  final FocusNode _parentNameFocusNode = FocusNode();
-  final FocusNode _parentAgeFocusNode = FocusNode();
-  final FocusNode _parentPhoneFocusNode = FocusNode();
 
   bool _smsAuthOk = false;
   bool _smsSendCompleted = false;
@@ -75,8 +72,6 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
 
   String _deviceId = 'Unknown';
   final _mobileDeviceIdentifierPlugin = MobileDeviceIdentifier();
-
-  int _parentSex = 0;
 
   @override
   void initState(){
@@ -98,9 +93,6 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
     _zipAddrFocusNode.dispose();
     _addrFocusNode.dispose();
     _detailAddrFocusNode.dispose();
-    _parentNameFocusNode.dispose();
-    _parentAgeFocusNode.dispose();
-    _parentPhoneFocusNode.dispose();
 
     _nameController.dispose();
     _mailController.dispose();
@@ -110,9 +102,6 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
     _zipController.dispose();
     _addrController.dispose();
     _detailAddrController.dispose();
-    _parentNameController.dispose();
-    _parentAgeController.dispose();
-    _parentPhoneController.dispose();
   }
 
   Future<void> _initDeviceId() async {
@@ -167,56 +156,93 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
   }
 
   void _register(BuildContext context) async {
-    final isValid = _formKey.currentState!.validate();
+    // final isValid = _formKey.currentState!.validate();
 
+    _smsAuthOk = true;
     if (!_smsAuthOk) {
-      _failureDialog(context, "회원 가입", "휴대폰 인증이 완료 되지 않았습니다.\n휴대폰 인증을 완료 하여 주 십시요.");
+      _showAlertDialog("오류", "휴대폰 인증이 완료 되지 않았습니다.\n휴대폰 인증을 완료 하여 주 십시요.");
       FocusScope.of(context).requestFocus(_phoneNumberFocusNode);
+      return;
     }
 
-    if (isValid && _smsAuthOk) {
-      _formKey.currentState!.save();
-      try {
-        var uri = Constants.BASE_URL;
-        BaseOptions options = BaseOptions(
-          baseUrl: uri,
-        );
-        var dio = Dio(options);
+    _formKey.currentState!.save();
 
-        final response = await dio.post('/auth/signup',
-            data: jsonEncode({
-              "email": _email,
-              "name": _name,
-              "password": _password,
-              "mobilephone": _mobilephone,
-              "tel": _tel,
-              "addr_zip": _addrzip,
-              "addr": _addr,
-              "addr_detail": _detailAddr,
-              "admin": false,
-              "deviceID": _deviceId,
-              "parentName": _parentName,
-              "parentAge": _parentAge,
-              "parentPhone": _parentPhone,
-              "parentSex": _parentSex
-            })
-        );
+    if (_email == "" || !_email.isValidEmailFormat()) {
+      _showAlertDialog("오류", "이메일 형식이 아닙니다.");
 
-        if (!context.mounted) return;
-        if (response.statusCode == 201) {
-          _successDialog(context, response.data['message']);
-        } else {
-          _successDialog(context, "회원 가입이 완료되었습니다.\n로그인을 진행해 주세요.");
-        }
-      } catch (e) {
-        _failureDialog(context, '회원 가입', "회원 가입이 실패 했습니다.\n관리자에게 확인 바랍니다.");
-      }
-    } else {
-      debugPrint("validateController() false");
+      if (!context.mounted) return;
+      FocusScope.of(context).requestFocus(_emailFocusNode);
+      return;
     }
+
+    if (_name == "") {
+      _showAlertDialog("오류", "이름을 입력해 주세요.");
+
+      if (!context.mounted) return;
+      FocusScope.of(context).requestFocus(_nameFocusNode);
+      return;
+    }
+
+    if (_name.length < 2) {
+      _showAlertDialog("오류", "이름은 두 글자 이상 입력해 주셔야 합니다.");
+
+      if (!context.mounted) return;
+      FocusScope.of(context).requestFocus(_nameFocusNode);
+      return;
+    }
+
+    if (_password.length < 6 || _password.length > 12) {
+      _showAlertDialog("오류", "비밀 번호는 6글자 이상 12글자 이하로 입력해 주셔야 합니다.");
+      if (!context.mounted) return;
+      FocusScope.of(context).requestFocus(_passwordFocusNode);
+      return;
+    }
+
+    if (!_password.isValidOnlyNumber()) {
+      _showAlertDialog("오류", "비밀 번호는 숫자로 이 루어진 6 ~ 12 자리 입니다.");
+      if (!context.mounted) return;
+      FocusScope.of(context).requestFocus(_passwordFocusNode);
+      return;
+    }
+
+    if (_password != _confirmPassword) {
+      _showAlertDialog("오류", "비밀 번호 확인이 올 바르지 않습니다.");
+      if (!context.mounted) return;
+      FocusScope.of(context).requestFocus(_confirmPasswordFocusNode);
+      return;
+    }
+
+    if (_mobilephone.length < 10 || !_mobilephone.isValidPhoneNumberFormat()) {
+      _showAlertDialog("오류", "휴대폰 형식이 아닙니다.");
+      if (!context.mounted) return;
+      FocusScope.of(context).requestFocus(_phoneNumberFocusNode);
+      return;
+    }
+
+    Navigator.push(context,
+        MaterialPageRoute(builder: (context) {
+          return RegisterParent(email: _email, name: _name, password: _password, mobilePhone: _mobilephone, tel: _tel, addrzip: _addrzip,
+            addr: _addr, detailAddr: _detailAddr, deviceID: _deviceId, optionalCheck: widget.optionalCheck);
+        }));
   }
 
-  void _failureDialog(BuildContext context, String title, String message) {
+  void _showAlertDialog(String title, String message) {
+    showDialog(
+        barrierDismissible: false,
+        context: context,
+        builder: (context) {
+          return Dialog(
+            backgroundColor: Constants.scaffoldBackgroundColor,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            insetPadding: EdgeInsets.all(20.w),
+            child: CustomAlertDialog(title: title, message: message),
+          );
+        }
+    ).then((val) {
+    });
+  }
+
+  /*void _failureDialog(BuildContext context, String title, String message) {
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -274,7 +300,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
         Navigator.pop(context);
       }
     });
-  }
+  }*/
 
   @override
   Widget build(BuildContext context) {
@@ -283,268 +309,403 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
     });
     return Scaffold(
         resizeToAvoidBottomInset: false,
-        backgroundColor: Colors.grey[300],
-        appBar: AppBar(
-          backgroundColor: Colors.white,
-          title: const Text('보호자 가입'),
-          centerTitle: true,
-        ),
-        body: SingleChildScrollView (
-            physics: const ClampingScrollPhysics(),
-          child: ConstrainedBox(
-            constraints: BoxConstraints(
-              minWidth: MediaQuery.of(context).size.width,
-              minHeight: MediaQuery.of(context).size.height,
-            ),
-            child: IntrinsicHeight(
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Form(
-                  key: _formKey,
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
+        backgroundColor: Constants.scaffoldBackgroundColor,
+        body: SafeArea(
+          child: SingleChildScrollView (
+              physics: const ClampingScrollPhysics(),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minWidth: MediaQuery.of(context).size.width,
+                  minHeight: MediaQuery.of(context).size.height,
+                ),
+                child: IntrinsicHeight(
+                  child: Form(
+                    key: _formKey,
                     child: Column(
-                      mainAxisSize: MainAxisSize.max,
+                      mainAxisAlignment: MainAxisAlignment.start,
                       children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            Text('아이디', style: Theme.of(context).textTheme.bodySmall!.copyWith(color: Colors.grey, fontWeight: FontWeight.bold) ),
-                          ],
-                        ),
-
-                        renderTextFormField(
-                          context: context,
-                          autofocus: true,
-                          label: '이메일 주소',
-                          keyNumber: 1,
-                          icon: const Icon(Icons.mail, color: Colors.grey,),
-                          suffixIcon: _mailController.text.isNotEmpty ?
-                          IconButton(
-                            icon: const Icon(Icons.clear),
-                            onPressed: () {
-                              _mailController.clear();
-                              setState(() { });
-                            },
-                          ) : null,
-                          controller: _mailController,
-                          keyboardType: TextInputType.emailAddress,
-                          obscureText: false,
-                          focusNode: _emailFocusNode,
-                          onChanged: (val) {
-                            setState(() { });
-                          },
-                          onSaved: (val) {
-                            setState(() {
-                              _email = val;
-                            });
-
-                          },
-                          validator: (val) {
-                            if (val.length < 1) {
-                              return '이메일은 필수 사항 입니다.';
-                            }
-                            String value = val as String;
-                            return val.isValidEmailFormat() ? null : '이메일 형식이 아닙니다.';
-                          },
-                        ),
-
-                        const SizedBox(height: 10),
-
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            Text('비밀번호', style: Theme.of(context).textTheme.bodySmall!.copyWith(color: Colors.grey, fontWeight: FontWeight.bold) ),
-                          ],
-                        ),
-
-                        renderTextFormField(
-                          context: context,
-                          label: '비밀 번호',
-                          keyNumber: 2,
-                          icon: const Icon(Icons.lock, color: Colors.grey,),
-                          suffixIcon: IconButton(
-                            icon: Icon( _passwordVisible ? Icons.visibility : Icons.visibility_off, ),
-                            onPressed: () {
-                              setState(() {
-                                _passwordVisible = !_passwordVisible;
-                              });
-                            },
+                        SizedBox( //이전 페이지 버튼
+                          // color: Colors.greenAccent,
+                          height: 52.h,
+                          child: Padding(
+                            padding: EdgeInsets.fromLTRB(20.w, 0, 20.w, 0),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                SizedBox(
+                                  width: 24,
+                                  height: 24,
+                                  // color: Colors.redAccent,
+                                  child: IconButton(
+                                    constraints: BoxConstraints(maxHeight: 48.h, maxWidth: 48.w),
+                                    padding: EdgeInsets.zero,
+                                    color: Colors.black,
+                                    icon: const Icon(Icons.arrow_back),
+                                    onPressed: () {
+                                      Navigator.pop(context);
+                                    },
+                                  ),
+                                )
+                              ],
+                            ),
                           ),
-                          keyboardType: TextInputType.text,
-                          obscureText: _passwordVisible,
-                          focusNode: _passwordFocusNode,
-                          onChanged: (val) {
-                            _confirmPassword = val;
-                          },
-                          onSaved: (val) {
-                            setState(() {
-                              _password = val;
-                            });
-
-                          },
-                          validator: (val) {
-                            if (val.length < 6 || val.length > 12) {
-                              return '비밀 번호는 6글자 이상 12글자 이하로 입력해 주셔야 합니다.';
-                            }
-
-                            //return val.isValidPasswordFormatType1() ? null : '비밀번호는 영문(소문자, 대문자), 숫자, 특수문자로 이루어진 6 ~ 12 자리입니다.';
-                            return (val as String).isValidOnlyNumber() ? null : '비밀 번호는 숫자로 이 루어진 6 ~ 12 자리 입니다.';
-                          },
                         ),
-
-                        const SizedBox(height: 10),
-
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            Text('비밀번호 확인', style: Theme.of(context).textTheme.bodySmall!.copyWith(color: Colors.grey, fontWeight: FontWeight.bold) ),
-                          ],
-                        ),
-
-                        renderTextFormField(
-                          context: context,
-                          label: '비밀 번호 확인',
-                          keyNumber: 3,
-                          icon: const Icon(Icons.lock, color: Colors.grey,),
-                          suffixIcon: IconButton(
-                            icon: Icon( _confirmPasswordVisible ? Icons.visibility : Icons.visibility_off, ),
-                            onPressed: () {
-                              setState(() {
-                                _confirmPasswordVisible = !_confirmPasswordVisible;
-                              });
-                            },
+                        SizedBox(
+                          // color: Colors.blueAccent,
+                          height: 76.h,
+                          child: Padding(
+                            padding: EdgeInsets.fromLTRB(20.w, 0, 20.w, 0),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Text("보호자 가입", style: TextStyle(fontSize: 20.sp, color: Colors.black, fontWeight: FontWeight.bold),),
+                              ],
+                            ),
                           ),
-                          keyboardType: TextInputType.text,
-                          obscureText: _confirmPasswordVisible,
-                          focusNode: _confirmPasswordFocusNode,
-                          onSaved: (val) {},
-                          validator: (val) {
-                            if (val.length < 6 || val.length > 12) {
-                              return '비밀 번호 확인은 6글자 이상 12글자 이하로 입력해 주셔야 합니다.';
-                            }
-
-                            String value = val as String;
-                            if (_confirmPassword != value) {
-                              return "비밀 번호 확인이 올 바르지 않 습니다.";
-                            } else {
-                              return null;
-                            }
-                          },
                         ),
-
-                        const SizedBox(height: 10),
-
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            Text('이름', style: Theme.of(context).textTheme.bodySmall!.copyWith(color: Colors.grey, fontWeight: FontWeight.bold) ),
-                          ],
+                        SizedBox(
+                          // color: Colors.blueAccent,
+                          height: 40.h,
+                          child: Padding(
+                            padding: EdgeInsets.fromLTRB(20.w, 0, 20.w, 0),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Text("아이디", style: TextStyle(fontSize: 12.sp, color: const Color(0xFF404040), fontWeight: FontWeight.bold),),
+                              ],
+                            ),
+                          ),
                         ),
-
-                        renderTextFormField(
-                          context: context,
-                          label: '실명을 붙여서 입력해 주세요',
-                          keyNumber: 4,
-                          icon: const Icon(Icons.account_circle, color: Colors.grey,),
-                          suffixIcon: _nameController.text.isNotEmpty ?
-                            IconButton(
-                              icon: const Icon(Icons.clear),
-                              onPressed: () {
-                                _nameController.clear();
+                        SizedBox(
+                          // color: Colors.blueAccent,
+                          height: 60.h,
+                          width: double.infinity,
+                          child: Padding(
+                            padding: EdgeInsets.fromLTRB(20.w, 0, 20.w, 0),
+                            child: renderTextFormField(
+                              context: context,
+                              autofocus: true,
+                              label: '이메일 계정',
+                              keyNumber: 1,
+                              suffixIcon: _mailController.text.isNotEmpty ?
+                              IconButton(
+                                icon: SvgPicture.asset("assets/images/textfield_delete.svg"),
+                                onPressed: () {
+                                  _mailController.clear();
+                                  setState(() { });
+                                },
+                              ) : null,
+                              controller: _mailController,
+                              keyboardType: TextInputType.emailAddress,
+                              obscureText: false,
+                              focusNode: _emailFocusNode,
+                              onChanged: (val) {
                                 setState(() { });
                               },
-                            ) : null,
-                          controller: _nameController,
-                          keyboardType: TextInputType.name,
-                          obscureText: false,
-                          focusNode: _nameFocusNode,
-                          onChanged: (val) {
-                              setState(() { });
-                          },
-                          onSaved: (val) {
-                              setState(() {
-                                _name = val;
-                              });
-                          },
-                          validator: (val) {
-                            if (val.length < 1) {
-                              return '이름은 필수 사항 입니다.';
-                            }
-              
-                            if (val.length < 2) {
-                              return '이름은 두글자 이상 입력해 주셔야 합니다.';
-                            }
-              
-                            return null;
-                          },
-                        ),
-              
-                        const SizedBox(height: 10),
+                              onSaved: (val) {
+                                setState(() {
+                                  _email = val;
+                                });
 
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            Text('휴대폰 번호', style: Theme.of(context).textTheme.bodySmall!.copyWith(color: Colors.grey, fontWeight: FontWeight.bold) ),
-                          ],
+                              },
+                              validator: (val) {
+                                if (val.length < 1) {
+                                  return '이메일은 필수 사항 입니다.';
+                                }
+                                String value = val as String;
+                                return val.isValidEmailFormat() ? null : '이메일 형식이 아닙니다.';
+                              },
+                            ),
+                          ),
                         ),
 
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            Expanded(
+                        SizedBox(height: 12.h),
+
+                        SizedBox(
+                          // color: Colors.blueAccent,
+                          height: 40.h,
+                          child: Padding(
+                            padding: EdgeInsets.fromLTRB(20.w, 0, 20.w, 0),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Text("비밀번호", style: TextStyle(fontSize: 12.sp, color: const Color(0xFF404040), fontWeight: FontWeight.bold),),
+                              ],
+                            ),
+                          ),
+                        ),
+
+                        SizedBox(
+                          // color: Colors.blueAccent,
+                          height: 60.h,
+                          width: double.infinity,
+                          child: Padding(
+                            padding: EdgeInsets.fromLTRB(20.w, 0, 20.w, 0),
+                            child: renderTextFormField(
+                              context: context,
+                              label: '비밀 번호 6~12자, 숫자만',
+                              keyNumber: 2,
+                              suffixIcon: IconButton(
+                                icon: Icon( _passwordVisible ? Icons.visibility : Icons.visibility_off, ),
+                                onPressed: () {
+                                  setState(() {
+                                    _passwordVisible = !_passwordVisible;
+                                  });
+                                },
+                              ),
+                              keyboardType: TextInputType.text,
+                              obscureText: _passwordVisible,
+                              focusNode: _passwordFocusNode,
+                              onChanged: (val) {
+                                _confirmPassword = val;
+                              },
+                              onSaved: (val) {
+                                setState(() {
+                                  _password = val;
+                                });
+
+                              },
+                              validator: (val) {
+                                if (val.length < 6 || val.length > 12) {
+                                  return '비밀 번호는 6글자 이상 12글자 이하로 입력해 주셔야 합니다.';
+                                }
+
+                                //return val.isValidPasswordFormatType1() ? null : '비밀번호는 영문(소문자, 대문자), 숫자, 특수문자로 이루어진 6 ~ 12 자리입니다.';
+                                return (val as String).isValidOnlyNumber() ? null : '비밀 번호는 숫자로 이 루어진 6 ~ 12 자리 입니다.';
+                              },
+                            ),
+                          )
+                        ),
+
+                        SizedBox(height: 12.h),
+
+                        SizedBox(
+                          // color: Colors.blueAccent,
+                          height: 40.h,
+                          child: Padding(
+                            padding: EdgeInsets.fromLTRB(20.w, 0, 20.w, 0),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Text("비밀번호 확인", style: TextStyle(fontSize: 12.sp, color: const Color(0xFF404040), fontWeight: FontWeight.bold),),
+                              ],
+                            ),
+                          ),
+                        ),
+
+                        SizedBox(
+                          // color: Colors.blueAccent,
+                            height: 60.h,
+                            width: double.infinity,
+                            child: Padding(
+                                padding: EdgeInsets.fromLTRB(20.w, 0, 20.w, 0),
                                 child: renderTextFormField(
                                   context: context,
-                                  label: '숫자만 입력해 주세요',
-                                  keyNumber: 5,
-                                  icon: const Icon(Icons.phone_android, color: Colors.grey,),
-                                  suffixIcon: _phoneController.text.isNotEmpty ?
-                                  IconButton(
-                                    icon: const Icon(Icons.clear),
+                                  label: '비밀 번호 확인',
+                                  keyNumber: 3,
+                                  suffixIcon: IconButton(
+                                    icon: Icon( _confirmPasswordVisible ? Icons.visibility : Icons.visibility_off, ),
                                     onPressed: () {
-                                      _phoneController.clear();
                                       setState(() {
-                                        _smsSendCompleted = false;
-                                        _smsAuthOk = false;
+                                        _confirmPasswordVisible = !_confirmPasswordVisible;
                                       });
                                     },
+                                  ),
+                                  keyboardType: TextInputType.text,
+                                  obscureText: _confirmPasswordVisible,
+                                  focusNode: _confirmPasswordFocusNode,
+                                  onSaved: (val) {},
+                                  validator: (val) {
+                                    if (val.length < 6 || val.length > 12) {
+                                      return '비밀 번호 확인은 6글자 이상 12글자 이하로 입력해 주셔야 합니다.';
+                                    }
+
+                                    String value = val as String;
+                                    if (_confirmPassword != value) {
+                                      return "비밀 번호 확인이 올 바르지 않 습니다.";
+                                    } else {
+                                      return null;
+                                    }
+                                  },
+                                ),
+                            )
+                        ),
+
+                        SizedBox(height: 12.h),
+
+                        SizedBox(
+                          // color: Colors.blueAccent,
+                          height: 40.h,
+                          child: Padding(
+                            padding: EdgeInsets.fromLTRB(20.w, 0, 20.w, 0),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Text("이름", style: TextStyle(fontSize: 12.sp, color: const Color(0xFF404040), fontWeight: FontWeight.bold),),
+                              ],
+                            ),
+                          ),
+                        ),
+
+                        SizedBox(
+                          // color: Colors.blueAccent,
+                            height: 60.h,
+                            width: double.infinity,
+                            child: Padding(
+                                padding: EdgeInsets.fromLTRB(20.w, 0, 20.w, 0),
+                                child: renderTextFormField(
+                                  context: context,
+                                  label: '실명을 붙여서 입력해 주세요',
+                                  keyNumber: 4,
+                                  suffixIcon: _nameController.text.isNotEmpty ?
+                                  IconButton(
+                                    icon: SvgPicture.asset("assets/images/textfield_delete.svg"),
+                                    onPressed: () {
+                                      _nameController.clear();
+                                      setState(() { });
+                                    },
                                   ) : null,
-                                  controller: _phoneController,
-                                  keyboardType: TextInputType.phone,
+                                  controller: _nameController,
+                                  keyboardType: TextInputType.name,
                                   obscureText: false,
-                                  focusNode: _phoneNumberFocusNode,
+                                  focusNode: _nameFocusNode,
                                   onChanged: (val) {
-                                    setState(() {
-                                      _smsSendCompleted = false;
-                                      _smsAuthOk = false;
-                                    });
+                                    setState(() { });
                                   },
                                   onSaved: (val) {
                                     setState(() {
-                                      _mobilephone = val;
+                                      _name = val;
                                     });
-
                                   },
                                   validator: (val) {
                                     if (val.length < 1) {
-                                      return '휴대폰은 필수 사항 입니다.';
+                                      return '이름은 필수 사항 입니다.';
                                     }
-                                    String value = val as String;
-                                    return val.isValidPhoneNumberFormat() ? null : '휴대폰 형식이 아닙니다.';
+
+                                    if (val.length < 2) {
+                                      return '이름은 두 글자 이상 입력해 주셔야 합니다.';
+                                    }
+
+                                    return null;
                                   },
-                                )
+                                ),
+                            )
+                        ),
+
+                        SizedBox(height: 12.h),
+
+                        SizedBox(
+                          // color: Colors.blueAccent,
+                          height: 40.h,
+                          child: Padding(
+                            padding: EdgeInsets.fromLTRB(20.w, 0, 20.w, 0),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Text("휴대폰 번호", style: TextStyle(fontSize: 12.sp, color: const Color(0xFF404040), fontWeight: FontWeight.bold),),
+                              ],
                             ),
+                          ),
+                        ),
 
-                            _smsAuthOk ? const SizedBox()
-                                : TextButton(
-                                    child: const Text("본인 인증"),
-                                    onPressed: () async {
-                                      if (_phoneController.text.isValidPhoneNumberFormat()) {
-                                        _phoneCertification(context, _phoneController.text);
-                                      } else  {
+                        SizedBox(
+                          // color: Colors.blueAccent,
+                            height: 60.h,
+                            width: double.infinity,
+                            child: Padding(
+                                padding: EdgeInsets.fromLTRB(20.w, 0, 20.w, 0),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  children: [
+                                    Expanded(
+                                        child: renderTextFormField(
+                                          context: context,
+                                          label: '숫자만 입력해 주세요',
+                                          keyNumber: 5,
+                                          suffixIcon: _phoneController.text.isNotEmpty ?
+                                          IconButton(
+                                            icon: SvgPicture.asset("assets/images/textfield_delete.svg"),
+                                            onPressed: () {
+                                              _phoneController.clear();
+                                              setState(() {
+                                                _smsSendCompleted = false;
+                                                _smsAuthOk = false;
+                                              });
+                                            },
+                                          ) : null,
+                                          controller: _phoneController,
+                                          keyboardType: TextInputType.phone,
+                                          obscureText: false,
+                                          focusNode: _phoneNumberFocusNode,
+                                          onChanged: (val) {
+                                            setState(() {
+                                              _smsSendCompleted = false;
+                                              _smsAuthOk = false;
+                                            });
+                                          },
+                                          onSaved: (val) {
+                                            setState(() {
+                                              _mobilephone = val;
+                                            });
 
-                                      }
-                                /*setState(() {
+                                          },
+                                          validator: (val) {
+                                            if (val.length < 1) {
+                                              return '휴대폰은 필수 사항 입니다.';
+                                            }
+                                            String value = val as String;
+                                            return val.isValidPhoneNumberFormat() ? null : '휴대폰 형식이 아닙니다.';
+                                          },
+                                        )
+                                    ),
+
+                                    _smsAuthOk
+                                        ? const SizedBox()
+                                        : Row(
+                                          children: [
+                                            SizedBox(width: 10.w,),
+                                            SizedBox(
+                                                width: 80.w,
+                                                height: 40.h,
+                                                // color: Colors.redAccent,
+                                                child: OutlinedButton( // OutlinedButton
+                                                  style: OutlinedButton.styleFrom(
+                                                    foregroundColor: Constants.primaryColor,
+                                                    backgroundColor: Constants.scaffoldBackgroundColor,
+                                                    elevation: 1, //
+                                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
+                                                    minimumSize: Size(48.w, 28.h),
+                                                    maximumSize: Size(48.w, 28.h),
+                                                    padding: const EdgeInsets.all(0),
+                                                    side: const BorderSide(width: 1.0, color: Constants.primaryColor),
+                                                  ),
+                                                  onPressed: () async {
+                                                    if (_phoneController.text.isValidPhoneNumberFormat()) {
+                                                      _phoneCertification(context, _phoneController.text);
+                                                    } else  {
+
+                                                    }
+                                                  },
+                                                  child: Text('본인 인증', style: TextStyle(fontSize: 14.sp, color: Constants.primaryColor), ),)
+                                            ),
+                                          ],
+                                        )
+                                    /*TextButton(
+                                            child: const Text("본인 인증"),
+                                            onPressed: () async {
+                                              if (_phoneController.text.isValidPhoneNumberFormat()) {
+                                                _phoneCertification(context, _phoneController.text);
+                                              } else  {
+
+                                              }
+                                        *//*setState(() {
                                         _smsSendCompleted = true;
                                       });
                                       if (_phoneController.text.isValidPhoneNumberFormat()) {
@@ -582,235 +743,346 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                                             });
                                           },
                                         );
-                                      }*/
+                                      }*//*
 
-                              },
-                            ),
-                          ],
+                                      },
+                                    ),*/
+                                  ],
+                                ),
+                            )
                         ),
 
-                        (!_smsSendCompleted || _smsAuthOk) ? const SizedBox() : const SizedBox(height: 10),
 
-                        (!_smsSendCompleted || _smsAuthOk) ? const SizedBox()
-                            : Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            Expanded(
+
+                        (!_smsSendCompleted || _smsAuthOk) ? const SizedBox() : SizedBox(height: 12.h),
+
+                        (!_smsSendCompleted || _smsAuthOk)
+                            ? const SizedBox()
+                            : SizedBox(
+                                // color: Colors.blueAccent,
+                                  height: 60.h,
+                                  width: double.infinity,
+                                  child: Padding(
+                                      padding: EdgeInsets.fromLTRB(20.w, 0, 20.w, 0),
+                                      child: Row(
+                                          mainAxisAlignment: MainAxisAlignment.start,
+                                          children: [
+                                            Expanded(
+                                                child: renderTextFormField(
+                                                  context: context,
+                                                  label: '인증 문자',
+                                                  suffixIcon: _smsController.text.isNotEmpty ?
+                                                  IconButton(
+                                                    icon: SvgPicture.asset("assets/images/textfield_delete.svg"),
+                                                    onPressed: () {
+                                                      _smsController.clear();
+                                                      setState(() { });
+                                                    },
+                                                  ) : null,
+                                                  controller: _smsController,
+                                                  keyboardType: TextInputType.number,
+                                                  obscureText: false,
+                                                )
+                                            ),
+
+                                            SizedBox(width: 10.w,),
+
+                                            SizedBox(
+                                                width: 80.w,
+                                                height: 40.h,
+                                                // color: Colors.redAccent,
+                                                child: OutlinedButton( // OutlinedButton
+                                                  style: OutlinedButton.styleFrom(
+                                                    foregroundColor: Constants.primaryColor,
+                                                    backgroundColor: Constants.scaffoldBackgroundColor,
+                                                    elevation: 1, //
+                                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
+                                                    minimumSize: Size(48.w, 28.h),
+                                                    maximumSize: Size(48.w, 28.h),
+                                                    padding: const EdgeInsets.all(0),
+                                                    side: const BorderSide(width: 1.0, color: Constants.primaryColor),
+                                                  ),
+                                                  onPressed: () async {
+                                                    setState(() {
+                                                      _smsSendCompleted = true;
+                                                      _smsAuthOk = true;
+                                                    });
+                                                    /*PhoneAuthCredential phoneAuthCredential =
+                                              PhoneAuthProvider.credential(
+                                                  verificationId: _verificationId, smsCode: _smsController.text);
+
+                                              _signInWithPhoneAuthCredential(phoneAuthCredential);*/
+                                                  },
+                                                  child: Text('본인 인증', style: TextStyle(fontSize: 14.sp, color: Constants.primaryColor), ),)
+                                            ),
+                                          ],
+                                        ),
+                                  )
+                              ),
+
+
+                        SizedBox(height: 12.h),
+
+                        SizedBox(
+                          // color: Colors.blueAccent,
+                          height: 40.h,
+                          child: Padding(
+                            padding: EdgeInsets.fromLTRB(20.w, 0, 20.w, 0),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Text("전화 번호(선택)", style: TextStyle(fontSize: 12.sp, color: const Color(0xFF404040), fontWeight: FontWeight.bold),),
+                              ],
+                            ),
+                          ),
+                        ),
+
+                        SizedBox(
+                          // color: Colors.blueAccent,
+                            height: 60.h,
+                            width: double.infinity,
+                            child: Padding(
+                                padding: EdgeInsets.fromLTRB(20.w, 0, 20.w, 0),
                                 child: renderTextFormField(
                                   context: context,
-                                  label: '인증 문자',
-                                  icon: const Icon(Icons.message, color: Colors.grey,),
-                                  suffixIcon: _smsController.text.isNotEmpty ?
+                                  label: '숫자만 입력해 주세요',
+                                  keyNumber: 6,
+                                  suffixIcon: _telController.text.isNotEmpty ?
                                   IconButton(
-                                    icon: const Icon(Icons.clear),
+                                    icon: SvgPicture.asset("assets/images/textfield_delete.svg"),
                                     onPressed: () {
-                                      _smsController.clear();
+                                      _telController.clear();
                                       setState(() { });
                                     },
                                   ) : null,
-                                  controller: _smsController,
+                                  controller: _telController,
                                   keyboardType: TextInputType.number,
                                   obscureText: false,
-                                )
-                            ),
-
-                            TextButton(
-                              child: const Text("본인 인증"),
-                              onPressed: () {
-                                setState(() {
-                                  _smsSendCompleted = true;
-                                  _smsAuthOk = true;
-                                });
-                                /*PhoneAuthCredential phoneAuthCredential =
-                                      PhoneAuthProvider.credential(
-                                          verificationId: _verificationId, smsCode: _smsController.text);
-
-                                      _signInWithPhoneAuthCredential(phoneAuthCredential);*/
-                              },
-                            ),
-                          ],
-                        ),
-              
-                        const SizedBox(height: 10),
-
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            Text('전화 번호(선택)', style: Theme.of(context).textTheme.bodySmall!.copyWith(color: Colors.grey, fontWeight: FontWeight.bold) ),
-                          ],
-                        ),
-
-                        renderTextFormField(
-                          context: context,
-                          label: '숫자만 입력해 주세요',
-                          keyNumber: 6,
-                          icon: const Icon(Icons.phone, color: Colors.grey,),
-                          suffixIcon: _telController.text.isNotEmpty ?
-                          IconButton(
-                            icon: const Icon(Icons.clear),
-                            onPressed: () {
-                              _telController.clear();
-                              setState(() { });
-                            },
-                          ) : null,
-                          controller: _telController,
-                          keyboardType: TextInputType.number,
-                          obscureText: false,
-                          focusNode: _telNumberFocusNode,
-                          onChanged: (val) {
-                            setState(() { });
-                          },
-                          onSaved: (val) {
-                            setState(() {
-                              _tel = val;
-                            });
-                          },
-                          validator: (val) {
-                            String value = val as String;
-                            if (value != '') {
-                              return val.isValidTelNumberFormat() ? null : '전화번호 형식이 아닙니다.';
-                            } else {
-                              return null;
-                            }
-
-                          },
-                        ),
-
-                        const SizedBox(height: 10),
-
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            Text('주소(선택)', style: Theme.of(context).textTheme.bodySmall!.copyWith(color: Colors.grey, fontWeight: FontWeight.bold) ),
-                          ],
-                        ),
-
-                        Row(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            children: [
-                              Expanded(
-                                child: renderTextFormField(
-                                  context: context,
-                                  label: '우편 번호',
-                                  keyNumber: 7,
-                                  icon: const Icon(Icons.home_work_outlined, color: Colors.grey,),
-                                  suffixIcon: _zipController.text.isNotEmpty ?
-                                  IconButton(
-                                    icon: const Icon(Icons.clear),
-                                    onPressed: () {
-                                      _zipController.clear();
-                                      setState(() { });
-                                    },
-                                  ) : null,
-                                  controller: _zipController,
-                                  keyboardType: TextInputType.number,
-                                  obscureText: false,
-                                  focusNode: _zipAddrFocusNode,
+                                  focusNode: _telNumberFocusNode,
                                   onChanged: (val) {
                                     setState(() { });
                                   },
                                   onSaved: (val) {
                                     setState(() {
-                                      _addrzip = val;
+                                      _tel = val;
                                     });
+                                  },
+                                  validator: (val) {
+                                    String value = val as String;
+                                    if (value != '') {
+                                      return val.isValidTelNumberFormat() ? null : '전화번호 형식이 아닙니다.';
+                                    } else {
+                                      return null;
+                                    }
 
+                                  },
+                                ),
+                            )
+                        ),
+
+                        SizedBox(height: 12.h),
+
+                        SizedBox(
+                          // color: Colors.blueAccent,
+                          height: 40.h,
+                          child: Padding(
+                            padding: EdgeInsets.fromLTRB(20.w, 0, 20.w, 0),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Text("주소 (선택)", style: TextStyle(fontSize: 12.sp, color: const Color(0xFF404040), fontWeight: FontWeight.bold),),
+                              ],
+                            ),
+                          ),
+                        ),
+
+                        SizedBox(
+                          // color: Colors.blueAccent,
+                            height: 60.h,
+                            width: double.infinity,
+                            child: Padding(
+                                padding: EdgeInsets.fromLTRB(20.w, 0, 20.w, 0),
+                                child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    children: [
+                                      Expanded(
+                                        child: renderTextFormField(
+                                          context: context,
+                                          label: '우편 번호',
+                                          keyNumber: 7,
+                                          suffixIcon: _zipController.text.isNotEmpty ?
+                                          IconButton(
+                                            icon: SvgPicture.asset("assets/images/textfield_delete.svg"),
+                                            onPressed: () {
+                                              _zipController.clear();
+                                              setState(() { });
+                                            },
+                                          ) : null,
+                                          controller: _zipController,
+                                          keyboardType: TextInputType.number,
+                                          obscureText: false,
+                                          focusNode: _zipAddrFocusNode,
+                                          onChanged: (val) {
+                                            setState(() { });
+                                          },
+                                          onSaved: (val) {
+                                            setState(() {
+                                              _addrzip = val;
+                                            });
+
+                                          },
+                                          validator: (val) {
+                                            return null;
+                                          },
+                                        ),
+                                      ),
+                                      SizedBox(width: 10.w,),
+                                      SizedBox(
+                                          width: 80.w,
+                                          height: 40.h,
+                                          // color: Colors.redAccent,
+                                          child: OutlinedButton( // OutlinedButton
+                                            style: OutlinedButton.styleFrom(
+                                              foregroundColor: Constants.primaryColor,
+                                              backgroundColor: Constants.scaffoldBackgroundColor,
+                                              elevation: 1, //
+                                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
+                                              minimumSize: Size(48.w, 28.h),
+                                              maximumSize: Size(48.w, 28.h),
+                                              padding: const EdgeInsets.all(0),
+                                              side: const BorderSide(width: 1.0, color: Constants.primaryColor),
+                                            ),
+                                            onPressed: () async {
+                                              KopoModel? model = await Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                    builder: (context) => RemediKopo(),
+                                                  )
+                                              );
+
+                                              if (model != null) {
+                                                final postcode = model.zonecode ?? '';
+                                                _zipController.text = postcode;
+
+                                                final address = model.address ?? '';
+                                                final buildingName = model.buildingName ?? '';
+                                                _addrController.text = '$address $buildingName';
+                                              }
+
+                                              if (!context.mounted) return;
+                                              FocusScope.of(context).requestFocus(_addrFocusNode);
+                                            },
+                                            child: Text('주소 검색', style: TextStyle(fontSize: 14.sp, color: Constants.primaryColor), ),)
+                                      ),
+                                      /*TextButton(
+                                          child: const Text("주소 검색"),
+                                          onPressed: () async {
+                                            KopoModel? model = await Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) => RemediKopo(),
+                                                )
+                                            );
+
+                                            if (model != null) {
+                                              final postcode = model.zonecode ?? '';
+                                              _zipController.text = postcode;
+
+                                              final address = model.address ?? '';
+                                              final buildingName = model.buildingName ?? '';
+                                              _addrController.text = '$address $buildingName';
+                                            }
+
+                                            if (!context.mounted) return;
+                                            FocusScope.of(context).requestFocus(_addrFocusNode);
+                                          }
+                                      )*/
+                                    ]
+                                ),
+                            )
+                        ),
+
+                        SizedBox(height: 12.h),
+
+                        SizedBox(
+                          // color: Colors.blueAccent,
+                            height: 60.h,
+                            width: double.infinity,
+                            child: Padding(
+                                padding: EdgeInsets.fromLTRB(20.w, 0, 20.w, 0),
+                                child: renderTextFormField(
+                                  context: context,
+                                  label: '주소',
+                                  keyNumber: 8,
+                                  suffixIcon: _addrController.text.isNotEmpty ?
+                                  IconButton(
+                                    icon: SvgPicture.asset("assets/images/textfield_delete.svg"),
+                                    onPressed: () {
+                                      _addrController.clear();
+                                      setState(() { });
+                                    },
+                                  ) : null,
+                                  controller: _addrController,
+                                  keyboardType: TextInputType.streetAddress,
+                                  obscureText: false,
+                                  focusNode: _addrFocusNode,
+                                  onChanged: (val) {
+                                    setState(() { });
+                                  },
+                                  onSaved: (val) {
+                                    setState(() {
+                                      _addr = val;
+                                    });
                                   },
                                   validator: (val) {
                                     return null;
                                   },
                                 ),
-                              ),
-                              TextButton(
-                                  child: const Text("주소 검색"),
-                                  onPressed: () async {
-                                    KopoModel? model = await Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => RemediKopo(),
-                                        )
-                                    );
-
-                                    if (model != null) {
-                                      final postcode = model.zonecode ?? '';
-                                      _zipController.text = postcode;
-
-                                      final address = model.address ?? '';
-                                      final buildingName = model.buildingName ?? '';
-                                      _addrController.text = '$address $buildingName';
-                                    }
-
-                                    if (!context.mounted) return;
-                                    FocusScope.of(context).requestFocus(_addrFocusNode);
-                                  }
-                              )
-                            ]
+                            )
                         ),
 
-                        const SizedBox(height: 10),
+                        SizedBox(height: 12.h),
 
-                        renderTextFormField(
-                          context: context,
-                          label: '주소',
-                          keyNumber: 8,
-                          icon: const Icon(Icons.home_work_outlined, color: Colors.grey,),
-                          suffixIcon: _addrController.text.isNotEmpty ?
-                          IconButton(
-                            icon: const Icon(Icons.clear),
-                            onPressed: () {
-                              _addrController.clear();
-                              setState(() { });
-                            },
-                          ) : null,
-                          controller: _addrController,
-                          keyboardType: TextInputType.streetAddress,
-                          obscureText: false,
-                          focusNode: _addrFocusNode,
-                          onChanged: (val) {
-                            setState(() { });
-                          },
-                          onSaved: (val) {
-                            setState(() {
-                              _addr = val;
-                            });
-                          },
-                          validator: (val) {
-                            return null;
-                          },
+                        SizedBox(
+                          // color: Colors.blueAccent,
+                            height: 60.h,
+                            width: double.infinity,
+                            child: Padding(
+                                padding: EdgeInsets.fromLTRB(20.w, 0, 20.w, 0),
+                                child: renderTextFormField(
+                                  context: context,
+                                  label: '상세주소',
+                                  keyNumber: 9,
+                                  suffixIcon: _detailAddrController.text.isNotEmpty ?
+                                  IconButton(
+                                    icon: SvgPicture.asset("assets/images/textfield_delete.svg"),
+                                    onPressed: () {
+                                      _detailAddrController.clear();
+                                      setState(() { });
+                                    },
+                                  ) : null,
+                                  controller: _detailAddrController,
+                                  keyboardType: TextInputType.streetAddress,
+                                  obscureText: false,
+                                  focusNode: _detailAddrFocusNode,
+                                  onChanged: (val) {
+                                    setState(() { });
+                                  },
+                                  onSaved: (val) {
+                                    setState(() {
+                                      _detailAddr = val;
+                                    });
+                                  },
+                                  validator: (val) {
+                                    return null;
+                                  },
+                                ),
+                            )
                         ),
-              
-                        const SizedBox(height: 10),
 
-                        renderTextFormField(
-                          context: context,
-                          label: '상세주소',
-                          keyNumber: 9,
-                          icon: const Icon(Icons.home_work_outlined, color: Colors.grey,),
-                          suffixIcon: _detailAddrController.text.isNotEmpty ?
-                          IconButton(
-                            icon: const Icon(Icons.clear),
-                            onPressed: () {
-                              _detailAddrController.clear();
-                              setState(() { });
-                            },
-                          ) : null,
-                          controller: _detailAddrController,
-                          keyboardType: TextInputType.streetAddress,
-                          obscureText: false,
-                          focusNode: _detailAddrFocusNode,
-                          onChanged: (val) {
-                            setState(() { });
-                          },
-                          onSaved: (val) {
-                            setState(() {
-                              _detailAddr = val;
-                            });
-                          },
-                          validator: (val) {
-                            return null;
-                          },
-                        ),
-              
-                        const SizedBox(height: 20),
+                        /*const SizedBox(height: 20),
 
                         Row(
                           mainAxisAlignment: MainAxisAlignment.start,
@@ -865,7 +1137,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                             return null;
                           },
                         ),
-              
+
                         const SizedBox(height: 10),
 
                         Row(
@@ -1001,13 +1273,18 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                             String value = val as String;
                             return val.isValidPhoneNumberFormat() ? null : '휴대폰  형식이 아닙니다.';
                           },
-                        ),
+                        ),*/
 
                         const SizedBox(height: 10),
 
-                        MyButton(
-                          onTap: () { _register(context); },
-                          text: "Register",
+                        Padding(
+                          padding: EdgeInsets.fromLTRB(20.w, 20.h, 20.w, 20.h),
+                          child: MyButton(
+                            onTap: () {
+                              _register(context);
+                            },
+                            text: "확인",
+                          ),
                         ),
 
                         SizedBox(height: MediaQuery.of(context).viewInsets.bottom + 100),
@@ -1015,9 +1292,8 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                     ),
                   ),
                 ),
-              ),
-            ),
-          )
+            )
+          ),
         )
     );
   }

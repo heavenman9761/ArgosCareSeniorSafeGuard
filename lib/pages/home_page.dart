@@ -35,24 +35,18 @@ import 'package:argoscareseniorsafeguard/auth/auth_dio.dart';
 import 'package:argoscareseniorsafeguard/pages/notice/notice_widget.dart';
 
 class HomePage extends ConsumerStatefulWidget {
-  const HomePage({super.key, required this.title, required this.userName, required this.userID, required this.requireLogin});
+  const HomePage({super.key, required this.title, required this.userName, required this.userID, required this.userMail});
 
   final String title;
   final String userName;
   final String userID;
-  final bool requireLogin;
+  final String userMail;
 
   @override
   ConsumerState<HomePage> createState() => _HomePageState();
 }
 
 class _HomePageState extends ConsumerState<HomePage> {
-  late final List<Device> _deviceList = [];
-  int _selectedIndex = 0;
-
-  String _userName = '';
-  String _userID = '';
-
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -64,60 +58,36 @@ class _HomePageState extends ConsumerState<HomePage> {
   void initState() {
     super.initState();
 
-    _userName = widget.userName;
-    _userID = widget.userID;
-
-    if (widget.requireLogin) {
+    /*if (widget.requireLogin) {
       asyncInitState();
     } else {
       _appSetting();
-    }
+    }*/
+    _appSetting();
   }
 
-  void asyncInitState() async {
+  /*void asyncInitState() async {
     await _loginProcess().then((result) {
       setState(() {
       });
 
       _appSetting();
     });
-  }
+  }*/
 
   void _appSetting() {
     getMyDeviceToken();
     _checkPermissions();
     mqttInit(ref, Constants.MQTT_HOST, Constants.MQTT_PORT, Constants.MQTT_IDENTIFIER, Constants.MQTT_ID, Constants.MQTT_PASSWORD);
     _fcmSetListener();
-    _getLastEvent();
-    _getHubInfos();
+    // _getLastEvent();
+    // _getHubInfos();
   }
 
-  Future<void> _loginProcess() async {
-    // final SharedPreferences pref = await SharedPreferences.getInstance();
-    //
-    // const storage = FlutterSecureStorage(
-    //   iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock),
-    //   aOptions: AndroidOptions(encryptedSharedPreferences: true),
-    // );
-    //
-    // String? email = await storage.read(key: 'EMAIL');
-    // String? password = await storage.read(key: 'PASSWORD');
-
+  /*Future<void> _loginProcess() async {
     dio = await authDio();
 
     try {
-      /*final response = await dio.post(
-          "/auth/signin",
-          data: jsonEncode({
-            "email": email,
-            "password": password
-          })
-      );
-
-      final token = response.data['token'];
-
-      await storage.write(key: 'ACCESS_TOKEN', value: token);*/
-
       final loginResponse = await dio.get(
           "/auth/me"
       );
@@ -125,16 +95,12 @@ class _HomePageState extends ConsumerState<HomePage> {
       _userID = loginResponse.data['id'];
       _userName = loginResponse.data['name'];
 
-      // await storage.write(key: 'ID', value: loginResponse.data['id']);
-      // await storage.write(key: 'EMAIL', value: loginResponse.data['email']);
-      // await storage.write(key: 'PASSWORD', value: password); //세션 종료시 다시 로그인하기 위해 필요
-
       saveUserInfo(loginResponse);
 
     } catch (e) {
       // _isLogin = false;
     }
-  }
+  }*/
 
   void _startBackgroundService() async {
     await initializeService();
@@ -156,56 +122,56 @@ class _HomePageState extends ConsumerState<HomePage> {
     super.dispose();
   }
 
-  void _getHubInfos() async {
+  /*void _getHubInfos() async {
 
-  }
+  }*/
 
-  void _getLastEvent() async {
+  /*void _getLastEvent() async {
     DBHelper sd = DBHelper();
 
-    List<SensorEvent> es = await sd.findSensorLast(_userID, Constants.DEVICE_TYPE_ILLUMINANCE);
+    List<SensorEvent> es = await sd.findSensorLast(widget.userID, Constants.DEVICE_TYPE_ILLUMINANCE);
     if (es.isNotEmpty) {
       SensorEvent sensorEvent = es[0];
       String description = analysisSensorEvent(sensorEvent);
       ref.read(illuminanceSensorStateProvider.notifier).state = description;
     }
 
-    es = await sd.findSensorLast(_userID, Constants.DEVICE_TYPE_TEMPERATURE_HUMIDITY);
+    es = await sd.findSensorLast(widget.userID, Constants.DEVICE_TYPE_TEMPERATURE_HUMIDITY);
     if (es.isNotEmpty) {
       SensorEvent sensorEvent = es[0];
       String description = analysisSensorEvent(sensorEvent);
       ref.read(humiditySensorStateProvider.notifier).state = description;
     }
 
-    es = await sd.findSensorLast(_userID, Constants.DEVICE_TYPE_SMOKE);
+    es = await sd.findSensorLast(widget.userID, Constants.DEVICE_TYPE_SMOKE);
     if (es.isNotEmpty) {
       SensorEvent sensorEvent = es[0];
       String description = analysisSensorEvent(sensorEvent);
       ref.read(smokeSensorStateProvider.notifier).state = description;
     }
 
-    es = await sd.findSensorLast(_userID, Constants.DEVICE_TYPE_EMERGENCY);
+    es = await sd.findSensorLast(widget.userID, Constants.DEVICE_TYPE_EMERGENCY);
     if (es.isNotEmpty) {
       SensorEvent sensorEvent = es[0];
       String description = analysisSensorEvent(sensorEvent);
       ref.read(emergencySensorStateProvider.notifier).state = description;
     }
 
-    es = await sd.findSensorLast(_userID, Constants.DEVICE_TYPE_MOTION);
+    es = await sd.findSensorLast(widget.userID, Constants.DEVICE_TYPE_MOTION);
     if (es.isNotEmpty) {
       SensorEvent sensorEvent = es[0];
       String description = analysisSensorEvent(sensorEvent);
       ref.read(motionSensorStateProvider.notifier).state = description;
     }
 
-    es = await sd.findSensorLast(_userID, Constants.DEVICE_TYPE_DOOR);
+    es = await sd.findSensorLast(widget.userID, Constants.DEVICE_TYPE_DOOR);
     if (es.isNotEmpty) {
       SensorEvent sensorEvent = es[0];
       String description = analysisSensorEvent(sensorEvent);
       ref.read(doorSensorStateProvider.notifier).state = description;
     }
 
-  }
+  }*/
 
   void _fcmSetListener() {
     FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
@@ -302,10 +268,10 @@ class _HomePageState extends ConsumerState<HomePage> {
 
   Future<void> _insertSensorEvent(String message) async {
     DBHelper sd = DBHelper();
-    String hubID = '';
+    // String hubID = '';
     final mqttMsg = json.decode(message);
 
-    List<Device> deviceList = await sd.findDeviceBySensor(_userID, mqttMsg['device_type']);
+    /*List<Device> deviceList = await sd.findDeviceBySensor(_userID, mqttMsg['device_type']);
     if (deviceList.isEmpty) {
       return;
     }
@@ -315,18 +281,18 @@ class _HomePageState extends ConsumerState<HomePage> {
     if (mqttMsg['device_type'] == Constants.DEVICE_TYPE_TEMPERATURE_HUMIDITY) {
       humi = mqttMsg['sensorState']['hum'];
       temp = mqttMsg['sensorState']['temp'] / 10;
-    }
+    }*/
 
     SensorEvent sensorEvent = SensorEvent(
       id: mqttMsg['id'],
       hubID: mqttMsg['hubID'],
-      userID: _userID,
+      userID: widget.userID,
       deviceID: mqttMsg['deviceID'],
       deviceType: mqttMsg['device_type'],
       event: mqttMsg['event'],
       status: mqttMsg['sensorState'].toString(),
-      humi: humi,
-      temp: temp,
+      humi: 0,
+      temp: 0,
       shared: 0,
       ownerID: '',
       ownerName: '',
@@ -334,7 +300,11 @@ class _HomePageState extends ConsumerState<HomePage> {
       createdAt: DateTime.now().toString(),
     );
 
-    await sd.insertSensorEvent(sensorEvent).then((value) async {
+    await sd.insertSensorEvent(sensorEvent).then((value) {
+      ref.read(sensorEventProvider.notifier).doChangeState(sensorEvent);
+      });
+
+    /*await sd.insertSensorEvent(sensorEvent).then((value) async {
       List<Device> deviceList = await sd.findDeviceBySensor(_userID, mqttMsg['device_type']);
 
       Device d = Device(
@@ -389,10 +359,9 @@ class _HomePageState extends ConsumerState<HomePage> {
 
         } else if (mqttMsg['device_type'] == Constants.DEVICE_TYPE_SMOKE) {
           ref.read(smokeSensorStateProvider.notifier).state = "$formatDate Fire";
-
         }
       });
-    });
+    });*/
   }
 
   Future<void> _saveHub(String message) async {
@@ -403,7 +372,7 @@ class _HomePageState extends ConsumerState<HomePage> {
         id: mqttMsg['id'],
         hubID: mqttMsg['deviceID'],
         name: mqttMsg['name'],
-        userID: _userID,
+        userID: widget.userID,
         displaySunBun: mqttMsg['displaySunBun'],
         category: mqttMsg['category'],
         deviceType: mqttMsg['deviceType'],
@@ -497,7 +466,7 @@ class _HomePageState extends ConsumerState<HomePage> {
         id: mqttMsg['id'],
         sensorID: mqttMsg['sensorID'],
         name: sensorName,//mqttMsg['name'],
-        userID: _userID,//mqttMsg['userID'],
+        userID: widget.userID,//mqttMsg['userID'],
         displaySunBun: mqttMsg['displaySunBun'],
         category: mqttMsg['category'],
         deviceType: mqttMsg['deviceType'],
@@ -514,8 +483,8 @@ class _HomePageState extends ConsumerState<HomePage> {
         hubID: mqttMsg['hubID'],
         locationID: ref.watch(currentLocationProvider)!.getID()! ?? ''//gCurrentLocation.getID() ?? ''
     );
+    gSensorList.add(sensor);
 
-    //gCurrentLocation.sensors?.add(sensor);
     ref.watch(currentLocationProvider)!.sensors!.add(sensor);
 
     if (sensor.getLocationID() != '') {
@@ -818,7 +787,7 @@ class _HomePageState extends ConsumerState<HomePage> {
               // selectedItemColor: Constants.primaryColor,
               // unselectedItemColor: Theme.of(context).colorScheme.onPrimaryContainer,
               // backgroundColor: Theme.of(context).colorScheme.primary,
-              currentIndex: _selectedIndex,
+              currentIndex: ref.watch(homeBottomNavigationProvider),
               onTap: _onItemTapped
           ),
         ),
@@ -829,26 +798,24 @@ class _HomePageState extends ConsumerState<HomePage> {
   }
 
   void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
+    ref.read(homeBottomNavigationProvider.notifier).state = index;
   }
 
   Widget selectWidget() {
-    if (_selectedIndex == 0) {
-      return HomeWidget(userName: _userName, userID: _userID);
+    if (ref.watch(homeBottomNavigationProvider) == 0) {
+      return HomeWidget(userName: widget.userName, userID: widget.userID);
 
-    } else if (_selectedIndex == 1) {
-      return NoticeWidget(userName: _userName, userID: _userID);
+    } else if (ref.watch(homeBottomNavigationProvider) == 1) {
+      return NoticeWidget(userName: widget.userName, userID: widget.userID);
 
-    } else if (_selectedIndex == 2) {
-      return MyDeviceWidget(userName: _userName, userID: _userID);
+    } else if (ref.watch(homeBottomNavigationProvider) == 2) {
+      return MyDeviceWidget(userName: widget.userName, userID: widget.userID);
 
-    } else if (_selectedIndex == 3) {
-      return ProfileWidget(userName: _userName, userID: _userID);
+    } else if (ref.watch(homeBottomNavigationProvider) == 3) {
+      return ProfileWidget(userName: widget.userName, userID: widget.userID, userMail: widget.userMail);
 
     } else {
-      return HomeWidget(userName: _userName, userID: _userID);
+      return HomeWidget(userName: widget.userName, userID: widget.userID);
     }
   }
 }

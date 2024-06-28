@@ -63,6 +63,7 @@ class _AddSensorSecondState extends ConsumerState<AddSensorSecond> {
           } else if (ref.watch(findSensorStateProvider) == FindSensorState.findingSensorDone) {
             _stopTimer();
             Navigator.pop(context); //ModalSheet가 닫힌다.
+            Navigator.pop(context); //이전페이지로 돌아간다.
 
           } else if (ref.watch(findSensorStateProvider) == FindSensorState.findingSensorEmpty) {
             // Navigator.pop(context);
@@ -80,7 +81,7 @@ class _AddSensorSecondState extends ConsumerState<AddSensorSecond> {
                     // color: Colors.blueAccent,
                     height: 52.h,
                     child: Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
+                      padding: EdgeInsets.fromLTRB(20.w, 0, 20.w, 0),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.start,
                         crossAxisAlignment: CrossAxisAlignment.center,
@@ -109,7 +110,7 @@ class _AddSensorSecondState extends ConsumerState<AddSensorSecond> {
                     // color: Colors.blueAccent,
                     height: 76.h,
                     child: Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
+                      padding: EdgeInsets.fromLTRB(20.w, 0, 20.w, 0),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.start,
                         crossAxisAlignment: CrossAxisAlignment.center,

@@ -53,6 +53,26 @@ class Constants {
 
   static const titleFontSize = 20;
 
+  static const List<String> yearText = [
+    '1930년생', '1931년생', '1932년생', '1933년생', '1934년생', '1935년생', '1936년생', '1937년생', '1938년생', '1939년생',
+    '1940년생', '1941년생', '1942년생', '1943년생', '1944년생', '1945년생', '1946년생', '1947년생', '1948년생', '1949년생',
+    '1950년생', '1951년생', '1952년생', '1953년생', '1954년생', '1955년생', '1956년생', '1957년생', '1958년생', '1959년생',
+    '1960년생', '1961년생', '1962년생', '1963년생', '1964년생', '1965년생', '1966년생', '1967년생', '1968년생', '1969년생',
+  ];
+
+  static const List<String> year = [
+    '1930', '1931', '1932', '1933', '1934', '1935', '1936', '1937', '1938', '1939',
+    '1940', '1941', '1942', '1943', '1944', '1945', '1946', '1947', '1948', '1949',
+    '1950', '1951', '1952', '1953', '1954', '1955', '1956', '1957', '1958', '1959',
+    '1960', '1961', '1962', '1963', '1964', '1965', '1966', '1967', '1968', '1969',
+  ];
+
+  static const List<int> ages = [
+    95, 94, 93, 92, 91, 90, 89, 88, 87, 86,
+    85, 84, 83, 82, 81, 70, 79, 78, 77, 76,
+    75, 74, 73, 72, 71, 60, 69, 68, 67, 66,
+  ];
+
   static final ButtonStyle elevatedButtonStyle = ElevatedButton.styleFrom(
     foregroundColor: Colors.white60,
     backgroundColor: Colors.lightBlue, // text color
@@ -62,9 +82,9 @@ class Constants {
 }
 
 
-
+Map gParentInfo = {};
 List<HubInfo> gHubList = [];
-// List<SensorInfo> gSensorList = [];
+List<SensorInfo> gSensorList = [];
 List<LocationInfo> gLocationList = [];
 // late LocationInfo gCurrentLocation;
 
@@ -78,6 +98,7 @@ String gCookie = '';
 
 void saveUserInfo(var loginResponse) async {
   gHubList.clear();
+  gSensorList.clear();
   gLocationList.clear();
   gShareInfo.clear();
 
@@ -90,9 +111,8 @@ void saveUserInfo(var loginResponse) async {
   for (var l in lList) {
     List<SensorInfo> sl = [];
     for (var s in l['Sensor_Infos']) {
-      sl.add(
-          SensorInfo.fromJson(s)
-      );
+      gSensorList.add(SensorInfo.fromJson(s));
+      sl.add(SensorInfo.fromJson(s));
     }
 
     gLocationList.add(
@@ -118,13 +138,6 @@ void saveUserInfo(var loginResponse) async {
     gShareInfo.add(ShareInfo.fromJson(sh));
   }
 
-  // print(gShareInfo);
-  // print(gHubList);
-  // print("===================");
-  // print(gSensorList);
-  // print(gLocationList);
-  // print("===================");
-
   final SharedPreferences pref = await SharedPreferences.getInstance();
 
   pref.setString("name", loginResponse.data['name']);
@@ -143,6 +156,10 @@ void saveUserInfo(var loginResponse) async {
   pref.setString("shareKey", loginResponse.data['shareKey']);
   pref.setBool("isLogin", true);
 
+  gParentInfo['parentName'] = loginResponse.data['parentName'];
+  gParentInfo['parentAge'] = loginResponse.data['parentAge'];
+  gParentInfo['parentPhone'] = loginResponse.data['parentPhone'];
+  gParentInfo['parentSex'] = loginResponse.data['parentSex'];
 
   /*pref.setBool("EntireAlarm", alarmResponse.data['entireAlarm']);
 

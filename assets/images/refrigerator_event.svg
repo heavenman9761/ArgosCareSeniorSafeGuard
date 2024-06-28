@@ -1,0 +1,9 @@
+<svg id="구성_요소_95_1" data-name="구성 요소 95 – 1" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20">
+  <circle id="타원_122" data-name="타원 122" cx="10" cy="10" r="10" fill="#5aaeee"/>
+  <g id="그룹_118" data-name="그룹 118" transform="translate(-9147.371 -5678.477)">
+    <path id="사각형_312" data-name="사각형 312" d="M2,0H4A0,0,0,0,1,4,0V14a0,0,0,0,1,0,0H2a2,2,0,0,1-2-2V2A2,2,0,0,1,2,0Z" transform="translate(9151.37 5681.477)" fill="#fff"/>
+    <path id="사각형_313" data-name="사각형 313" d="M0,0H5A2,2,0,0,1,7,2V12a2,2,0,0,1-2,2H0a0,0,0,0,1,0,0V0A0,0,0,0,1,0,0Z" transform="translate(9156.37 5681.477)" fill="#fff"/>
+    <rect id="사각형_314" data-name="사각형 314" width="3" height="4" rx="0.5" transform="translate(9158.37 5684.477)" fill="#5aaeee"/>
+    <rect id="사각형_316" data-name="사각형 316" height="3" transform="translate(9155.37 5686.477)" fill="#ebf5fe"/>
+  </g>
+</svg>

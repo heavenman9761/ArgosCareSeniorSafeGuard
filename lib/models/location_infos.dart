@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:argoscareseniorsafeguard/models/sensor_infos.dart';
+import 'package:argoscareseniorsafeguard/models/event_list.dart';
 
 class LocationInfo {
   final String? id;
@@ -15,6 +16,7 @@ class LocationInfo {
   final String? createdAt;
   final String? updatedAt;
   final List<SensorInfo>? sensors;
+  final List<EventList>? events;
 
   String? getID() {
     return id;
@@ -68,6 +70,18 @@ class LocationInfo {
     return sensors;
   }
 
+  List<EventList>? getEvents() {
+    return events;
+  }
+
+  void setEvents(List<EventList>? value) {
+    events = value;
+  }
+
+  set events(List<EventList>? value) {
+    events = value;
+  }
+
   void setDetectedMotionSensorCount(int value) {
     detectedMotionSensorCount = value;
   }
@@ -88,7 +102,8 @@ class LocationInfo {
     required this.detectedDoorSensorCount,
     this.createdAt,
     required this.updatedAt,
-    this.sensors
+    this.sensors,
+    this.events
   });
 
   Map<String, dynamic> toMap() {
@@ -104,7 +119,8 @@ class LocationInfo {
       'detectedDoorSensorCount': detectedDoorSensorCount ?? 0,
       'createdAt': createdAt ?? '',
       'updatedAt': updatedAt ?? '',
-      'sensors': sensors ?? []
+      'sensors': sensors ?? [],
+      'events': events ?? []
     };
   }
 
@@ -121,7 +137,8 @@ class LocationInfo {
       detectedDoorSensorCount: json['detectedDoorSensorCount'],
       createdAt: json['createdAt'],
       updatedAt: json['updatedAt'],
-      sensors: json['Sensor_Infos']
+      sensors: json['Sensor_Infos'],
+      events: json['Events'],
     );
   }
 
@@ -140,6 +157,7 @@ class LocationInfo {
         'createdAt: $createdAt, '
         'updatedAt: $updatedAt, '
         'sensors: $sensors, '
+        'events: $events, '
       '}';
   }
 }

@@ -1,8 +1,10 @@
-import 'package:argoscareseniorsafeguard/models/sensor_infos.dart';
-import 'package:argoscareseniorsafeguard/models/location_infos.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mqtt_client/mqtt_client.dart';
+
 import 'package:argoscareseniorsafeguard/constants.dart';
+import 'package:argoscareseniorsafeguard/models/sensor_infos.dart';
+import 'package:argoscareseniorsafeguard/models/location_infos.dart';
+import 'package:argoscareseniorsafeguard/models/sensor_event.dart';
 
 class MqttConnectionStateNotifier extends StateNotifier<MqttConnectionState> {
   MqttConnectionStateNotifier(): super(MqttConnectionState.disconnected);
@@ -52,6 +54,19 @@ class CurrentLocationNotifier extends StateNotifier<LocationInfo?> {
 
 final currentLocationProvider = StateNotifierProvider<CurrentLocationNotifier, LocationInfo?>((ref) {
   return CurrentLocationNotifier();
+});
+
+//--------- 새로운 이벤트를 받을 때 사용하는 Provider ---------------------------------------------------
+class SensorEventNotifier extends StateNotifier<SensorEvent?> {
+  SensorEventNotifier() : super(null);
+
+  void doChangeState(SensorEvent sensorEvent) {
+    state = sensorEvent;
+  }
+}
+
+final sensorEventProvider = StateNotifierProvider<SensorEventNotifier, SensorEvent?>((ref) {
+  return SensorEventNotifier();
 });
 
 //-------------------------------------------------------------------------------------------
@@ -227,5 +242,9 @@ final phoneCertificationProvider = StateProvider<bool>((ref) {
 });
 
 final requestShareListProviderCount = StateProvider<int>((ref) {
+  return 0;
+});
+
+final homeBottomNavigationProvider = StateProvider<int>((ref) {
   return 0;
 });

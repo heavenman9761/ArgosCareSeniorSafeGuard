@@ -589,6 +589,32 @@ class DBHelper {
     });
   }
 
+  Future<List<SensorEvent>> getSensorEventsByDeviceOnlyOne(String deviceID) async {
+    final db = await database;
+
+    final List<Map<String, dynamic>> maps =
+    await db.query(tableNameSensorEvents, where: 'deviceID = ?', whereArgs: [deviceID], orderBy: 'createdAt DESC', limit: 1);
+
+    return List.generate(maps.length, (i) {
+      return SensorEvent(
+        id: maps[i]['id'],
+        hubID: maps[i]['hubID'],
+        userID: maps[i]['userID'],
+        deviceID: maps[i]['deviceID'],
+        deviceType: maps[i]['deviceType'],
+        event: maps[i]['event'],
+        status: maps[i]['status'],
+        humi: maps[i]['humi'],
+        temp: maps[i]['temp'],
+        shared: maps[i]['shared'],
+        ownerID: maps[i]['ownerID'],
+        ownerName: maps[i]['ownerName'],
+        updatedAt: maps[i]['updatedAt'],
+        createdAt: maps[i]['createdAt'],
+      );
+    });
+  }
+
   Future<void> updateSensorEvent(SensorEvent sensorEvent) async {
     final db = await database;
 
@@ -812,6 +838,68 @@ class DBHelper {
   }
 
   //=====================================
+
+  Future<List<EventList>> getEventList2(String date, List<String> sensors) async {
+    final db = await database;
+
+    String start = '$date 00:00:00.000000';
+    String end = '$date 23:59:59.999999';
+
+    String where = "";
+    for (String id in sensors) {
+      where = "$where OR deviceID = '$id'";
+    }
+    where = "$where AND createdAt >= '$start' AND createdAt <= '$end'";
+    where = where.substring(4);
+
+    //첫번째 " AND"앞에 ")" 넣기
+    where = where.replaceFirst(" AND", ") AND");
+    String sql = "SELECT * FROM sensorEvents WHERE ($where ORDER BY createdAt DESC";
+
+    List<Map<String, dynamic>> maps = await db.rawQuery(
+        sql
+    );
+
+    return List.generate(maps.length, (i) {
+      return EventList(
+        hubID: maps[i]['hubID'],
+        userID: maps[i]['userID'],
+        deviceID: maps[i]['deviceID'],
+        deviceType: maps[i]['deviceType'],
+        event: maps[i]['event'],
+        status: maps[i]['status'],
+        createdAt: maps[i]['createdAt'],
+        name: maps[i]['name'],
+      );
+    });
+  }
+
+  Future<List<EventList>> getEventList3(String date) async {
+    final db = await database;
+
+    String start = '$date 00:00:00.000000';
+    String end = '$date 23:59:59.999999';
+
+    String sql = "SELECT * FROM sensorEvents WHERE createdAt >= '$start' AND createdAt <= '$end' ORDER BY createdAt DESC";
+
+    List<Map<String, dynamic>> maps = await db.rawQuery(
+        sql
+    );
+
+    return List.generate(maps.length, (i) {
+      return EventList(
+        hubID: maps[i]['hubID'],
+        userID: maps[i]['userID'],
+        deviceID: maps[i]['deviceID'],
+        deviceType: maps[i]['deviceType'],
+        event: maps[i]['event'],
+        status: maps[i]['status'],
+        createdAt: maps[i]['createdAt'],
+        name: maps[i]['name'],
+      );
+    });
+  }
+
 
   Future<List<EventList>> getEventList(String date, String userID) async {
     final db = await database;

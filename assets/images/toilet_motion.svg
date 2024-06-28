@@ -1,0 +1,11 @@
+<svg id="구성_요소_94_1" data-name="구성 요소 94 – 1" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20">
+  <circle id="타원_121" data-name="타원 121" cx="10" cy="10" r="10" fill="#ffc94e"/>
+  <g id="그룹_120" data-name="그룹 120" transform="translate(-8970.172 -6157.338)">
+    <rect id="사각형_317" data-name="사각형 317" width="3" height="1" rx="0.5" transform="translate(8974.848 6161.225)" fill="#fff"/>
+    <rect id="사각형_318" data-name="사각형 318" width="7.156" height="0.477" rx="0.239" transform="translate(8978.34 6167.009)" fill="#fff"/>
+    <rect id="사각형_320" data-name="사각형 320" width="7.156" height="0.477" rx="0.239" transform="translate(8978.223 6166.358) rotate(-30)" fill="#fff"/>
+    <path id="패스_393" data-name="패스 393" d="M-.523,0H1.385a.547.547,0,0,1,.477.6V4.175a.547.547,0,0,1-.477.6H-.046a.547.547,0,0,1-.477-.6L-1,.6A.547.547,0,0,1-.523,0Z" transform="translate(8976 6162.716)" fill="#fff"/>
+    <path id="사각형_319" data-name="사각형 319" d="M.333,0H8.667A.333.333,0,0,1,9,.333v0A2.667,2.667,0,0,1,6.333,3H.667A.667.667,0,0,1,0,2.333v-2A.333.333,0,0,1,.333,0Z" transform="translate(8976.248 6167.725)" fill="#fff"/>
+    <path id="패스_394" data-name="패스 394" d="M-.523,0H1.863L2.34,2.29a.531.531,0,0,1-.477.573H-.523A.531.531,0,0,1-1,2.29Z" transform="translate(8979.34 6170.588)" fill="#fff"/>
+  </g>
+</svg>

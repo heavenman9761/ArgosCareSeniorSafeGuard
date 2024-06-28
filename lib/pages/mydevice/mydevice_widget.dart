@@ -14,10 +14,12 @@ import 'package:argoscareseniorsafeguard/providers/providers.dart';
 import 'package:argoscareseniorsafeguard/models/device.dart';
 import 'package:argoscareseniorsafeguard/models/hub.dart';
 import 'package:argoscareseniorsafeguard/models/sensor.dart';
+import 'package:argoscareseniorsafeguard/models/sensor_infos.dart';
 import 'package:argoscareseniorsafeguard/models/location_infos.dart';
 import 'package:argoscareseniorsafeguard/components/my_container.dart';
 import 'package:argoscareseniorsafeguard/pages/mydevice/add_sensor_first.dart';
 import 'package:argoscareseniorsafeguard/pages/mydevice/add_location_new.dart';
+import 'package:argoscareseniorsafeguard/pages/mydevice/pairing_hub.dart';
 
 class MyDeviceWidget extends ConsumerStatefulWidget {
   const MyDeviceWidget({super.key, required this.userName, required this.userID});
@@ -29,57 +31,9 @@ class MyDeviceWidget extends ConsumerStatefulWidget {
 }
 
 class _MyDeviceWidgetState extends ConsumerState<MyDeviceWidget> {
-  bool _existHub = false;
-  final List<String> _actionList = ['허브 등록', '센서 등록'];
+  /*final List<String> _actionList = ['허브 등록', '센서 등록'];
   int _selectIndex = 0;
-  final List<Hub> _hubList = [];
-
-  Future<List<Device>> _getDeviceList() async {
-    DBHelper sd = DBHelper();
-
-    _hubList.clear();
-
-    List<Hub> hubList = await sd.getHubs();
-    List<Sensor> sensorList = await sd.getSensors(widget.userID);
-    List<Device> deviceList = [];
-
-    for (Hub hub in hubList) {
-      Device device = Device(
-          deviceID: hub.getHubID(),
-          deviceType: hub.getDeviceType(),
-          deviceName: hub.getName(),
-          displaySunBun: hub.getDisplaySunBun(),
-          userID: "",
-          status: "",
-          shared: 0,
-          ownerID: '',
-          ownerName: '',
-          updatedAt: hub.getUpdatedAt(),
-          createdAt: hub.getCreatedAt()
-      );
-      deviceList.add(device);
-      _hubList.add(hub);
-    }
-
-    for (Sensor sensor in sensorList) {
-      Device device = Device(
-          deviceID: sensor.getSensorID(),
-          deviceType: sensor.getDeviceType(),
-          deviceName: sensor.getName(),
-          displaySunBun: sensor.getDisplaySunBun(),
-          userID: "",
-          status: "",
-          shared: 0,
-          ownerID: '',
-          ownerName: '',
-          updatedAt: sensor.getUpdatedAt(),
-          createdAt: sensor.getCreatedAt()
-      );
-      deviceList.add(device);
-    }
-
-    return deviceList;
-  }
+  final List<Hub> _hubList = [];*/
 
   @override
   Widget build(BuildContext context) {
@@ -104,7 +58,7 @@ class _MyDeviceWidgetState extends ConsumerState<MyDeviceWidget> {
                 // color: Colors.blueAccent,
                 height: 76.h,
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
+                  padding: EdgeInsets.fromLTRB(20.w, 0, 20.w, 0),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.start,
                     crossAxisAlignment: CrossAxisAlignment.center,
@@ -136,7 +90,7 @@ class _MyDeviceWidgetState extends ConsumerState<MyDeviceWidget> {
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
+                padding: EdgeInsets.fromLTRB(20.w, 0, 20.w, 0),
                 child: Container( //허브 정보
                   // color: Colors.blueAccent,
                     height: 120.h,
@@ -160,11 +114,12 @@ class _MyDeviceWidgetState extends ConsumerState<MyDeviceWidget> {
                         children: [
                           Row(
                               children: [
-                                Image.asset('assets/images/hub.png', width: 28.w, height: 28.h,),
+                                SvgPicture.asset('assets/images/hub_small2.svg', width: 28.w, height: 28.h),
                                 SizedBox(width: 8.w,),
                                 Text("허브", style: TextStyle(fontSize: 16.sp, color: Colors.black, fontWeight: FontWeight.bold), ),
                                 const Spacer(),
-                                SizedBox(
+                                gHubList.isEmpty
+                                ? SizedBox(
                                   width: 24.w,
                                   height: 24.h,
                                   // color: Colors.redAccent,
@@ -174,23 +129,32 @@ class _MyDeviceWidgetState extends ConsumerState<MyDeviceWidget> {
                                     color: Constants.primaryColor,
                                     icon: SvgPicture.asset('assets/images/setting.svg', width: 24.w, height: 24.h),
                                     onPressed: () {
-                                      debugPrint('icon press');
+                                      Navigator.push(context,
+                                          MaterialPageRoute(builder: (context) {
+                                            return const PairingHub();
+                                          }));
                                     },
-                                  ),
+                                  )
                                 )
+                                : Text("연결됨", style: TextStyle(fontSize: 12.sp, color: Constants.primaryColor, ), ),
                               ]
                           ),
                           const Divider(color: Color(0xFFDAF1DC),),
                           Expanded(
-                              child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  mainAxisAlignment: MainAxisAlignment.start,
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.end,
                                   children: [
                                     gHubList.isEmpty
-                                    ? Text("허브가 설치되지 않았습니다.", style: TextStyle(fontSize: 14.sp, color: Constants.dividerColor, fontWeight: FontWeight.bold), )
-                                    : Text('설치일자: ${gHubList[0].getCreatedAt()}', style: TextStyle(fontSize: 14.sp, color: Constants.dividerColor, fontWeight: FontWeight.bold), ),
-                                  ]
-                              )
+                                    ? Text("허브를 설치해 주세요.", style: TextStyle(fontSize: 12.sp, color: Constants.dividerColor, fontWeight: FontWeight.bold), )
+                                    : Text('${gHubList[0].getCreatedAt()!.substring(0, 10)} 설치', style: TextStyle(fontSize: 12.sp, color: Constants.dividerColor), ),
+
+                                  ],
+                                )
+                              ],
+                            )
                           )
                         ],
                       ),
@@ -217,34 +181,46 @@ class _MyDeviceWidgetState extends ConsumerState<MyDeviceWidget> {
   }
 
   Widget _sensorInfo(BuildContext context, int index) {
-    late SvgPicture picture;
-    late String title;
-    double height = 0.0;
-
     if (gLocationList[index].type == "entrance") { //현관
-      picture = SvgPicture.asset('assets/images/entrance_small.svg', width: 28.w, height: 28.h,);
-      title = AppLocalizations.of(context)!.location_entrance;
-      height = 152.h;
+      return _getEntranceWidget(index);
 
     } else if (gLocationList[index].type == "refrigerator") { //냉장고
-      picture = SvgPicture.asset('assets/images/refrigerator_small.svg', width: 28.w, height: 28.h,);
-      title = AppLocalizations.of(context)!.location_refrigerator;
-      height = 120.h;
+      return _getRefrigerator(index);
 
     } else if (gLocationList[index].type == "toilet") { //화장실
-      picture = SvgPicture.asset('assets/images/toilet_small.svg', width: 28.w, height: 28.h,);
-      title = AppLocalizations.of(context)!.location_toilet;
-      height = 120.h;
+      return _getToilet(index);
 
     } else if (gLocationList[index].type == "emergency") { //SOS
-      picture = SvgPicture.asset('assets/images/emergency_small.svg', width: 28.w, height: 28.h,);
-      title = AppLocalizations.of(context)!.location_emergency;
-      height = 120.h;
+      return _getEmergency(index);
 
     } else if (gLocationList[index].type == "customer") { //사용자 추가 장소
-      picture = SvgPicture.asset('assets/images/entrance_small.svg', width: 28.w, height: 28.h,);
-      title = gLocationList[index].getName()!;
-      height = 120.h;
+      return _getCustomLocation(index);
+
+    } else {
+      return const SizedBox();
+    }
+  }
+
+  Widget _getEntranceWidget(int index) {
+    SvgPicture picture = SvgPicture.asset('assets/images/entrance_small.svg', width: 28.w, height: 28.h,);
+    String title = AppLocalizations.of(context)!.location_entrance;
+    double height = 152.h;
+
+    late SensorInfo doorSensor;
+    late SensorInfo motionSensor;
+    List<SensorInfo> sensorList = gLocationList[index].getSensors()!;
+
+    bool existDoorSensor = false;
+    bool existMotionSensor = false;
+
+    for (var s in sensorList) {
+      if (s.getDeviceType() == "door_sensor") { //emergency_button
+        doorSensor = s;
+        existDoorSensor = true;
+      } else if (s.getDeviceType() == "motion_sensor") {
+        motionSensor = s;
+        existMotionSensor = true;
+      }
     }
 
     return Padding(
@@ -292,6 +268,483 @@ class _MyDeviceWidgetState extends ConsumerState<MyDeviceWidget> {
 
                           Navigator.push(context, MaterialPageRoute(builder: (context) {
                             return AddSensorFirst(userName: widget.userName, userID: widget.userID, hubID: gHubList[0].getHubID()!,);
+                          })).then((onValue) => setState(() {
+                            setState(() {
+
+                            });
+                          }));
+                        },
+                      ),
+                    ),
+                    SizedBox(width: 16.w,),
+                  ]
+              ),
+              SizedBox(height: 4.h,),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  SizedBox(width: 16.h,),
+                  const Expanded(
+                    child: Divider(color: Color(0xFFDAF1DC), thickness: 1),
+                  ),
+                  SizedBox(width: 16.h,),
+                ],
+              ),
+              Expanded(
+                  child: existDoorSensor
+                  ? Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        SizedBox(width: 16.w,),
+                        SvgPicture.asset("assets/images/door_sensor_small.svg", width: 16.w, height: 16.h),
+                        SizedBox(width: 16.w,),
+                        Text("문열림 센서", style: TextStyle(fontSize: 14.sp, color: Constants.dividerColor), ),
+                        const Spacer(),
+                        SvgPicture.asset("assets/images/battery_state_high.svg", width: 24.w, height: 24.h),
+                        SizedBox(width: 16.w,),
+                      ]
+                  )
+                  : Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        SizedBox(width: 16.w,),
+                        SvgPicture.asset("assets/images/sensor_info_small.svg", width: 16.w, height: 16.h),
+                        SizedBox(width: 16.w,),
+                        Text("문열림 센서를 연결해주세요.", style: TextStyle(fontSize: 14.sp, color: Constants.dividerColor), ),
+                      ]
+                  )
+              ),
+              Expanded(
+                  child: existMotionSensor
+                  ? Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        SizedBox(width: 16.w,),
+                        SvgPicture.asset("assets/images/motion_sensor_small.svg", width: 16.w, height: 16.h),
+                        SizedBox(width: 16.w,),
+                        Text("움직임 센서", style: TextStyle(fontSize: 14.sp, color: Constants.dividerColor), ),
+                        const Spacer(),
+                        SvgPicture.asset("assets/images/battery_state_high.svg", width: 24.w, height: 24.h),
+                        SizedBox(width: 16.w,),
+                      ]
+                  )
+                  : Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        SizedBox(width: 16.w,),
+                        SvgPicture.asset("assets/images/sensor_info_small.svg", width: 16.w, height: 16.h),
+                        SizedBox(width: 16.w,),
+                        Text("움직임 센서를 연결해주세요.", style: TextStyle(fontSize: 14.sp, color: Constants.dividerColor), ),
+                      ]
+                  )
+              )
+            ],
+          )
+      ),
+    );
+  }
+
+  Widget _getRefrigerator(int index) {
+    SvgPicture picture = SvgPicture.asset('assets/images/refrigerator_small.svg', width: 28.w, height: 28.h,);
+    String title = AppLocalizations.of(context)!.location_refrigerator;
+    double height = 120.h;
+
+    late SensorInfo doorSensor;
+    List<SensorInfo> sensorList = gLocationList[index].getSensors()!;
+
+    bool existDoorSensor = false;
+    if (sensorList.isNotEmpty && sensorList[0].getDeviceType() == "door_sensor") {
+      existDoorSensor = true;
+      doorSensor = sensorList[0];
+    }
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(0, 0, 0, 16),
+      child: Container( //허브 정보
+        // color: Colors.blueAccent,
+          height: height,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: Constants.borderColor),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.1),
+                spreadRadius: 1,
+                blurRadius: 10,
+                offset: const Offset(0, 3), // changes position of shadow
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(height: 16.h,),
+              Row(
+                  children: [
+                    SizedBox(width: 16.w,),
+                    picture,
+                    SizedBox(width: 8.w,),
+                    Text(title, style: TextStyle(fontSize: 16.sp, color: Colors.black, fontWeight: FontWeight.bold), ),
+                    const Spacer(),
+                    SizedBox(
+                      width: 24.w,
+                      height: 24.h,
+                      // color: Colors.redAccent,
+                      child: IconButton(
+                        constraints: BoxConstraints(maxHeight: 48.h, maxWidth: 48.w),
+                        padding: EdgeInsets.zero,
+                        color: Constants.primaryColor,
+                        icon: SvgPicture.asset('assets/images/setting.svg', width: 24.w, height: 24.h),
+                        onPressed: () {
+                          ref.read(currentLocationProvider.notifier).doChangeState(gLocationList[index]);
+                          ref.read(findSensorStateProvider.notifier).doChangeState(FindSensorState.none);
+
+                          Navigator.push(context, MaterialPageRoute(builder: (context) {
+                            return AddSensorFirst(userName: widget.userName, userID: widget.userID, hubID: gHubList[0].getHubID()!,);
+                          })).then((onValue) => setState(() {
+                            setState(() {
+
+                            });
+                          }));
+                        },
+                      ),
+                    ),
+                    SizedBox(width: 16.w,),
+                  ]
+              ),
+              SizedBox(height: 4.h,),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  SizedBox(width: 16.h,),
+                  const Expanded(
+                    child: Divider(color: Color(0xFFDAF1DC), thickness: 1),
+                  ),
+                  SizedBox(width: 16.h,),
+                ],
+              ),
+              Expanded(
+                  child: existDoorSensor
+                  ? Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        SizedBox(width: 16.w,),
+                        SvgPicture.asset("assets/images/door_sensor_small.svg", width: 16.w, height: 16.h),
+                        SizedBox(width: 16.w,),
+                        Text("문열림 센서", style: TextStyle(fontSize: 14.sp, color: Constants.dividerColor), ),
+                        const Spacer(),
+                        SvgPicture.asset("assets/images/battery_state_high.svg", width: 24.w, height: 24.h),
+                        SizedBox(width: 16.w,),
+                      ]
+                  )
+                  : Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        SizedBox(width: 16.w,),
+                        SvgPicture.asset("assets/images/sensor_info_small.svg", width: 16.w, height: 16.h),
+                        SizedBox(width: 16.w,),
+                        Text("문열림 센서를 연결해주세요.", style: TextStyle(fontSize: 14.sp, color: Constants.dividerColor), ),
+                      ]
+                  )
+              ),
+            ],
+          )
+      ),
+    );
+  }
+
+  Widget _getToilet(int index) {
+    SvgPicture picture = SvgPicture.asset('assets/images/toilet_small.svg', width: 28.w, height: 28.h,);
+    String title = AppLocalizations.of(context)!.location_toilet;
+    double height = 120.h;
+
+    late SensorInfo motionSensor;
+    List<SensorInfo> sensorList = gLocationList[index].getSensors()!;
+
+    bool existMotionSensor = false;
+    if (sensorList.isNotEmpty && sensorList[0].getDeviceType() == "motion_sensor") {
+      existMotionSensor = true;
+      motionSensor = sensorList[0];
+    }
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(0, 0, 0, 16),
+      child: Container( //허브 정보
+        // color: Colors.blueAccent,
+          height: height,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: Constants.borderColor),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.1),
+                spreadRadius: 1,
+                blurRadius: 10,
+                offset: const Offset(0, 3), // changes position of shadow
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(height: 16.h,),
+              Row(
+                  children: [
+                    SizedBox(width: 16.w,),
+                    picture,
+                    SizedBox(width: 8.w,),
+                    Text(title, style: TextStyle(fontSize: 16.sp, color: Colors.black, fontWeight: FontWeight.bold), ),
+                    const Spacer(),
+                    SizedBox(
+                      width: 24.w,
+                      height: 24.h,
+                      // color: Colors.redAccent,
+                      child: IconButton(
+                        constraints: BoxConstraints(maxHeight: 48.h, maxWidth: 48.w),
+                        padding: EdgeInsets.zero,
+                        color: Constants.primaryColor,
+                        icon: SvgPicture.asset('assets/images/setting.svg', width: 24.w, height: 24.h),
+                        onPressed: () {
+                          ref.read(currentLocationProvider.notifier).doChangeState(gLocationList[index]);
+                          ref.read(findSensorStateProvider.notifier).doChangeState(FindSensorState.none);
+
+                          Navigator.push(context, MaterialPageRoute(builder: (context) {
+                            return AddSensorFirst(userName: widget.userName, userID: widget.userID, hubID: gHubList[0].getHubID()!,);
+                          })).then((onValue) => setState(() {
+                            setState(() {
+
+                            });
+                          }));
+                        },
+                      ),
+                    ),
+                    SizedBox(width: 16.w,),
+                  ]
+              ),
+              SizedBox(height: 4.h,),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  SizedBox(width: 16.h,),
+                  const Expanded(
+                    child: Divider(color: Color(0xFFDAF1DC), thickness: 1),
+                  ),
+                  SizedBox(width: 16.h,),
+                ],
+              ),
+              Expanded(
+                  child: existMotionSensor
+                  ? Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        SizedBox(width: 16.w,),
+                        SvgPicture.asset("assets/images/motion_sensor_small.svg", width: 16.w, height: 16.h),
+                        SizedBox(width: 16.w,),
+                        Text("움직임 센서", style: TextStyle(fontSize: 14.sp, color: Constants.dividerColor), ),
+                        const Spacer(),
+                        SvgPicture.asset("assets/images/battery_state_high.svg", width: 24.w, height: 24.h),
+                        SizedBox(width: 16.w,),
+                      ]
+                  )
+                  : Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        SizedBox(width: 16.w,),
+                        SvgPicture.asset("assets/images/sensor_info_small.svg", width: 16.w, height: 16.h),
+                        SizedBox(width: 16.w,),
+                        Text("움직임 센서를 연결해주세요.", style: TextStyle(fontSize: 14.sp, color: Constants.dividerColor), ),
+                      ]
+                  )
+              ),
+            ],
+          )
+      ),
+    );
+  }
+
+  Widget _getEmergency(int index) {
+    SvgPicture picture = SvgPicture.asset('assets/images/emergency_small.svg', width: 28.w, height: 28.h,);
+    String title = AppLocalizations.of(context)!.location_emergency;
+    double height = 120.h;
+
+    late SensorInfo sosSensor;
+    List<SensorInfo> sensorList = gLocationList[index].getSensors()!;
+
+    bool existSosSensor = false;
+    if (sensorList.isNotEmpty && sensorList[0].getDeviceType() == "emergency_button") {
+      existSosSensor = true;
+      sosSensor = sensorList[0];
+    }
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(0, 0, 0, 16),
+      child: Container( //허브 정보
+        // color: Colors.blueAccent,
+          height: height,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: Constants.borderColor),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.1),
+                spreadRadius: 1,
+                blurRadius: 10,
+                offset: const Offset(0, 3), // changes position of shadow
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(height: 16.h,),
+              Row(
+                  children: [
+                    SizedBox(width: 16.w,),
+                    picture,
+                    SizedBox(width: 8.w,),
+                    Text(title, style: TextStyle(fontSize: 16.sp, color: Colors.black, fontWeight: FontWeight.bold), ),
+                    const Spacer(),
+                    SizedBox(
+                      width: 24.w,
+                      height: 24.h,
+                      // color: Colors.redAccent,
+                      child: IconButton(
+                        constraints: BoxConstraints(maxHeight: 48.h, maxWidth: 48.w),
+                        padding: EdgeInsets.zero,
+                        color: Constants.primaryColor,
+                        icon: SvgPicture.asset('assets/images/setting.svg', width: 24.w, height: 24.h),
+                        onPressed: () {
+                          ref.read(currentLocationProvider.notifier).doChangeState(gLocationList[index]);
+                          ref.read(findSensorStateProvider.notifier).doChangeState(FindSensorState.none);
+
+                          Navigator.push(context, MaterialPageRoute(builder: (context) {
+                            return AddSensorFirst(userName: widget.userName, userID: widget.userID, hubID: gHubList[0].getHubID()!,);
+                          })).then((onValue) => setState(() {
+                            setState(() {
+
+                            });
+                          }));
+                        },
+                      ),
+                    ),
+                    SizedBox(width: 16.w,),
+                  ]
+              ),
+              SizedBox(height: 4.h,),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  SizedBox(width: 16.h,),
+                  const Expanded(
+                    child: Divider(color: Color(0xFFDAF1DC), thickness: 1),
+                  ),
+                  SizedBox(width: 16.h,),
+                ],
+              ),
+              Expanded(
+                  child: existSosSensor
+                  ? Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        SizedBox(width: 16.w,),
+                        SvgPicture.asset("assets/images/door_sensor_small.svg", width: 16.w, height: 16.h),
+                        SizedBox(width: 16.w,),
+                        Text("SOS 센서", style: TextStyle(fontSize: 14.sp, color: Constants.dividerColor), ),
+                        const Spacer(),
+                        SvgPicture.asset("assets/images/battery_state_high.svg", width: 24.w, height: 24.h),
+                        SizedBox(width: 16.w,),
+                      ]
+                  )
+                  : Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        SizedBox(width: 16.w,),
+                        SvgPicture.asset("assets/images/sensor_info_small.svg", width: 16.w, height: 16.h),
+                        SizedBox(width: 16.w,),
+                        Text("SOS 센서를 연결해주세요.", style: TextStyle(fontSize: 14.sp, color: Constants.dividerColor), ),
+                      ]
+                  )
+              ),
+            ],
+          )
+      ),
+    );
+  }
+
+  Widget _getCustomLocation(int index) {
+    SvgPicture picture = SvgPicture.asset('assets/images/new_location.svg', width: 28.w, height: 28.h,);
+    String title = gLocationList[index].getName()!;
+    double height = 120.h;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(0, 0, 0, 16),
+      child: Container( //허브 정보
+        // color: Colors.blueAccent,
+          height: height,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: Constants.borderColor),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.1),
+                spreadRadius: 1,
+                blurRadius: 10,
+                offset: const Offset(0, 3), // changes position of shadow
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(height: 16.h,),
+              Row(
+                  children: [
+                    SizedBox(width: 16.w,),
+                    picture,
+                    SizedBox(width: 8.w,),
+                    Text(title, style: TextStyle(fontSize: 16.sp, color: Colors.black, fontWeight: FontWeight.bold), ),
+                    const Spacer(),
+                    SizedBox(
+                      width: 24.w,
+                      height: 24.h,
+                      // color: Colors.redAccent,
+                      child: IconButton(
+                        constraints: BoxConstraints(maxHeight: 48.h, maxWidth: 48.w),
+                        padding: EdgeInsets.zero,
+                        color: Constants.primaryColor,
+                        icon: SvgPicture.asset('assets/images/setting.svg', width: 24.w, height: 24.h),
+                        onPressed: () {
+                          ref.read(currentLocationProvider.notifier).doChangeState(gLocationList[index]);
+                          ref.read(findSensorStateProvider.notifier).doChangeState(FindSensorState.none);
+
+                          Navigator.push(context, MaterialPageRoute(builder: (context) {
+                            return AddSensorFirst(userName: widget.userName, userID: widget.userID, hubID: gHubList[0].getHubID()!,);
+                          })).then((onValue) => setState(() {
+                            setState(() {
+
+                            });
                           }));
                         },
                       ),
@@ -317,21 +770,23 @@ class _MyDeviceWidgetState extends ConsumerState<MyDeviceWidget> {
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: [
                         SizedBox(width: 16.w,),
-                        Text("센서가 설치되지 않았습니다.", style: TextStyle(fontSize: 14.sp, color: Constants.dividerColor, fontWeight: FontWeight.bold), ),
+                        SvgPicture.asset("assets/images/sensor_info_small.svg", width: 16.w, height: 16.h),
+                        SizedBox(width: 16.w,),
+                        Text("문열림 이나 움직임 센서를 연결해주세요.", style: TextStyle(fontSize: 14.sp, color: Constants.dividerColor), ),
                       ]
                   )
-              )
+              ),
             ],
           )
       ),
     );
   }
 
-  Widget waitWidget() {
+  /*Widget waitWidget() {
     return const CircularProgressIndicator(backgroundColor: Colors.blue);
-  }
+  }*/
 
-  Widget myListTile(BuildContext context, Device device) {
+  /*Widget myListTile(BuildContext context, Device device) {
     return Card(
       color: Colors.white,
       surfaceTintColor: Colors.transparent,
@@ -359,9 +814,9 @@ class _MyDeviceWidgetState extends ConsumerState<MyDeviceWidget> {
         )
       )
     );
-  }
+  }*/
 
-  void _goDeviceDetailView(BuildContext context, Device device) {
+  /*void _goDeviceDetailView(BuildContext context, Device device) {
     Navigator.push(context, MaterialPageRoute(builder: (context) {
       return DeviceDetailView(device: device, userID: widget.userID);
     })).then((value) {
@@ -369,9 +824,9 @@ class _MyDeviceWidgetState extends ConsumerState<MyDeviceWidget> {
 
       });
     });
-  }
+  }*/
 
-  Widget _getDeviceIcon(Device device) {
+  /*Widget _getDeviceIcon(Device device) {
     if (device.getDeviceType() == Constants.DEVICE_TYPE_HUB) {
       return const Icon(Icons.sensors);
     } else if (device.getDeviceType() == Constants.DEVICE_TYPE_TEMPERATURE_HUMIDITY) {
@@ -389,10 +844,10 @@ class _MyDeviceWidgetState extends ConsumerState<MyDeviceWidget> {
     } else {
       return const Icon(Icons.help);
     }
-  }
+  }*/
 
-  void _action(BuildContext context, WidgetRef ref) {
-    /*if (_hubList.isEmpty) {
+  /*void _action(BuildContext context, WidgetRef ref) {
+    if (_hubList.isEmpty) {
       _goAddHubPage(context, ref);
     } else {
       if (_hubList.length == 1) {
@@ -400,18 +855,18 @@ class _MyDeviceWidgetState extends ConsumerState<MyDeviceWidget> {
       } else {
         showActionDialog(context, ref);
       }
-    }*/
-  }
+    }
+  }*/
 
-  void _goParingPage(BuildContext context, WidgetRef ref) {
-    // if (_selectIndex == 0) {
-    //   _goAddHubPage(context, ref);
-    // } else {
-    //   _goAddSensePage(context, ref);
-    // }
-  }
+  /*void _goParingPage(BuildContext context, WidgetRef ref) {
+    if (_selectIndex == 0) {
+      _goAddHubPage(context, ref);
+    } else {
+      _goAddSensePage(context, ref);
+    }
+  }*/
 
-  void _goAddHubPage(BuildContext context, WidgetRef ref) {
+  /*void _goAddHubPage(BuildContext context, WidgetRef ref) {
     ref.read(findHubStateProvider.notifier).doChangeState(FindHubState.none);
     Navigator.push(context, MaterialPageRoute(builder: (context) {
       return const AddHubPage1();
@@ -421,9 +876,9 @@ class _MyDeviceWidgetState extends ConsumerState<MyDeviceWidget> {
       });
     });
     // _showFindHubModalSheet();
-  }
+  }*/
 
-  void _showFindHubModalSheet() {
+  /*void _showFindHubModalSheet() {
     showModalBottomSheet<void>(
         context: context,
         shape: RoundedRectangleBorder(
@@ -498,31 +953,31 @@ class _MyDeviceWidgetState extends ConsumerState<MyDeviceWidget> {
           );
         }
     );
-  }
+  }*/
 
-  void _goAddSensePage(BuildContext context, WidgetRef ref, LocationInfo? location) {
+  /*void _goAddSensePage(BuildContext context, WidgetRef ref, LocationInfo? location) {
     ref.read(currentLocationProvider.notifier).doChangeState(location!);
     ref.read(findHubStateProvider.notifier).doChangeState(FindHubState.none);
 
     Navigator.push(context, MaterialPageRoute(builder: (context) {
       return AddSensorPage1(deviceID: gHubList[0].getHubID()!, userID: widget.userID,);
-      /*if (location == null) {
+      *//*if (location == null) {
         return AddSensorPage1(deviceID: deviceID!);
       } else {
         //gCurrentLocation = location;
         // ref.read(currentLocationProvider.notifier).changeData(location);
 
         return AddSensorPage1(deviceID: deviceID!);
-      }*/
+      }*//*
 
     })).then((value) {
       setState(() {
 
       });
     });
-  }
+  }*/
 
-  void showActionDialog(BuildContext context, WidgetRef ref) {
+  /*void showActionDialog(BuildContext context, WidgetRef ref) {
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -573,9 +1028,9 @@ class _MyDeviceWidgetState extends ConsumerState<MyDeviceWidget> {
         );
       }
     );
-  }
+  }*/
 
-  Widget _getCards(BuildContext context, WidgetRef ref, int index) {
+  /*Widget _getCards(BuildContext context, WidgetRef ref, int index) {
     bool enable = false;
     late LocationInfo location;
 
@@ -615,9 +1070,9 @@ class _MyDeviceWidgetState extends ConsumerState<MyDeviceWidget> {
         )
       ],
     );
-  }
+  }*/
 
-  Widget _topCard(BuildContext context, WidgetRef ref) {
+  /*Widget _topCard(BuildContext context, WidgetRef ref) {
     String title = gHubList.isEmpty ? '허브가 등록되지 않았습니다.' : '허브';
     String buttonTitle = gHubList.isEmpty ? '허브 등록' : '등록됨';
 
@@ -660,10 +1115,57 @@ class _MyDeviceWidgetState extends ConsumerState<MyDeviceWidget> {
           ],
         ),
     );
-  }
+  }*/
 }
 
 /*
+
+Future<List<Device>> _getDeviceList() async {
+    DBHelper sd = DBHelper();
+
+    _hubList.clear();
+
+    List<Hub> hubList = await sd.getHubs();
+    List<Sensor> sensorList = await sd.getSensors(widget.userID);
+    List<Device> deviceList = [];
+
+    for (Hub hub in hubList) {
+      Device device = Device(
+          deviceID: hub.getHubID(),
+          deviceType: hub.getDeviceType(),
+          deviceName: hub.getName(),
+          displaySunBun: hub.getDisplaySunBun(),
+          userID: "",
+          status: "",
+          shared: 0,
+          ownerID: '',
+          ownerName: '',
+          updatedAt: hub.getUpdatedAt(),
+          createdAt: hub.getCreatedAt()
+      );
+      deviceList.add(device);
+      _hubList.add(hub);
+    }
+
+    for (Sensor sensor in sensorList) {
+      Device device = Device(
+          deviceID: sensor.getSensorID(),
+          deviceType: sensor.getDeviceType(),
+          deviceName: sensor.getName(),
+          displaySunBun: sensor.getDisplaySunBun(),
+          userID: "",
+          status: "",
+          shared: 0,
+          ownerID: '',
+          ownerName: '',
+          updatedAt: sensor.getUpdatedAt(),
+          createdAt: sensor.getCreatedAt()
+      );
+      deviceList.add(device);
+    }
+
+    return deviceList;
+  }
 
 class _TopCard extends StatelessWidget {
   const _TopCard({
