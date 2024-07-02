@@ -222,11 +222,11 @@ class _ReportState extends State<Report> {
                                             // child: Text(_currentYearMonth),
                                             onTap: () {
                                               // setState(() {
-                                              //   if (_calendarFormat == CalendarFormat.week) {
-                                              //     _calendarFormat = CalendarFormat.month;
-                                              //   } else if (_calendarFormat == CalendarFormat.month) {
-                                              //     _calendarFormat = CalendarFormat.week;
-                                              //   }
+                                                /*if (_calendarFormat == CalendarFormat.week) {
+                                                  _calendarFormat = CalendarFormat.month;
+                                                } else if (_calendarFormat == CalendarFormat.month) {
+                                                  _calendarFormat = CalendarFormat.week;
+                                                }*/
                                               // });
                                             },
                                           ),
@@ -426,13 +426,16 @@ class _ReportState extends State<Report> {
                             child: Text("데이터가 없습니다.", style: TextStyle(fontSize: 14.sp, color: Constants.dividerColor), textAlign: TextAlign.center),
                           );
                         }
+
                         return ListView.builder(
                           itemCount: eventList.length,
                           itemBuilder: (context, index) {
-                            return _getEventWidget(locationIndex, eventList[index], index);//Text(eventList[index].getCreatedAt()!);
+                            if (_getEvent(eventList[index])) {
+                              return _getEventWidget(locationIndex, eventList[index], index);
+                            }
+                            return null;
                           },
                         );
-
                       } else {
                         return const Center(
                           child: CircularProgressIndicator(),
@@ -452,6 +455,17 @@ class _ReportState extends State<Report> {
       );
     }
     return list;
+  }
+
+  bool _getEvent(EventList event) { //움직임센서의 '움직임없음' 이벤트는 표시하지 않는다.
+    Map<String, String> data = _analysisStatus(event.getStatus()!);
+
+    if (event.getDeviceType() == "motion_sensor") {
+      if (data['motion'] == '0') {
+        return false;
+      }
+    }
+    return true;
   }
 
   Widget _getEventWidget(int locationIndex, EventList event, int index) {
@@ -518,7 +532,7 @@ class _ReportState extends State<Report> {
                   mainAxisAlignment: MainAxisAlignment.start,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _getEventTitle(event),
+                    _getEventTitle(locationIndex, event),
                     const Spacer(),
                     Row(
                       children: [
@@ -538,17 +552,22 @@ class _ReportState extends State<Report> {
     );
   }
 
-  Widget _getEventTitle(EventList event) {
+  Widget _getEventTitle(int locationIndex, EventList event) {
     Map<String, String> data = _analysisStatus(event.getStatus()!);
+    LocationInfo locationInfo = gLocationList[locationIndex];
 
     if (event.getDeviceType() == "door_sensor") {
-      return Text("입출입 감지", style: TextStyle(fontSize: 16.sp, color: Colors.black, fontWeight: FontWeight.bold));
+      if (locationInfo.getType() == "entrance") {
+        return Text("입출입 감지", style: TextStyle(fontSize: 16.sp, color: Colors.black, fontWeight: FontWeight.bold));
+      } else if (locationInfo.getType() == "refrigerator") {
+        return Text("감지", style: TextStyle(fontSize: 16.sp, color: Colors.black, fontWeight: FontWeight.bold));
+      }
 
     } else if (event.getDeviceType() == "motion_sensor") {
       if (data['motion'] == '1') {
         return Text("움직임 감지", style: TextStyle(fontSize: 16.sp, color: Colors.black, fontWeight: FontWeight.bold));
       } else {
-        return Text("움직임 없음", style: TextStyle(fontSize: 16.sp, color: Colors.black, fontWeight: FontWeight.bold));
+        // return Text("움직임 없음", style: TextStyle(fontSize: 16.sp, color: Colors.black, fontWeight: FontWeight.bold));
       }
 
     } else if (event.getDeviceType() == "emergency_button") {

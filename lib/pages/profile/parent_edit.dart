@@ -2,14 +2,12 @@ import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:dio/dio.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:argoscareseniorsafeguard/components/my_button.dart';
 import 'package:argoscareseniorsafeguard/components/my_textfield.dart';
 import 'package:argoscareseniorsafeguard/constants.dart';
 import 'package:argoscareseniorsafeguard/dialogs/custom_alert_dialog.dart';
-import 'package:argoscareseniorsafeguard/dialogs/custom_confirm_dialog.dart';
 
 class ParentEdit extends StatefulWidget {
   const ParentEdit({super.key, required this.userID});
@@ -450,7 +448,7 @@ class _ParentEditState extends State<ParentEdit> {
 
                             },
                             itemBuilder: (context, index) {
-                              return Text(Constants.yearText[index], style: TextStyle(fontSize: 20.sp),);
+                              return Center(child: Text(Constants.yearText[index], style: TextStyle(fontSize: 20.sp),));
                             }),
                       ),
                       Padding(

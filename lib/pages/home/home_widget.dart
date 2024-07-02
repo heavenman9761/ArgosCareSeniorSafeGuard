@@ -163,7 +163,7 @@ class _HomeWidgetState extends ConsumerState<HomeWidget> {
                 constraints: const BoxConstraints(maxHeight: 88, maxWidth: 88),
                 splashRadius: 44,
                 padding: EdgeInsets.zero,
-                icon: SvgPicture.asset('assets/images/call.svg', width: 44.w, height: 44.h,),
+                icon: gParentInfo['parentPhone'] != '' ? SvgPicture.asset('assets/images/call.svg', width: 44.w, height: 44.h,) : SvgPicture.asset('assets/images/call_grey.svg', width: 44.w, height: 44.h,),
                 onPressed: () {
                   debugPrint('icon press');
                 },

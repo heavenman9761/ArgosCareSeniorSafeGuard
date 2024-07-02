@@ -12,6 +12,9 @@ import 'package:argoscareseniorsafeguard/pages/profile.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:argoscareseniorsafeguard/pages/share_manage.dart';
 import 'package:argoscareseniorsafeguard/pages/profile/parent_edit.dart';
+import 'package:argoscareseniorsafeguard/pages/profile/profile_edit.dart';
+import 'package:argoscareseniorsafeguard/pages/profile/airplane_mode.dart';
+import 'package:argoscareseniorsafeguard/pages/profile/onboarding_first.dart';
 
 class ProfileWidget extends StatefulWidget {
   final String userID;
@@ -27,21 +30,23 @@ class ProfileWidget extends StatefulWidget {
 class _ProfileWidgetState extends State<ProfileWidget> {
   final List<String> _languageList = ['한국어', 'English'];
   String _selectedLanguage = '한국어';
-
+  bool _allowAlarm = true;
   @override
   void initState() {
     super.initState();
-    loadLocale();
+    asyncInit();
   }
 
-  void loadLocale() async {
+  void asyncInit() async {
     var prefs = await SharedPreferences.getInstance();
     setState(() {
       String localeStr = prefs.getString('languageCode') ?? 'ko';
+      _allowAlarm = prefs.getBool('allowAlarm') ?? true;
 
       if (localeStr == "ko") { _selectedLanguage = "한국어"; }
       else if (localeStr == "en") { _selectedLanguage = "English"; }
     });
+
   }
 
   @override
@@ -139,7 +144,15 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                                                             padding: const EdgeInsets.all(0),
                                                             side: const BorderSide(width: 1.0, color: Constants.primaryColor),
                                                           ),
-                                                          onPressed: () {},
+                                                          onPressed: () {
+                                                            Navigator.push(context, MaterialPageRoute(builder: (context) {
+                                                              return ProfileEdit(userID: widget.userID);
+                                                            })).then((onValue) {
+                                                              setState(() {
+
+                                                              });
+                                                            });
+                                                          },
                                                           child: Text('편집', style: TextStyle(fontSize: 12.sp, color: Constants.primaryColor), ),)
                                                     )
                                                   ],
@@ -259,9 +272,16 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                               child: FittedBox(
                                 fit: BoxFit.contain,
                                 child: CupertinoSwitch(
-                                  value: true,
+                                  value: _allowAlarm,
                                   activeColor: Constants.primaryColor,
-                                  onChanged: (bool? value) { },
+                                  onChanged: (bool? value) async {
+                                    final SharedPreferences pref = await SharedPreferences.getInstance();
+                                    pref.setBool('allowAlarm', value!);
+                                    _allowAlarm = value;
+                                    setState(() {
+
+                                    });
+                                  },
                                 ),
                               )
                           )),
@@ -276,9 +296,11 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                               constraints: BoxConstraints(maxHeight: 48.h, maxWidth: 48.w),
                               padding: EdgeInsets.zero,
                               color: Constants.dividerColor,
-                              icon: const Icon(Icons.arrow_forward_ios_rounded),
+                              icon: const Icon(Icons.arrow_forward_ios_rounded, size: 18),
                               onPressed: () {
-                                debugPrint('icon press');
+                                Navigator.push(context, MaterialPageRoute(builder: (context) {
+                                  return AirPlaneMode(userID: widget.userID);
+                                }));
                               },
                             ),
                           )),
@@ -293,7 +315,7 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                               constraints: BoxConstraints(maxHeight: 48.h, maxWidth: 48.w),
                               padding: EdgeInsets.zero,
                               color: Constants.dividerColor,
-                              icon: const Icon(Icons.arrow_forward_ios_rounded),
+                              icon: const Icon(Icons.arrow_forward_ios_rounded, size: 18),
                               onPressed: () {
                                 debugPrint('icon press');
                               },
@@ -310,7 +332,7 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                               constraints: BoxConstraints(maxHeight: 48.h, maxWidth: 48.w),
                               padding: EdgeInsets.zero,
                               color: Constants.dividerColor,
-                              icon: const Icon(Icons.arrow_forward_ios_rounded),
+                              icon: const Icon(Icons.arrow_forward_ios_rounded, size: 18),
                               onPressed: () {
                                 debugPrint('icon press');
                               },
@@ -327,7 +349,7 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                               constraints: BoxConstraints(maxHeight: 48.h, maxWidth: 48.w),
                               padding: EdgeInsets.zero,
                               color: Constants.dividerColor,
-                              icon: const Icon(Icons.arrow_forward_ios_rounded),
+                              icon: const Icon(Icons.arrow_forward_ios_rounded, size: 18),
                               onPressed: () {
                                 debugPrint('icon press');
                               },
@@ -344,7 +366,7 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                               constraints: BoxConstraints(maxHeight: 48.h, maxWidth: 48.w),
                               padding: EdgeInsets.zero,
                               color: Constants.dividerColor,
-                              icon: const Icon(Icons.arrow_forward_ios_rounded),
+                              icon: const Icon(Icons.arrow_forward_ios_rounded, size: 18),
                               onPressed: () {
                                 debugPrint('icon press');
                               },
@@ -361,9 +383,11 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                               constraints: BoxConstraints(maxHeight: 48.h, maxWidth: 48.w),
                               padding: EdgeInsets.zero,
                               color: Constants.dividerColor,
-                              icon: const Icon(Icons.arrow_forward_ios_rounded),
+                              icon: const Icon(Icons.arrow_forward_ios_rounded, size: 18),
                               onPressed: () {
-                                debugPrint('icon press');
+                                Navigator.push(context, MaterialPageRoute(builder: (context) {
+                                  return const OnFirstBoardingPage();
+                                }));
                               },
                             ),
                           )),
@@ -378,7 +402,7 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                               constraints: BoxConstraints(maxHeight: 48.h, maxWidth: 48.w),
                               padding: EdgeInsets.zero,
                               color: Constants.dividerColor,
-                              icon: const Icon(Icons.arrow_forward_ios_rounded),
+                              icon: const Icon(Icons.arrow_forward_ios_rounded, size: 18),
                               onPressed: () {
                                 debugPrint('icon press');
                               },
@@ -395,7 +419,7 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                               constraints: BoxConstraints(maxHeight: 48.h, maxWidth: 48.w),
                               padding: EdgeInsets.zero,
                               color: Constants.dividerColor,
-                              icon: const Icon(Icons.arrow_forward_ios_rounded),
+                              icon: const Icon(Icons.arrow_forward_ios_rounded, size: 18),
                               onPressed: () {
                                 debugPrint('icon press');
                               },
@@ -412,7 +436,7 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                               constraints: BoxConstraints(maxHeight: 48.h, maxWidth: 48.w),
                               padding: EdgeInsets.zero,
                               color: Constants.dividerColor,
-                              icon: const Icon(Icons.arrow_forward_ios_rounded),
+                              icon: const Icon(Icons.arrow_forward_ios_rounded, size: 18),
                               onPressed: () {
                                 debugPrint('icon press');
                               },
@@ -429,7 +453,7 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                               constraints: BoxConstraints(maxHeight: 48.h, maxWidth: 48.w),
                               padding: EdgeInsets.zero,
                               color: Constants.dividerColor,
-                              icon: const Icon(Icons.arrow_forward_ios_rounded),
+                              icon: const Icon(Icons.arrow_forward_ios_rounded, size: 18),
                               onPressed: () {
                                 debugPrint('icon press');
                               },

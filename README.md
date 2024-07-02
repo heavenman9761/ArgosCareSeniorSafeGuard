@@ -39,3 +39,14 @@ arb 의 내용을 추가할때마다 자동으로 연결되는 것이 아니라 
  - flutter build apk --debug --target-platform=android-arm64
  - flutter build apk --profile
  - flutter build apk --release --target-platform=android-arm64
+
+## 시간계산 팁
+ - DateFormat format = DateFormat("a hh:mm", "ko");
+ - DateTime startTime = format.parse('$_start_ampm $_start_hour:$_start_minute');
+ - DateTime endTime = format.parse('$_end_ampm $_end_hour:$_end_minute');
+
+ - String str_startTime_ampm = DateFormat('a hh:mm', 'ko').format(startTime); //오후 2:30
+ - String str_startTime = DateFormat('HH:mm', 'ko').format(startTime); //14:30
+
+ - String str_endTime_ampm = DateFormat('a hh:mm', 'ko').format(endTime); //오후 2:30
+ - String str_endTime = DateFormat('HH:mm', 'ko').format(endTime); //14:30

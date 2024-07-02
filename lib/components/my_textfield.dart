@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+
 import 'package:argoscareseniorsafeguard/constants.dart';
 
 renderTextFormField({
   required BuildContext context,
   bool? autofocus,
+  bool? readOnly,
   FocusNode? focusNode,
   String? label,
   FormFieldSetter? onSaved,
@@ -23,6 +26,7 @@ renderTextFormField({
     key: ValueKey(keyNumber),
     autofocus: autofocus ?? false,
     focusNode: focusNode,
+    readOnly: readOnly ?? false,
     decoration: InputDecoration(
         prefixIcon: icon,
         suffixIcon: suffixIcon,
@@ -33,6 +37,10 @@ renderTextFormField({
         focusedBorder: const OutlineInputBorder(
           borderSide: BorderSide(color: Constants.primaryColor),
           borderRadius: BorderRadius.all(Radius.circular(8.0))
+        ),
+        disabledBorder: const OutlineInputBorder(
+            borderSide: BorderSide(color: Constants.borderColor),
+            borderRadius: BorderRadius.all(Radius.circular(8.0))
         ),
         isDense: true,
         contentPadding: const EdgeInsets.all(16),
@@ -50,6 +58,7 @@ renderTextFormField({
     validator: validator,
     obscureText: obscureText ?? false,
     scrollPadding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+    style: TextStyle(fontSize: 16.sp)
   );
 }
 

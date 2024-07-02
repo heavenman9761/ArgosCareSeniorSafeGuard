@@ -7,7 +7,6 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:iamport_flutter/model/certification_data.dart';
 import 'package:iamport_flutter/model/url_data.dart';
-import 'package:dio/dio.dart';
 import 'package:mobile_device_identifier/mobile_device_identifier.dart';
 import 'package:flutter/services.dart';
 import 'package:remedi_kopo/remedi_kopo.dart';

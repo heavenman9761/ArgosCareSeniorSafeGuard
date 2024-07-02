@@ -11,6 +11,10 @@ import 'package:argoscareseniorsafeguard/models/sensor_event.dart';
 import 'package:argoscareseniorsafeguard/models/location.dart';
 import 'package:argoscareseniorsafeguard/models/room.dart';
 import 'package:argoscareseniorsafeguard/models/event_list.dart';
+import 'package:argoscareseniorsafeguard/models/airplaneday.dart';
+import 'package:argoscareseniorsafeguard/models/airplanetime.dart';
+import 'package:uuid/uuid.dart';
+import 'package:intl/intl.dart';
 
 const String databaseName = 'ArgosCareSeniorSafeGuard.db';
 const String tableNameDevices = 'devices';
@@ -19,6 +23,9 @@ const String tableNameSensors = 'sensors';
 const String tableNameSensorEvents = 'sensorEvents';
 const String tableNameLocations = 'locations';
 const String tableNameRooms = 'rooms';
+
+const String tableNameAirPlaneDay = 'airplaneDay';
+const String tableNameAirPlaneTime = 'airplaneTime';
 
 class DBHelper {
   var _db;
@@ -34,111 +41,128 @@ class DBHelper {
   static void _createDb(Database db) async {
     await db.execute(
       "CREATE TABLE $tableNameDevices ("
-        "deviceID TEXT PRIMARY KEY, "
-        "deviceType TEXT, "
-        "deviceName TEXT, "
-        "displaySunBun INTEGER,"
-        "userID TEXT, "
-        "status TEXT, "
-        "shared BOOLEAN, "
-        "ownerID TEXT, "
-        "ownerName TEXT, "
-        "createdAt TEXT, "
-        "updatedAt TEXT"
-      ")",
+          "deviceID TEXT PRIMARY KEY, "
+          "deviceType TEXT, "
+          "deviceName TEXT, "
+          "displaySunBun INTEGER,"
+          "userID TEXT, "
+          "status TEXT, "
+          "shared BOOLEAN, "
+          "ownerID TEXT, "
+          "ownerName TEXT, "
+          "createdAt TEXT, "
+          "updatedAt TEXT"
+          ")",
     );
 
     await db.execute(
       "CREATE TABLE $tableNameHubs ("
-        "id TEXT PRIMARY KEY, "
-        "hubID TEXT, "
-        "name TEXT, "
-        "userID TEXT, "
-        "displaySunBun INTEGER, "
-        "category TEXT, "
-        "deviceType TEXT, "
-        "hasSubDevices BOOLEAN, "
-        "modelName TEXT, "
-        "online BOOLEAN, "
-        "status TEXT, "
-        "battery INTEGER, "
-        "isUse BOOLEAN, "
-        "shared BOOLEAN, "
-        "ownerID TEXT, "
-        "ownerName TEXT, "
-        "createdAt TEXT, "
-        "updatedAt TEXT "
-      ")",
+          "id TEXT PRIMARY KEY, "
+          "hubID TEXT, "
+          "name TEXT, "
+          "userID TEXT, "
+          "displaySunBun INTEGER, "
+          "category TEXT, "
+          "deviceType TEXT, "
+          "hasSubDevices BOOLEAN, "
+          "modelName TEXT, "
+          "online BOOLEAN, "
+          "status TEXT, "
+          "battery INTEGER, "
+          "isUse BOOLEAN, "
+          "shared BOOLEAN, "
+          "ownerID TEXT, "
+          "ownerName TEXT, "
+          "createdAt TEXT, "
+          "updatedAt TEXT "
+          ")",
     );
 
     await db.execute(
       "CREATE TABLE $tableNameSensors ("
-        "id TEXT PRIMARY KEY, "
-        "sensorID TEXT, "
-        "name TEXT, "
-        "userID TEXT, "
-        "displaySunBun INTEGER, "
-        "category TEXT,"
-        "deviceType TEXT, "
-        "modelName TEXT, "
-        "online BOOLEAN, "
-        "status TEXT, "
-        "battery INTEGER, "
-        "isUse BOOLEAN, "
-        "shared BOOLEAN, "
-        "ownerID TEXT, "
-        "ownerName TEXT, "
-        "createdAt TEXT, "
-        "updatedAt TEXT, "
-        "hubID TEXT"
-      ")",
+          "id TEXT PRIMARY KEY, "
+          "sensorID TEXT, "
+          "name TEXT, "
+          "userID TEXT, "
+          "displaySunBun INTEGER, "
+          "category TEXT,"
+          "deviceType TEXT, "
+          "modelName TEXT, "
+          "online BOOLEAN, "
+          "status TEXT, "
+          "battery INTEGER, "
+          "isUse BOOLEAN, "
+          "shared BOOLEAN, "
+          "ownerID TEXT, "
+          "ownerName TEXT, "
+          "createdAt TEXT, "
+          "updatedAt TEXT, "
+          "hubID TEXT"
+          ")",
     );
 
     await db.execute(
       "CREATE TABLE $tableNameSensorEvents ("
-        "id TEXT PRIMARY KEY, "
-        "hubID TEXT, "
-        "userID TEXT, "
-        "deviceID TEXT, "
-        "deviceType TEXT, "
-        "event TEXT, "
-        "status TEXT, "
-        "humi INTEGER, "
-        "temp REAL, "
-        "shared BOOLEAN, "
-        "ownerID TEXT, "
-        "ownerName TEXT, "
-        "createdAt TEXT, "
-        "updatedAt TEXT"
-      ")",
+          "id TEXT PRIMARY KEY, "
+          "hubID TEXT, "
+          "userID TEXT, "
+          "deviceID TEXT, "
+          "deviceType TEXT, "
+          "event TEXT, "
+          "status TEXT, "
+          "humi INTEGER, "
+          "temp REAL, "
+          "shared BOOLEAN, "
+          "ownerID TEXT, "
+          "ownerName TEXT, "
+          "createdAt TEXT, "
+          "updatedAt TEXT"
+          ")",
     );
 
     await db.execute(
       "CREATE TABLE $tableNameLocations ("
-        "id TEXT PRIMARY KEY, "
-        "name TEXT, "
-        "userID TEXT, "
-        "sensorID TEXT, "
-        "shared BOOLEAN, "
-        "ownerID TEXT, "
-        "ownerName TEXT, "
-        "createdAt TEXT, "
-        "updatedAt TEXT"
-      ")",
+          "id TEXT PRIMARY KEY, "
+          "name TEXT, "
+          "userID TEXT, "
+          "sensorID TEXT, "
+          "shared BOOLEAN, "
+          "ownerID TEXT, "
+          "ownerName TEXT, "
+          "createdAt TEXT, "
+          "updatedAt TEXT"
+          ")",
     );
 
     await db.execute(
       "CREATE TABLE $tableNameRooms ("
-        "id TEXT PRIMARY KEY, "
-        "name TEXT, "
-        "userID TEXT, "
-        "locationID TEXT, "
-        "shared BOOLEAN, "
-        "ownerID TEXT, "
-        "ownerName TEXT, "
-        "createdAt TEXT, "
-        "updatedAt TEXT"
-      ")",
+          "id TEXT PRIMARY KEY, "
+          "name TEXT, "
+          "userID TEXT, "
+          "locationID TEXT, "
+          "shared BOOLEAN, "
+          "ownerID TEXT, "
+          "ownerName TEXT, "
+          "createdAt TEXT, "
+          "updatedAt TEXT"
+          ")",
+    );
+
+    await db.execute(
+      "CREATE TABLE $tableNameAirPlaneDay ("
+          "id TEXT PRIMARY KEY, "
+          "dayName TEXT, "
+          "enable BOOLEAN"
+          ")",
+    );
+
+    await db.execute(
+      "CREATE TABLE $tableNameAirPlaneTime ("
+          "id TEXT PRIMARY KEY, "
+          "startTime TEXT, "
+          "endTime TEXT, "
+          "createdAt TEXT"
+          ")",
     );
   }
 
@@ -156,7 +180,7 @@ class DBHelper {
   Future<List<Device>> getDevices(String userID) async {
     final db = await database;
 
-    final List<Map<String, dynamic>> maps = await db.query(tableNameDevices, where: 'userID = ?', whereArgs:[userID], orderBy: 'displaySunBun ASC');
+    final List<Map<String, dynamic>> maps = await db.query(tableNameDevices, where: 'userID = ?', whereArgs: [userID], orderBy: 'displaySunBun ASC');
 
     return List.generate(maps.length, (i) {
       return Device(
@@ -290,7 +314,11 @@ class DBHelper {
     final db = await database;
 
     final List<Map<String, dynamic>> maps =
-    await db.query(tableNameDevices, where: 'userID = ?', whereArgs:[userID], columns: ['deviceType'], groupBy: 'deviceType', orderBy: 'createdAt ASC');
+    await db.query(tableNameDevices, where: 'userID = ?',
+        whereArgs: [userID],
+        columns: ['deviceType'],
+        groupBy: 'deviceType',
+        orderBy: 'createdAt ASC');
 
     return maps;
   }
@@ -908,11 +936,11 @@ class DBHelper {
     String end = '$date 23:59:59.999999';
 
     List<Map<String, dynamic>> maps = await db.rawQuery(
-      "SELECT "
-          "sensorEvents.userID, sensorEvents.hubID, sensorEvents.deviceID, sensorEvents.deviceType, sensorEvents.event, sensorEvents.status, sensorEvents.createdAt, sensors.Name FROM sensorEvents "
-          "INNER JOIN sensors ON sensorEvents.deviceID = sensors.sensorID "
-          "WHERE sensorEvents.createdAt >= '$start' AND sensorEvents.createdAt <= '$end' AND sensorEvents.userID = '$userID' "
-          "ORDER BY sensorEvents.createdAt DESC"
+        "SELECT "
+            "sensorEvents.userID, sensorEvents.hubID, sensorEvents.deviceID, sensorEvents.deviceType, sensorEvents.event, sensorEvents.status, sensorEvents.createdAt, sensors.Name FROM sensorEvents "
+            "INNER JOIN sensors ON sensorEvents.deviceID = sensors.sensorID "
+            "WHERE sensorEvents.createdAt >= '$start' AND sensorEvents.createdAt <= '$end' AND sensorEvents.userID = '$userID' "
+            "ORDER BY sensorEvents.createdAt DESC"
     );
 
     return List.generate(maps.length, (i) {
@@ -927,5 +955,94 @@ class DBHelper {
         name: maps[i]['name'],
       );
     });
+  }
+
+  Future<void> initAirplaneDayTable() async {
+    final db = await database;
+
+    var result = await db.rawQuery('SELECT COUNT(*) FROM $tableNameAirPlaneDay');
+    int? count = Sqflite.firstIntValue(result);
+    if (count == 0) {
+      var uuid = const Uuid();
+      await db.rawInsert("INSERT INTO $tableNameAirPlaneDay(id, dayName, enable) VALUES('${uuid.v4()}', 'Sun', FALSE)");
+      await db.rawInsert("INSERT INTO $tableNameAirPlaneDay(id, dayName, enable) VALUES('${uuid.v4()}', 'Mon', FALSE)");
+      await db.rawInsert("INSERT INTO $tableNameAirPlaneDay(id, dayName, enable) VALUES('${uuid.v4()}', 'Tue', FALSE)");
+      await db.rawInsert("INSERT INTO $tableNameAirPlaneDay(id, dayName, enable) VALUES('${uuid.v4()}', 'Wed', FALSE)");
+      await db.rawInsert("INSERT INTO $tableNameAirPlaneDay(id, dayName, enable) VALUES('${uuid.v4()}', 'Thu', FALSE)");
+      await db.rawInsert("INSERT INTO $tableNameAirPlaneDay(id, dayName, enable) VALUES('${uuid.v4()}', 'Fri', FALSE)");
+      await db.rawInsert("INSERT INTO $tableNameAirPlaneDay(id, dayName, enable) VALUES('${uuid.v4()}', 'Sat', FALSE)");
+    }
+  }
+
+  Future<void> updateAirplaneDayTable(bool sun, bool mon, bool tue, bool wed, bool thu, bool fri, bool sat) async {
+    final db = await database;
+
+    await db.rawUpdate("UPDATE $tableNameAirPlaneDay SET enable = ? WHERE dayName = 'Sun'", [sun ? 1 : 0]);
+    await db.rawUpdate("UPDATE $tableNameAirPlaneDay SET enable = ? WHERE dayName = 'Mon'", [mon ? 1 : 0]);
+    await db.rawUpdate("UPDATE $tableNameAirPlaneDay SET enable = ? WHERE dayName = 'Tue'", [tue ? 1 : 0]);
+    await db.rawUpdate("UPDATE $tableNameAirPlaneDay SET enable = ? WHERE dayName = 'Wed'", [wed ? 1 : 0]);
+    await db.rawUpdate("UPDATE $tableNameAirPlaneDay SET enable = ? WHERE dayName = 'Thu'", [thu ? 1 : 0]);
+    await db.rawUpdate("UPDATE $tableNameAirPlaneDay SET enable = ? WHERE dayName = 'Fri'", [fri ? 1 : 0]);
+    await db.rawUpdate("UPDATE $tableNameAirPlaneDay SET enable = ? WHERE dayName = 'Sat'", [sat ? 1 : 0]);
+  }
+
+  Future<List<AirplaneDay>> getAirplaneDays() async {
+    final db = await database;
+
+    final List<Map<String, dynamic>> maps = await db.query(tableNameAirPlaneDay);
+
+    return List.generate(maps.length, (i) {
+      return AirplaneDay(
+        id: maps[i]['id'],
+        dayName: maps[i]['dayName'],
+        enable: maps[i]['enable'],
+      );
+    });
+  }
+
+  Future<void> insertAirplaneTime(String startTime, String endTime) async {
+    final db = await database;
+
+    String now = DateFormat("yyyy-MM-dd hh:mm:ss").format(DateTime.now());
+    var uuid = const Uuid();
+    await db.rawInsert("INSERT INTO $tableNameAirPlaneTime(id, startTime, endTime, createdAt) VALUES('${uuid.v4()}', '$startTime', '$endTime', '$now')");
+  }
+
+  Future<List<AirplaneTime>> getAirplaneTimes() async {
+    final db = await database;
+
+    final List<Map<String, dynamic>> maps = await db.query(tableNameAirPlaneTime, orderBy: 'createdAt ASC');
+
+    return List.generate(maps.length, (i) {
+      return AirplaneTime(
+        id: maps[i]['id'],
+        startTime: maps[i]['startTime'],
+        endTime: maps[i]['endTime'],
+        createdAt: maps[i]['createdAt']
+      );
+    });
+  }
+
+  Future<List<AirplaneTime>> deleteAirplaneTimeTable(String id) async {
+    final db = await database;
+
+    await db.delete(tableNameAirPlaneTime, where: 'id = ?', whereArgs: [id]);
+
+    final List<Map<String, dynamic>> maps = await db.query(tableNameAirPlaneTime);
+
+    return List.generate(maps.length, (i) {
+      return AirplaneTime(
+          id: maps[i]['id'],
+          startTime: maps[i]['startTime'],
+          endTime: maps[i]['endTime'],
+          createdAt: maps[i]['createdAt']
+      );
+    });
+  }
+
+  Future<void> emptyAirplaneTimeTable() async {
+    final db = await database;
+
+    await db.rawDelete('DELETE from $tableNameAirPlaneTime');
   }
 }

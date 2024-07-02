@@ -49,6 +49,7 @@ Future<void> main() async {
 Future<void> checkLogin() async {
   final SharedPreferences pref = await SharedPreferences.getInstance();
   _isLogin = pref.getBool('isLogin') ?? false;
+  // _isLogin = false;
 
   if (_isLogin) { //이전에 로그인 했으므로 그 정보를 이용하여 다시 로그인 한다.
     dio = await authDio();
@@ -129,7 +130,10 @@ class _MainAppState extends State<MainApp> {
     // 'assets/images/intro_image.png',
     'assets/images/hub.png',
     'assets/images/parent_male.png',
-    'assets/images/parent_female.png'
+    'assets/images/parent_female.png',
+    "assets/images/onboarding_1.png",
+    "assets/images/onboarding_2.png",
+    "assets/images/onboarding_3.png",
   ];
 
   @override
@@ -176,13 +180,12 @@ class _MainAppState extends State<MainApp> {
                         },
                         child: _splashLoadingWidget(snapshot),
 
-                );
-              },
-            )
+                      );
+                    },
+                )
         );
       }
     );
-
   }
 
   Widget _splashLoadingWidget(AsyncSnapshot<Object?> snapshot) {

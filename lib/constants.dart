@@ -19,6 +19,9 @@ import 'package:argoscareseniorsafeguard/models/hub_infos.dart';
 import 'package:argoscareseniorsafeguard/models/sensor_infos.dart';
 import 'package:argoscareseniorsafeguard/models/location_infos.dart';
 import 'package:argoscareseniorsafeguard/models/share_infos.dart';
+import 'package:argoscareseniorsafeguard/models/airplaneday.dart';
+import 'package:argoscareseniorsafeguard/models/airplanetime.dart';
+import 'package:argoscareseniorsafeguard/database/db.dart';
 
 class Constants {
   static const platform = MethodChannel('est.co.kr/IoT_Hub');
@@ -73,6 +76,19 @@ class Constants {
     75, 74, 73, 72, 71, 60, 69, 68, 67, 66,
   ];
 
+  static const List<String> ampm = ['오전', '오후'];
+
+  static const List<String> hourTable = [
+    '00', '01', '02', '03', '04', '05', '06', '07', '08', '09',
+    '10', '11', '12', '13', '14', '15', '16', '17', '18', '19',
+    '20', '21', '22', '23',
+  ];
+
+  static const List<String> minuteTable = [
+    '00', '05', '10', '15', '20', '25', '30', '35', '40', '45', '50', '55',
+  ];
+
+
   static final ButtonStyle elevatedButtonStyle = ElevatedButton.styleFrom(
     foregroundColor: Colors.white60,
     backgroundColor: Colors.lightBlue, // text color
@@ -86,6 +102,9 @@ Map gParentInfo = {};
 List<HubInfo> gHubList = [];
 List<SensorInfo> gSensorList = [];
 List<LocationInfo> gLocationList = [];
+List<AirplaneDay> gAirPlaneDayList = [];
+List<AirplaneTime> gAirPlaneTimeList = [];
+bool gAirPlaneEnable = false;
 // late LocationInfo gCurrentLocation;
 
 List<ShareInfo> gShareInfo = [];
@@ -161,37 +180,12 @@ void saveUserInfo(var loginResponse) async {
   gParentInfo['parentPhone'] = loginResponse.data['parentPhone'];
   gParentInfo['parentSex'] = loginResponse.data['parentSex'];
 
-  /*pref.setBool("EntireAlarm", alarmResponse.data['entireAlarm']);
+  gAirPlaneEnable = pref.getBool("airplaneEnable") ?? false;
 
-    pref.setBool("HumidityAlarmEnable", alarmResponse.data['humidityAlarmEnable']);
-    pref.setString("HumidityStartTime", alarmResponse.data['humidityStartTime']);
-    pref.setString("HumidityEndTime", alarmResponse.data['humidityEndTime']);
-    pref.setInt("HumidityStartValue", alarmResponse.data['humidityStartValue']);
-    pref.setInt("HumidityEndValue", alarmResponse.data['humidityEndValue']);
-    pref.setInt("TemperatureStartValue", alarmResponse.data['temperatureStartValue']);
-    pref.setInt("TemperatureEndValue", alarmResponse.data['temperatureEndValue']);
-
-    pref.setBool("EmergencyAlarmEnable", alarmResponse.data['emergencyAlarmEnable']);
-    pref.setString("EmergencyStartTime", alarmResponse.data['emergencyStartTime']);
-    pref.setString("EmergencyEndTime", alarmResponse.data['emergencyEndTime']);
-
-    pref.setBool("MotionAlarmEnable", alarmResponse.data['motionAlarmEnable']);
-    pref.setString("MotionStartTime", alarmResponse.data['motionStartTime']);
-    pref.setString("MotionEndTime", alarmResponse.data['motionEndTime']);
-
-    pref.setBool("SmokeAlarmEnable", alarmResponse.data['smokeAlarmEnable']);
-    pref.setString("SmokeStartTime", alarmResponse.data['smokeStartTime']);
-    pref.setString("SmokeEndTime", alarmResponse.data['smokeEndTime']);
-
-    pref.setBool("IlluminanceAlarmEnable", alarmResponse.data['illuminanceAlarmEnable']);
-    pref.setString("IlluminanceStartTime", alarmResponse.data['illuminanceStartTime']);
-    pref.setString("IlluminanceEndTime", alarmResponse.data['illuminanceEndTime']);
-    pref.setInt("IlluminanceStartValue", alarmResponse.data['illuminanceStartValue']);
-    pref.setInt("IlluminanceEndValue", alarmResponse.data['illuminanceEndValue']);
-
-    pref.setBool("DoorAlarmEnable", alarmResponse.data['doorAlarmEnable']);
-    pref.setString("DoorStartTime", alarmResponse.data['doorStartTime']);
-    pref.setString("DoorEndTime", alarmResponse.data['doorEndTime']);*/
+  DBHelper sd = DBHelper();
+  sd.initAirplaneDayTable();
+  gAirPlaneDayList = await sd.getAirplaneDays();
+  gAirPlaneTimeList = await sd.getAirplaneTimes();
 }
 
 var logger = Logger(

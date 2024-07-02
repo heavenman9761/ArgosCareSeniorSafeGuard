@@ -475,7 +475,7 @@ class _RegisterParentState extends State<RegisterParent> {
 
                             },
                             itemBuilder: (context, index) {
-                              return Text(Constants.yearText[index], style: TextStyle(fontSize: 20.sp),);
+                              return Center(child: Text(Constants.yearText[index], style: TextStyle(fontSize: 20.sp),));
                             }),
                       ),
                       Padding(

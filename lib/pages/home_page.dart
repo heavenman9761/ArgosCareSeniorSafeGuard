@@ -64,16 +64,12 @@ class _HomePageState extends ConsumerState<HomePage> {
       _appSetting();
     }*/
     _appSetting();
+    asyncInitState();
   }
 
-  /*void asyncInitState() async {
-    await _loginProcess().then((result) {
-      setState(() {
-      });
+  void asyncInitState() async {
 
-      _appSetting();
-    });
-  }*/
+  }
 
   void _appSetting() {
     getMyDeviceToken();
