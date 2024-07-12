@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:argoscareseniorsafeguard/models/event_list.dart';
 import 'package:flutter/material.dart';
@@ -14,10 +15,12 @@ import 'package:argoscareseniorsafeguard/models/sensor_infos.dart';
 import 'package:argoscareseniorsafeguard/models/location_infos.dart';
 import 'package:argoscareseniorsafeguard/models/sensor_event.dart';
 import 'package:argoscareseniorsafeguard/database/db.dart';
+import 'package:argoscareseniorsafeguard/models/alarm_infos.dart';
 
 class LocationWidget extends ConsumerStatefulWidget {
-  const LocationWidget({super.key, required this.title, required this.picture, required this.color, required this.locationIndex});
+  const LocationWidget({super.key, required this.userID, required this.title, required this.picture, required this.color, required this.locationIndex});
 
+  final String userID;
   final SvgPicture picture;
   final String title;
   final Color color;
@@ -28,8 +31,8 @@ class LocationWidget extends ConsumerStatefulWidget {
 }
 
 class _LocationWidgetState extends ConsumerState<LocationWidget> {
-  String _elapsedTime = "로딩중";
-  String _recentTime = "로딩중";
+  String _elapsedTime = "이벤트 없음";
+  String _recentTime = "이벤트 없음";
   Timer? _timer;
   bool _longTime = false;
 
@@ -52,23 +55,22 @@ class _LocationWidgetState extends ConsumerState<LocationWidget> {
 
   @override
   Widget build(BuildContext context) {
-    ref.listen(sensorEventProvider, (previous, next) {
-      // logger.i('current event: ${ref.watch(sensorEventProvider)}');
-
-      final List<SensorInfo> sensorList = gLocationList[widget.locationIndex].getSensors()!;
-
-      for (int i = 0; i < sensorList.length; i++) {
-        if (ref.watch(sensorEventProvider)!.getDeviceID()! == sensorList[i].getSensorID()) {
-          _getRecentTime();
-        }
-      }
-
-    });
+    // ref.listen(sensorEventProvider, (previous, next) {
+    //   // _analysisSensorEvent();
+    //   final List<SensorInfo> sensorList = gLocationList[widget.locationIndex].getSensors()!;
+    //
+    //   for (int i = 0; i < sensorList.length; i++) {
+    //     if (ref.watch(sensorEventProvider)!.getSensorID()! == sensorList[i].getSensorID()) {
+    //       _getRecentTime();
+    //     }
+    //   }
+    //
+    // });
     return InkWell(
         onTap: () {
           Navigator.push(context,
               MaterialPageRoute(builder: (context) {
-                return Report(locationIndex: widget.locationIndex);
+                return Report(userID: widget.userID, locationIndex: widget.locationIndex);
               }));
         },
         child: Container(
@@ -116,7 +118,8 @@ class _LocationWidgetState extends ConsumerState<LocationWidget> {
                     children: [
                       Icon(Icons.access_time, size: 16.h, color: Constants.dividerColor),
                       SizedBox(width: 5.w),
-                      Text(_recentTime, style: TextStyle(fontSize: 12.sp, color: Constants.dividerColor), ),
+                      //Text(_recentTime, style: TextStyle(fontSize: 12.sp, color: Constants.dividerColor), ),
+                      Text(_getEventTime(), style: TextStyle(fontSize: 12.sp, color: Constants.dividerColor), ),
                     ],
                   ),
                 ],
@@ -126,37 +129,73 @@ class _LocationWidgetState extends ConsumerState<LocationWidget> {
     );
   }
 
-  void _startTimer() {
+  String _getEventTime() {
     _getElapsedTime();
-    _getRecentTime();
 
-    _timer = Timer.periodic(const Duration(seconds: 5), (timer) {
-      _getElapsedTime();
-    });
-  }
-
-  void _stopTimer() {
-    _timer?.cancel();
+    List<SensorEvent> list = gLocationList[widget.locationIndex].getEvents()!;
+    if (list.isNotEmpty) {
+      DateTime date = DateTime.parse(list[0].getCreatedAt()!);
+      return DateFormat('MM.dd(E) HH:mm', 'ko').format(date);
+    } else {
+      return "이벤트 없음";
+    }
   }
 
   void _getElapsedTime() async {
-    DBHelper sd = DBHelper();
 
-    final List<SensorInfo> sensorList = gLocationList[widget.locationIndex].getSensors()!;
-    List<SensorEvent> eventList = [];
+    List<SensorEvent> list = gLocationList[widget.locationIndex].getEvents()!;
+    if (list.isNotEmpty) {
+      var now = DateTime.now();
+      var eventTime = DateTime.parse(list[0].getCreatedAt()!);
+      int difference = int.parse(now.difference(eventTime).inSeconds.toString()); //시간차를 초단위로 구한다.
 
-    for (int i = 0; i < sensorList.length; i++) {
-      List<SensorEvent> l = await sd.getSensorEventsByDeviceOnlyOne(sensorList[i].getSensorID()!);
-      if (l.isNotEmpty) {
-        eventList.add(l[0]);
+      int min = (difference / 60).round();
+
+      if (min < 1) {
+        _longTime = false;
+        _elapsedTime = "방금 전";
+
+      } else if (min >= 1 && min < 5) {
+        _longTime = false;
+        _elapsedTime = "조금 전";
+
+      } else if (min >= 5 && min < 60) {
+        _longTime = false;
+        _elapsedTime = '$min 분 전';
+
+      } else if (min >= 60) {
+        _longTime = true;
+        if (min >= 60 && min < 60*24) {
+          int hour = (min / 60).round();
+          _elapsedTime = '$hour 시간 전';
+        } else {
+          int day = (min / 1440).round();
+          _elapsedTime = '$day 일 전';
+
+        }
       }
+    } else {
+      _longTime = false;
+      _elapsedTime = "이벤트 없음";
     }
 
-    if (eventList.isNotEmpty) {
-      eventList.sort((a,b) {
-        return b.getCreatedAt()!.compareTo(a.getCreatedAt()!);
-      });
+    setState(() {
 
+    });
+
+
+    /*DBHelper sd = DBHelper();
+
+    List<String> sensorIDs = [];
+    final List<SensorInfo> sensorList = gLocationList[widget.locationIndex].getSensors()!;
+    for (var s in sensorList) {
+      sensorIDs.add(s.getSensorID()!);
+    }
+
+    LocationInfo locationInfo = gLocationList[widget.locationIndex];
+    List<SensorEvent> eventList = await sd.getEventList5(sensorIDs);
+
+    if (eventList.isNotEmpty) {
       var now = DateTime.now();
       var eventTime = DateTime.parse(eventList[0].getCreatedAt()!);
       int difference = int.parse(now.difference(eventTime).inSeconds.toString()); //시간차를 초단위로 구한다.
@@ -167,20 +206,19 @@ class _LocationWidgetState extends ConsumerState<LocationWidget> {
         _longTime = false;
         _elapsedTime = "방금 전";
 
-      } else if (min > 1 && min < 5) {
+      } else if (min >= 1 && min < 5) {
         _longTime = false;
         _elapsedTime = "조금 전";
 
-      } else if (min > 5 && min < 60) {
+      } else if (min >= 5 && min < 60) {
         _longTime = false;
         _elapsedTime = '$min 분 전';
 
-      } else if (min > 60) {
+      } else if (min >= 60) {
         _longTime = true;
-        if (min > 60 && min < 60*24) {
+        if (min >= 60 && min < 60*24) {
           int hour = (min / 60).round();
           _elapsedTime = '$hour 시간 전';
-
         } else {
           int day = (min / 1440).round();
           _elapsedTime = '$day 일 전';
@@ -188,50 +226,113 @@ class _LocationWidgetState extends ConsumerState<LocationWidget> {
         }
       }
     } else {
-      _elapsedTime = "정보 없음";
+      _elapsedTime = "이벤트 없음";
+    }
+
+    setState(() {
+
+    });*/
+  }
+
+  void _startTimer() {
+    _getElapsedTime();
+    // _getRecentTimeFromDB();
+
+    _timer = Timer.periodic(const Duration(seconds: 60), (timer) {
+      _getElapsedTime();
+      // _getRecentTimeFromDB();
+    });
+  }
+
+  void _stopTimer() {
+    _timer?.cancel();
+  }
+
+  /*void _getRecentTime() {
+    if (ref.watch(sensorEventProvider) == null) {
+      return;
+    }
+
+    LocationInfo locationInfo = gLocationList[widget.locationIndex];
+
+    final eventTime = DateTime.parse(ref.watch(sensorEventProvider)!.getCreatedAt()!);
+    String formatDate = DateFormat('MM.dd(E) HH:mm', 'ko').format(eventTime);
+
+    SensorEvent sensorEvent = ref.watch(sensorEventProvider)!;
+
+    String sensorID = sensorEvent.getSensorID()!;
+
+    final List<SensorInfo> sensorList = locationInfo.getSensors()!;
+    for (SensorInfo sensor in sensorList) {
+      if (sensor.getSensorID() == sensorID) {
+        _recentTime = formatDate;
+
+        var now = DateTime.now();
+        int difference = int.parse(now.difference(eventTime).inSeconds.toString()); //시간차를 초단위로 구한다.
+
+        int min = (difference / 60).round();
+
+        if (min < 1) {
+          _longTime = false;
+          _elapsedTime = "방금 전";
+
+        } else if (min > 1 && min < 5) {
+          _longTime = false;
+          _elapsedTime = "조금 전";
+
+        } else if (min > 5 && min < 60) {
+          _longTime = false;
+          _elapsedTime = '$min 분 전';
+
+        } else if (min > 60) {
+          _longTime = true;
+          if (min > 60 && min < 60*24) {
+            int hour = (min / 60).round();
+            _elapsedTime = '$hour 시간 전';
+
+          } else {
+            int day = (min / 1440).round();
+            _elapsedTime = '$day 일 전';
+
+          }
+        }
+
+        setState(() {
+
+        });
+      }
+    }
+  }
+
+  void _getRecentTimeFromDB() async {
+    DBHelper sd = DBHelper();
+
+    final List<SensorInfo> sensorList = gLocationList[widget.locationIndex].getSensors()!;
+    List<SensorEvent> eventList = [];
+
+    for (int i = 0; i < sensorList.length; i++) {
+      List<SensorEvent> l = await sd.getSensorEventsByDeviceTen(sensorList[i].getSensorID()!);
+      if (l.isNotEmpty) {
+        eventList.add(l[0]);
+      }
+    }
+
+    if (eventList.isNotEmpty) {
+      eventList.sort((a,b) {
+        return b.getCreatedAt()!.compareTo(a.getCreatedAt()!);
+      });
+
+      var eventTime = DateTime.parse(eventList[0].getCreatedAt()!);
+      String formatDate = DateFormat('MM.dd(E) HH:mm', 'ko').format(eventTime);
+
+      _recentTime = formatDate;
+
+    } else {
+      _recentTime = "이벤트 없음";
     }
 
     setState(() {
 
     });
-  }
-
-  void _getRecentTime() async {
-    if (ref.watch(sensorEventProvider) == null) {
-      DBHelper sd = DBHelper();
-
-      final List<SensorInfo> sensorList = gLocationList[widget.locationIndex].getSensors()!;
-      List<SensorEvent> eventList = [];
-
-      for (int i = 0; i < sensorList.length; i++) {
-        List<SensorEvent> l = await sd.getSensorEventsByDeviceOnlyOne(sensorList[i].getSensorID()!);
-        if (l.isNotEmpty) {
-          eventList.add(l[0]);
-        }
-      }
-
-      if (eventList.isNotEmpty) {
-        eventList.sort((a,b) {
-          return b.getCreatedAt()!.compareTo(a.getCreatedAt()!);
-        });
-
-        final recentTime = DateTime.parse(eventList[0].getCreatedAt()!);
-        _recentTime = DateFormat('MM.dd(E) HH:mm', 'ko').format(recentTime);
-      } else {
-        _recentTime = "정보 없음";
-      }
-
-
-
-    } else {
-      final recentTime = DateTime.parse(ref.watch(sensorEventProvider)!.getCreatedAt()!);
-      String formatDate = DateFormat('MM.dd(E) HH:mm', 'ko').format(recentTime);
-      setState(() {
-        _recentTime = formatDate;
-      });
-
-      _getElapsedTime();
-    }
-  }
-
+  }*/
 }

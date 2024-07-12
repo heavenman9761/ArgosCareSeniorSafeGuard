@@ -21,6 +21,7 @@ import 'package:argoscareseniorsafeguard/models/location_infos.dart';
 import 'package:argoscareseniorsafeguard/models/share_infos.dart';
 import 'package:argoscareseniorsafeguard/models/airplaneday.dart';
 import 'package:argoscareseniorsafeguard/models/airplanetime.dart';
+import 'package:argoscareseniorsafeguard/models/alarm_infos.dart';
 import 'package:argoscareseniorsafeguard/database/db.dart';
 
 class Constants {
@@ -36,9 +37,10 @@ class Constants {
 
   static const MQTT_HOST = '14.42.209.174';
   static const MQTT_PORT = 6002;
-  static const MQTT_IDENTIFIER = 'ArgosCareSeniorSafeGuard';
   static const MQTT_ID = 'mings';
   static const MQTT_PASSWORD = 'Sct91234!';
+  // static const MQTT_ID_BACK = 'scthealthcare';
+  // static const MQTT_PASSWORD_BACK = 'Sct91234!';
 
   static const BASE_URL = 'http://14.42.209.174:6008/api';
   static const KAKAO_REDIRECT_URL = 'http://14.42.209.174:6008/api/auth/kakao_flutter/callback';
@@ -97,6 +99,8 @@ class Constants {
   );
 }
 
+bool gSendPush_After_5H_Toilet = false;
+bool gSendPush_After_5H_Refrigerator = false;
 
 Map gParentInfo = {};
 List<HubInfo> gHubList = [];
@@ -104,6 +108,7 @@ List<SensorInfo> gSensorList = [];
 List<LocationInfo> gLocationList = [];
 List<AirplaneDay> gAirPlaneDayList = [];
 List<AirplaneTime> gAirPlaneTimeList = [];
+late AlarmInfo gLastAlarm;
 bool gAirPlaneEnable = false;
 // late LocationInfo gCurrentLocation;
 
@@ -134,6 +139,16 @@ void saveUserInfo(var loginResponse) async {
       sl.add(SensorInfo.fromJson(s));
     }
 
+    List<AlarmInfo> al = [];
+    for (var a in l['Alarm_Infos']) {
+      al.add(AlarmInfo.fromJson(a));
+    }
+
+    List<SensorEvent> el = [];
+    for (var e in l['Sensor_Event_Infos']) {
+      el.add(SensorEvent.fromJson(e));
+    }
+
     gLocationList.add(
       LocationInfo(
         id: l['id'],
@@ -147,9 +162,25 @@ void saveUserInfo(var loginResponse) async {
         detectedDoorSensorCount: l['detectedDoorSensorCount'],
         createdAt: l['createdAt'],
         updatedAt: l['updatedAt'],
-        sensors: sl
+        sensors: sl,
+        alarms: al,
+        events: el,
       )
     );
+  }
+
+  final aList = loginResponse.data['Alarm_Infos'] as List;
+  if (aList.isNotEmpty) {
+    gLastAlarm = AlarmInfo(
+      id: aList[0]['id'],
+      alarm: aList[0]['alarm'],
+      jaeSilStatus: aList[0]['jaeSilStatus'],
+      createdAt: aList[0]['createdAt'],
+      updatedAt: aList[0]['updatedAt'],
+      userID: aList[0]['userID'],
+      locationID: aList[0]['locationID'],
+    );
+
   }
 
   final shList = loginResponse.data['Share_Infos'] as List;
@@ -209,9 +240,19 @@ enum FindSensorState {
   none, findingSensor, findingSensorEmpty, findingSensorDone
 }
 
+enum JaeSilStateEnum {
+  jsNone, jsIn, jsOut
+}
+
 double deviceCardHeight = 40;
 double deviceFontSize = 18.0;
 double deviceIconSize = 16.0;
+
+String convertTimeStringToLocal(String sourStr) {
+  DateTime dateSourStr = DateTime.parse(sourStr);
+  DateTime dateSourStrLocal = dateSourStr.toLocal();
+  return DateFormat('yyyy-MM-dd HH:mm:ss').format(dateSourStrLocal);
+}
 
 void getDeviceFontSize(BuildContext context) {
   if (DeviceScreen.isPhone(context)) {
@@ -236,7 +277,7 @@ String removeJsonAndArray(String text) {
 }
 
 String analysisSensorEvent(SensorEvent event) {
-  String? stringJson = event.getStatus();
+  String? stringJson = event.getState();
   stringJson = removeJsonAndArray(stringJson!);
   var dataSp = stringJson.split(',');
 
@@ -287,7 +328,7 @@ String analysisSensorEvent(SensorEvent event) {
 }
 
 String analysisSimpleSensorEvent(SensorEvent event) {
-  String? stringJson = event.getStatus();
+  String? stringJson = event.getState();
   stringJson = removeJsonAndArray(stringJson!);
   var dataSp = stringJson.split(',');
 

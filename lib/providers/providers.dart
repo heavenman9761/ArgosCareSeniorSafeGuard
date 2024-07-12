@@ -1,3 +1,4 @@
+import 'package:argoscareseniorsafeguard/pages/home/jaesil_widget.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 
@@ -5,6 +6,7 @@ import 'package:argoscareseniorsafeguard/constants.dart';
 import 'package:argoscareseniorsafeguard/models/sensor_infos.dart';
 import 'package:argoscareseniorsafeguard/models/location_infos.dart';
 import 'package:argoscareseniorsafeguard/models/sensor_event.dart';
+import 'package:argoscareseniorsafeguard/models/alarm_infos.dart';
 
 class MqttConnectionStateNotifier extends StateNotifier<MqttConnectionState> {
   MqttConnectionStateNotifier(): super(MqttConnectionState.disconnected);
@@ -30,6 +32,7 @@ final findHubStateProvider = StateNotifierProvider<FindHubStateNotifier, FindHub
   return FindHubStateNotifier();
 });
 
+//--------- 센서 검색 Provider ---------------------------------------------------
 class FindSensorStateNotifier extends StateNotifier<FindSensorState> {
   FindSensorStateNotifier(): super(FindSensorState.none);
 
@@ -40,6 +43,19 @@ class FindSensorStateNotifier extends StateNotifier<FindSensorState> {
 
 final findSensorStateProvider = StateNotifierProvider<FindSensorStateNotifier, FindSensorState>((ref) {
   return FindSensorStateNotifier();
+});
+
+//--------- 재실 상태 Provider ---------------------------------------------------
+class JaeSilStateNotifier extends StateNotifier<JaeSilStateEnum> {
+  JaeSilStateNotifier() : super(JaeSilStateEnum.jsNone);
+
+  void doChangeState(JaeSilStateEnum jaeSilState) {
+    state = jaeSilState;
+  }
+}
+
+final jaeSilStateProvider = StateNotifierProvider<JaeSilStateNotifier, JaeSilStateEnum>((ref) {
+  return JaeSilStateNotifier();
 });
 
 
@@ -67,6 +83,20 @@ class SensorEventNotifier extends StateNotifier<SensorEvent?> {
 
 final sensorEventProvider = StateNotifierProvider<SensorEventNotifier, SensorEvent?>((ref) {
   return SensorEventNotifier();
+});
+
+
+//--------- 새로운 알림이 저장될 때사용하는 Provider ---------------------------------------------------
+class AlarmNotifier extends StateNotifier<AlarmInfo?> {
+  AlarmNotifier() : super(null);
+
+  void doChangeState(AlarmInfo alarmInfo) {
+    state = alarmInfo;
+  }
+}
+
+final alarmProvider = StateNotifierProvider<AlarmNotifier, AlarmInfo?>((ref) {
+  return AlarmNotifier();
 });
 
 //-------------------------------------------------------------------------------------------

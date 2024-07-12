@@ -2,7 +2,7 @@ class AccessPoint {
   final String? WifiName;
   final int? rssi;
   final int? security;
-  final String? password;
+  String? password;
 
   String? getWifiName() {
     return WifiName;
@@ -18,6 +18,10 @@ class AccessPoint {
 
   String? getPassword() {
     return password;
+  }
+
+  void setPassword(value) {
+    password = value;
   }
 
   AccessPoint({required this.WifiName, required this.rssi, required this.security, required this.password});

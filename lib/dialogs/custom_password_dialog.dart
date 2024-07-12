@@ -14,17 +14,13 @@ class CustomPasswordDialog extends StatefulWidget {
 }
 
 class _CustomPasswordDialogState extends State<CustomPasswordDialog> {
-  String _title = '';
-  String _wifiName = '';
   bool passwordVisible = true;
-
   final controller = TextEditingController(text: "");
+
   @override
   void initState()
   {
     super.initState();
-    _title = widget.title;
-    _wifiName = widget.wifiName;
   }
 
   @override
@@ -43,61 +39,71 @@ class _CustomPasswordDialogState extends State<CustomPasswordDialog> {
       ),
       child: Column(
         children: [
-          SizedBox(height: 40.h,),
-
-          Text(_title, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.sp),),
-
-          SizedBox(height: 8.h),
-
-          Row(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              SizedBox(width: 24.w,),
-              Text(_wifiName, style: TextStyle(fontSize: 14.sp), textAlign: TextAlign.start,),
-            ],
-          ),
-
-          Padding(
-            padding: const EdgeInsets.fromLTRB(24, 8, 4, 8),
-            child: TextFormField(
-              autofocus: true,
-              obscureText: passwordVisible,
-              controller: controller,
-              style:TextStyle(fontSize:12.sp),
-              decoration: InputDecoration(
-                fillColor: Colors.white,
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(2.0),
-                  borderSide: const BorderSide(
-                    color: Constants.scaffoldBackgroundColor,
-                  ),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(2.0),
-                  borderSide: const BorderSide(
-                    color: Constants.scaffoldBackgroundColor,
-                    width: 1.0,
-                  ),
-                ),
-                border: const OutlineInputBorder(),
-                contentPadding: EdgeInsets.symmetric(vertical: 15.0.h),
-                suffixIcon: IconButton(
-                  icon: Icon(passwordVisible ? Icons.visibility : Icons.visibility_off, size: 15.h, ),
-                  onPressed: () {
-                    setState(() => passwordVisible = !passwordVisible);
-                  },
-                ),
-                // labelText: 'Password',
-                // icon: const Padding(
-                //   padding: EdgeInsets.only(top: 15.0),
-                //   child: Icon(Icons.lock, size: 15,),
-                // ),
-              ),
-            ),
-          ),
-          SizedBox(height: 37.h),
-
           Expanded(
+            child: Container(
+              width: double.infinity,
+              height: double.infinity,
+              decoration: const BoxDecoration(
+                borderRadius: BorderRadius.only(topRight: Radius.circular(20), topLeft: Radius.circular(20)),
+              ),
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(24.w, 24.h, 24.w, 12.h),
+                child: Column(
+                  children: [
+                    Text(widget.title, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.sp),),
+
+                    SizedBox(height: 12.h),
+
+                    Expanded(
+                      child: SizedBox(
+                        width: double.infinity,
+                        height: 8.h,
+                        child: Flexible(child: Text(widget.wifiName, style: TextStyle(fontSize: 14.sp), textAlign: TextAlign.center,)),
+                      ),
+                    ),
+
+                    Padding(
+                      padding: EdgeInsets.fromLTRB(8.w, 8.h, 8.w, 8.h),
+                      child: TextFormField(
+                        autofocus: true,
+                        obscureText: passwordVisible,
+                        controller: controller,
+                        style:TextStyle(fontSize:12.sp),
+                        decoration: InputDecoration(
+                          hintText: "wifi password",
+                          hintStyle: const TextStyle(color: Constants.dividerColor),
+                          fillColor: Colors.white,
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(5.0),
+                            borderSide: const BorderSide(
+                              color: Constants.borderColor,
+                            ),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(5.0),
+                            borderSide: const BorderSide(
+                              color: Constants.borderColor,
+                              width: 1.0,
+                            ),
+                          ),
+                          border: const OutlineInputBorder(),
+                          contentPadding: EdgeInsets.symmetric(vertical: 15.0.h, horizontal: 15.w),
+                          suffixIcon: IconButton(
+                            icon: Icon(passwordVisible ? Icons.visibility : Icons.visibility_off, size: 15.h, ),
+                            onPressed: () {
+                              setState(() => passwordVisible = !passwordVisible);
+                            },
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          ),
+          SizedBox(
+            height: 50.h,
             child: Row(
               children: [
                 Expanded(
@@ -136,11 +142,11 @@ class _CustomPasswordDialogState extends State<CustomPasswordDialog> {
                     },
                   ),
                 ),
-              ],
-            ),
-          )
-        ],
-      ),
+              ]
+            )
+          ),
+        ]
+      )
     );
   }
 }

@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:uuid/uuid.dart';
 
 import 'package:argoscareseniorsafeguard/constants.dart';
 import 'package:argoscareseniorsafeguard/providers/providers.dart';
@@ -77,9 +78,12 @@ void mqttDisconnect() {
   mqttClient.disconnect();
 }
 
-void mqttInit(WidgetRef ref, String host, int port, String identifier, String id, String password) async {
+void mqttInit(WidgetRef ref, String host, int port, String id, String password) async {
+  var uuid = const Uuid();
+  String uuid_v4 = uuid.v4();
+
   _ref = ref;
-  mqttClient = MqttServerClient(host, identifier);
+  mqttClient = MqttServerClient(host, uuid_v4);
 
   mqttClient.logging(on: false);
   mqttClient.setProtocolV311();
@@ -91,7 +95,7 @@ void mqttInit(WidgetRef ref, String host, int port, String identifier, String id
   mqttClient.onSubscribed = onSubscribed;
 
   final connMess = MqttConnectMessage()
-      .withClientIdentifier(identifier)
+      .withClientIdentifier(uuid_v4)
       .withWillTopic('will-topic') // If you set this you must set a will message
       .withWillMessage('My Will message')
       .startClean() // Non persistent session for testing

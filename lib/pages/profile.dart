@@ -136,7 +136,7 @@ class _ProfileState extends State<Profile> {
                                 children: [
                                   _getWidget(_parentName, _kind_parentName),
                                   _getWidgetOnlyEdit('${_parentAge.toString()}세', _kind_parentAge),
-                                  _getWidgetOnlyEdit(_parentSex == 0 ? '정보 없음' : (_parentSex == 1 ? '남성' : '여성'), _kind_parentSex),
+                                  _getWidgetOnlyEdit(_parentSex == 0 ? '알 수 없음' : (_parentSex == 1 ? '남성' : '여성'), _kind_parentSex),
                                   _getWidget(_parentPhone, _kind_parentPhone),
                                 ],
                               ),

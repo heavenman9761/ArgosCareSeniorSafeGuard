@@ -43,7 +43,7 @@ class MyHomePage extends ConsumerStatefulWidget {
 class _MyHomePageState extends ConsumerState<MyHomePage> {
   @override
   void initState() {
-    mqttInit(ref, '14.42.209.174', 6002, 'ArgosCareSeniorSafeGuard', 'mings', 'Sct91234!');
+    mqttInit(ref, '14.42.209.174', 6002, 'mings', 'Sct91234!');
     super.initState();
   }
 

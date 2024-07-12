@@ -55,8 +55,8 @@ class _AlarmsViewState extends State<AlarmsView> {
     );
 
     final userID = await storage.read(key:'ID');
-
-    return await sd.getEventList(date, userID!);
+    return [];
+    //return await sd.getEventList(date, userID!);
   }
 
   Future _selectDate(BuildContext context) async {

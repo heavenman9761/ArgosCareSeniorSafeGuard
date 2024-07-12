@@ -658,6 +658,7 @@ class _PairingHubState extends ConsumerState<PairingHub> {
       strApList = result.toString();
 
       List<dynamic> list = json.decode(strApList);
+      accessPoints.clear();
 
       for (int i = 0; i < list.length; i++) {
         AccessPoint ap = AccessPoint.fromJson(list[i]);
@@ -686,7 +687,7 @@ class _PairingHubState extends ConsumerState<PairingHub> {
       final String result = await Constants.platform.invokeMethod(
           'setWifiConfig', <String, dynamic>{
         "wifiName": selectedAp.getWifiName(),
-        "password": wifiPassword
+        "password": selectedAp.getPassword()
       });
 
       logger.i('received from java: $result');
@@ -720,7 +721,7 @@ class _PairingHubState extends ConsumerState<PairingHub> {
     }
   }
 
-  void _showWifiPasswordDialog(BuildContext context, AccessPoint ap) {
+  /*void _showWifiPasswordDialog(BuildContext context, AccessPoint ap) {
     showDialog(
         barrierDismissible: false,
         context: context,
@@ -741,7 +742,7 @@ class _PairingHubState extends ConsumerState<PairingHub> {
         });
       }
     });
-  }
+  }*/
 
   void showWifiDialog(BuildContext context) {
     showDialog(
@@ -756,9 +757,12 @@ class _PairingHubState extends ConsumerState<PairingHub> {
           );
         }
     ).then((val) {
-      selectedAp = val;
-      debugPrint("selectedAp : $val");
-      _showWifiPasswordDialog(context, selectedAp);
+      if (val != 'Cancel') {
+        selectedAp = val;
+        debugPrint("selectedAp : $val");
+        _setWifiConfig();
+        // _showWifiPasswordDialog(context, selectedAp);
+      }
     });
   }
 }

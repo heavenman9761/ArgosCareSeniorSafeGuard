@@ -1,7 +1,9 @@
 import 'dart:ui';
 
 import 'package:argoscareseniorsafeguard/models/sensor_infos.dart';
-import 'package:argoscareseniorsafeguard/models/event_list.dart';
+// import 'package:argoscareseniorsafeguard/models/event_list.dart';
+import 'package:argoscareseniorsafeguard/models/alarm_infos.dart';
+import 'package:argoscareseniorsafeguard/models/sensor_event.dart';
 
 class LocationInfo {
   final String? id;
@@ -16,7 +18,8 @@ class LocationInfo {
   final String? createdAt;
   final String? updatedAt;
   final List<SensorInfo>? sensors;
-  final List<EventList>? events;
+  final List<SensorEvent>? events;
+  final List<AlarmInfo>? alarms;
 
   String? getID() {
     return id;
@@ -70,16 +73,28 @@ class LocationInfo {
     return sensors;
   }
 
-  List<EventList>? getEvents() {
+  List<SensorEvent>? getEvents() {
     return events;
   }
 
-  void setEvents(List<EventList>? value) {
+  List<AlarmInfo>? getAlarms() {
+    return alarms;
+  }
+
+  void setEvents(List<SensorEvent>? value) {
     events = value;
   }
 
-  set events(List<EventList>? value) {
+  set events(List<SensorEvent>? value) {
     events = value;
+  }
+
+  void setAlarms(List<AlarmInfo>? value) {
+    alarms = value;
+  }
+
+  set alarms(List<AlarmInfo>? value) {
+    alarms = value;
   }
 
   void setDetectedMotionSensorCount(int value) {
@@ -103,7 +118,8 @@ class LocationInfo {
     this.createdAt,
     required this.updatedAt,
     this.sensors,
-    this.events
+    this.events,
+    this.alarms
   });
 
   Map<String, dynamic> toMap() {
@@ -120,7 +136,8 @@ class LocationInfo {
       'createdAt': createdAt ?? '',
       'updatedAt': updatedAt ?? '',
       'sensors': sensors ?? [],
-      'events': events ?? []
+      'events': events ?? [],
+      'alarms': alarms ?? [],
     };
   }
 
@@ -139,6 +156,7 @@ class LocationInfo {
       updatedAt: json['updatedAt'],
       sensors: json['Sensor_Infos'],
       events: json['Events'],
+      alarms: json['alarms'],
     );
   }
 
@@ -158,6 +176,7 @@ class LocationInfo {
         'updatedAt: $updatedAt, '
         'sensors: $sensors, '
         'events: $events, '
+        'alarms: $alarms, '
       '}';
   }
 }

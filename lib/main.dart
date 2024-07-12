@@ -11,6 +11,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 
 import 'package:argoscareseniorsafeguard/utils/firebase_options.dart';
 import 'package:argoscareseniorsafeguard/pages/login_page.dart';
@@ -20,6 +21,7 @@ import 'package:argoscareseniorsafeguard/constants.dart';
 import 'package:argoscareseniorsafeguard/utils/fcm.dart';
 import 'package:argoscareseniorsafeguard/utils/theme.dart';
 import 'package:argoscareseniorsafeguard/auth/auth_dio.dart';
+import 'package:argoscareseniorsafeguard/foregroundTaskHandler.dart';
 
 bool _isLogin = false;
 String userName = '';
@@ -28,6 +30,9 @@ String userMail = '';
 
 Future<void> main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+
+  ForegroundTaskService.init();
+
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
 
   await SystemChrome.setPreferredOrientations([
@@ -99,6 +104,9 @@ class _MainAppState extends State<MainApp> {
   @override
   void initState() {
     super.initState();
+
+    _requestPermissionForAndroid();
+
     _fetchLocale().then((locale) {
       setState(() {
         _locale = locale;
@@ -111,6 +119,11 @@ class _MainAppState extends State<MainApp> {
   @override
   void deactivate() {
     super.deactivate();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
   }
 
   Future<Locale> _fetchLocale() async {
@@ -207,4 +220,40 @@ class _MainAppState extends State<MainApp> {
     final SharedPreferences pref = await SharedPreferences.getInstance();
     isLogin = pref.getBool('isLogin')!;
   }*/
+
+  Future<void> _requestPermissionForAndroid() async {
+    if (!Platform.isAndroid) {
+      return;
+    }
+
+    // "android.permission.SYSTEM_ALERT_WINDOW" permission must be granted for
+    // onNotificationPressed function to be called.
+    //
+    // When the notification is pressed while permission is denied,
+    // the onNotificationPressed function is not called and the app opens.
+    //
+    // If you do not use the onNotificationPressed or launchApp function,
+    // you do not need to write this code.
+    if (!await FlutterForegroundTask.canDrawOverlays) {
+      // This function requires `android.permission.SYSTEM_ALERT_WINDOW` permission.
+      await FlutterForegroundTask.openSystemAlertWindowSettings();
+    }
+
+    // Android 12 or higher, there are restrictions on starting a foreground service.
+    //
+    // To restart the service on device reboot or unexpected problem, you need to allow below permission.
+    if (!await FlutterForegroundTask.isIgnoringBatteryOptimizations) {
+      // This function requires `android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS` permission.
+      await FlutterForegroundTask.requestIgnoreBatteryOptimization();
+    }
+
+    // Android 13 and higher, you need to allow notification permission to expose foreground service notification.
+    final NotificationPermission notificationPermissionStatus =
+    await FlutterForegroundTask.checkNotificationPermission();
+    if (notificationPermissionStatus != NotificationPermission.granted) {
+      await FlutterForegroundTask.requestNotificationPermission();
+    }
+  }
+
+
 }

@@ -10,9 +10,10 @@ import 'package:argoscareseniorsafeguard/models/sensor.dart';
 import 'package:argoscareseniorsafeguard/models/sensor_event.dart';
 import 'package:argoscareseniorsafeguard/models/location.dart';
 import 'package:argoscareseniorsafeguard/models/room.dart';
-import 'package:argoscareseniorsafeguard/models/event_list.dart';
+// import 'package:argoscareseniorsafeguard/models/event_list.dart';
 import 'package:argoscareseniorsafeguard/models/airplaneday.dart';
 import 'package:argoscareseniorsafeguard/models/airplanetime.dart';
+import 'package:argoscareseniorsafeguard/models/alarm_infos.dart';
 import 'package:uuid/uuid.dart';
 import 'package:intl/intl.dart';
 
@@ -23,7 +24,7 @@ const String tableNameSensors = 'sensors';
 const String tableNameSensorEvents = 'sensorEvents';
 const String tableNameLocations = 'locations';
 const String tableNameRooms = 'rooms';
-
+const String tableNameAlarms = 'alarms';
 const String tableNameAirPlaneDay = 'airplaneDay';
 const String tableNameAirPlaneTime = 'airplaneTime';
 
@@ -104,19 +105,16 @@ class DBHelper {
     await db.execute(
       "CREATE TABLE $tableNameSensorEvents ("
           "id TEXT PRIMARY KEY, "
-          "hubID TEXT, "
-          "userID TEXT, "
-          "deviceID TEXT, "
           "deviceType TEXT, "
+          "accountID TEXT, "
           "event TEXT, "
-          "status TEXT, "
-          "humi INTEGER, "
-          "temp REAL, "
-          "shared BOOLEAN, "
-          "ownerID TEXT, "
-          "ownerName TEXT, "
+          "state TEXT, "
           "createdAt TEXT, "
-          "updatedAt TEXT"
+          "updatedAt TEXT, "
+          "deletedAt TEXT, "
+          "userID TEXT, "
+          "sensorID TEXT, "
+          "locationID TEXT"
           ")",
     );
 
@@ -163,6 +161,19 @@ class DBHelper {
           "endTime TEXT, "
           "createdAt TEXT"
           ")",
+    );
+
+    await db.execute(
+      "CREATE TABLE $tableNameAlarms ("
+          "id TEXT PRIMARY KEY, "
+          "alarm TEXT, "
+          "jaeSilStatus INTEGER, "
+          "createdAt TEXT, "
+          "updatedAt TEXT, "
+          "deletedAt TEXT, "
+          "userID TEXT, "
+          "locationID TEXT"
+      ")",
     );
   }
 
@@ -542,19 +553,16 @@ class DBHelper {
     return List.generate(maps.length, (i) {
       return SensorEvent(
         id: maps[i]['id'],
-        hubID: maps[i]['hubID'],
-        userID: maps[i]['userID'],
-        deviceID: maps[i]['deviceID'],
         deviceType: maps[i]['deviceType'],
+        accountID: maps[i]['accountID'],
         event: maps[i]['event'],
-        status: maps[i]['status'],
-        humi: maps[i]['humi'],
-        temp: maps[i]['temp'],
-        shared: maps[i]['shared'],
-        ownerID: maps[i]['ownerID'],
-        ownerName: maps[i]['ownerName'],
-        updatedAt: maps[i]['updatedAt'],
+        state: maps[i]['state'],
         createdAt: maps[i]['createdAt'],
+        updatedAt: maps[i]['updatedAt'],
+        deletedAt: maps[i]['deletedAt'],
+        userID: maps[i]['userID'],
+        sensorID: maps[i]['sensorID'],
+        locationID: maps[i]['locationID'],
       );
     });
   }
@@ -571,19 +579,16 @@ class DBHelper {
     return List.generate(maps.length, (i) {
       return SensorEvent(
         id: maps[i]['id'],
-        hubID: maps[i]['hubID'],
-        userID: maps[i]['userID'],
-        deviceID: maps[i]['deviceID'],
         deviceType: maps[i]['deviceType'],
+        accountID: maps[i]['accountID'],
         event: maps[i]['event'],
-        status: maps[i]['status'],
-        humi: maps[i]['humi'],
-        temp: maps[i]['temp'],
-        shared: maps[i]['shared'],
-        ownerID: maps[i]['ownerID'],
-        ownerName: maps[i]['ownerName'],
-        updatedAt: maps[i]['updatedAt'],
+        state: maps[i]['state'],
         createdAt: maps[i]['createdAt'],
+        updatedAt: maps[i]['updatedAt'],
+        deletedAt: maps[i]['deletedAt'],
+        userID: maps[i]['userID'],
+        sensorID: maps[i]['sensorID'],
+        locationID: maps[i]['locationID'],
       );
     });
   }
@@ -600,45 +605,60 @@ class DBHelper {
     return List.generate(maps.length, (i) {
       return SensorEvent(
         id: maps[i]['id'],
-        hubID: maps[i]['hubID'],
-        userID: maps[i]['userID'],
-        deviceID: maps[i]['deviceID'],
         deviceType: maps[i]['deviceType'],
+        accountID: maps[i]['accountID'],
         event: maps[i]['event'],
-        status: maps[i]['status'],
-        humi: maps[i]['humi'],
-        temp: maps[i]['temp'],
-        shared: maps[i]['shared'],
-        ownerID: maps[i]['ownerID'],
-        ownerName: maps[i]['ownerName'],
-        updatedAt: maps[i]['updatedAt'],
+        state: maps[i]['state'],
         createdAt: maps[i]['createdAt'],
+        updatedAt: maps[i]['updatedAt'],
+        deletedAt: maps[i]['deletedAt'],
+        userID: maps[i]['userID'],
+        sensorID: maps[i]['sensorID'],
+        locationID: maps[i]['locationID'],
       );
     });
   }
 
-  Future<List<SensorEvent>> getSensorEventsByDeviceOnlyOne(String deviceID) async {
+  Future<List<SensorEvent>> getSensorEventsByDeviceTen(String deviceID) async {
     final db = await database;
 
     final List<Map<String, dynamic>> maps =
-    await db.query(tableNameSensorEvents, where: 'deviceID = ?', whereArgs: [deviceID], orderBy: 'createdAt DESC', limit: 1);
+    await db.query(tableNameSensorEvents, where: 'deviceID = ?', whereArgs: [deviceID], orderBy: 'createdAt DESC', limit: 10);
 
     return List.generate(maps.length, (i) {
       return SensorEvent(
         id: maps[i]['id'],
-        hubID: maps[i]['hubID'],
-        userID: maps[i]['userID'],
-        deviceID: maps[i]['deviceID'],
         deviceType: maps[i]['deviceType'],
+        accountID: maps[i]['accountID'],
         event: maps[i]['event'],
-        status: maps[i]['status'],
-        humi: maps[i]['humi'],
-        temp: maps[i]['temp'],
-        shared: maps[i]['shared'],
-        ownerID: maps[i]['ownerID'],
-        ownerName: maps[i]['ownerName'],
-        updatedAt: maps[i]['updatedAt'],
+        state: maps[i]['state'],
         createdAt: maps[i]['createdAt'],
+        updatedAt: maps[i]['updatedAt'],
+        deletedAt: maps[i]['deletedAt'],
+        userID: maps[i]['userID'],
+        sensorID: maps[i]['sensorID'],
+        locationID: maps[i]['locationID'],
+      );
+    });
+  }
+
+  Future<List<SensorEvent>> getLastSensorEvent() async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query(tableNameSensorEvents, orderBy: 'createdAt DESC', limit: 1);
+
+    return List.generate(maps.length, (i) {
+      return SensorEvent(
+        id: maps[i]['id'],
+        deviceType: maps[i]['deviceType'],
+        accountID: maps[i]['accountID'],
+        event: maps[i]['event'],
+        state: maps[i]['state'],
+        createdAt: maps[i]['createdAt'],
+        updatedAt: maps[i]['updatedAt'],
+        deletedAt: maps[i]['deletedAt'],
+        userID: maps[i]['userID'],
+        sensorID: maps[i]['sensorID'],
+        locationID: maps[i]['locationID'],
       );
     });
   }
@@ -673,19 +693,16 @@ class DBHelper {
     return List.generate(maps.length, (i) {
       return SensorEvent(
         id: maps[i]['id'],
-        hubID: maps[i]['hubID'],
-        userID: maps[i]['userID'],
-        deviceID: maps[i]['deviceID'],
         deviceType: maps[i]['deviceType'],
+        accountID: maps[i]['accountID'],
         event: maps[i]['event'],
-        status: maps[i]['status'],
-        humi: maps[i]['humi'],
-        temp: maps[i]['temp'],
-        shared: maps[i]['shared'],
-        ownerID: maps[i]['ownerID'],
-        ownerName: maps[i]['ownerName'],
-        updatedAt: maps[i]['updatedAt'],
+        state: maps[i]['state'],
         createdAt: maps[i]['createdAt'],
+        updatedAt: maps[i]['updatedAt'],
+        deletedAt: maps[i]['deletedAt'],
+        userID: maps[i]['userID'],
+        sensorID: maps[i]['sensorID'],
+        locationID: maps[i]['locationID'],
       );
     });
   }
@@ -699,19 +716,16 @@ class DBHelper {
     return List.generate(maps.length, (i) {
       return SensorEvent(
         id: maps[i]['id'],
-        hubID: maps[i]['hubID'],
-        userID: maps[i]['userID'],
-        deviceID: maps[i]['deviceID'],
         deviceType: maps[i]['deviceType'],
+        accountID: maps[i]['accountID'],
         event: maps[i]['event'],
-        status: maps[i]['status'],
-        humi: maps[i]['humi'],
-        temp: maps[i]['temp'],
-        shared: maps[i]['shared'],
-        ownerID: maps[i]['ownerID'],
-        ownerName: maps[i]['ownerName'],
-        updatedAt: maps[i]['updatedAt'],
+        state: maps[i]['state'],
         createdAt: maps[i]['createdAt'],
+        updatedAt: maps[i]['updatedAt'],
+        deletedAt: maps[i]['deletedAt'],
+        userID: maps[i]['userID'],
+        sensorID: maps[i]['sensorID'],
+        locationID: maps[i]['locationID'],
       );
     });
   }
@@ -867,7 +881,7 @@ class DBHelper {
 
   //=====================================
 
-  Future<List<EventList>> getEventList2(String date, List<String> sensors) async {
+  Future<List<SensorEvent>> getEventList2(String date, List<String> sensors) async {
     final db = await database;
 
     String start = '$date 00:00:00.000000';
@@ -889,20 +903,23 @@ class DBHelper {
     );
 
     return List.generate(maps.length, (i) {
-      return EventList(
-        hubID: maps[i]['hubID'],
-        userID: maps[i]['userID'],
-        deviceID: maps[i]['deviceID'],
+      return SensorEvent(
+        id: maps[i]['id'],
         deviceType: maps[i]['deviceType'],
+        accountID: maps[i]['accountID'],
         event: maps[i]['event'],
-        status: maps[i]['status'],
+        state: maps[i]['state'],
         createdAt: maps[i]['createdAt'],
-        name: maps[i]['name'],
+        updatedAt: maps[i]['updatedAt'],
+        deletedAt: maps[i]['deletedAt'],
+        userID: maps[i]['userID'],
+        sensorID: maps[i]['sensorID'],
+        locationID: maps[i]['locationID'],
       );
     });
   }
 
-  Future<List<EventList>> getEventList3(String date) async {
+  Future<List<SensorEvent>> getEventList3(String date) async {
     final db = await database;
 
     String start = '$date 00:00:00.000000';
@@ -915,21 +932,88 @@ class DBHelper {
     );
 
     return List.generate(maps.length, (i) {
-      return EventList(
-        hubID: maps[i]['hubID'],
-        userID: maps[i]['userID'],
-        deviceID: maps[i]['deviceID'],
+      return SensorEvent(
+        id: maps[i]['id'],
         deviceType: maps[i]['deviceType'],
+        accountID: maps[i]['accountID'],
         event: maps[i]['event'],
-        status: maps[i]['status'],
+        state: maps[i]['state'],
         createdAt: maps[i]['createdAt'],
-        name: maps[i]['name'],
+        updatedAt: maps[i]['updatedAt'],
+        deletedAt: maps[i]['deletedAt'],
+        userID: maps[i]['userID'],
+        sensorID: maps[i]['sensorID'],
+        locationID: maps[i]['locationID'],
       );
     });
   }
 
+  Future<List<SensorEvent>> getEventList4(String startDate, String endDate) async {
+    final db = await database;
 
-  Future<List<EventList>> getEventList(String date, String userID) async {
+    String start = '$startDate 00:00:00.000000';
+    String end = '$endDate 23:59:59.999999';
+
+    String sql = "SELECT * FROM sensorEvents WHERE createdAt >= '$start' AND createdAt <= '$end' ORDER BY createdAt DESC LIMIT 10";
+
+    List<Map<String, dynamic>> maps = await db.rawQuery(
+        sql
+    );
+
+    return List.generate(maps.length, (i) {
+      return SensorEvent(
+        id: maps[i]['id'],
+        deviceType: maps[i]['deviceType'],
+        accountID: maps[i]['accountID'],
+        event: maps[i]['event'],
+        state: maps[i]['state'],
+        createdAt: maps[i]['createdAt'],
+        updatedAt: maps[i]['updatedAt'],
+        deletedAt: maps[i]['deletedAt'],
+        userID: maps[i]['userID'],
+        sensorID: maps[i]['sensorID'],
+        locationID: maps[i]['locationID'],
+      );
+    });
+  }
+
+  Future<List<SensorEvent>> getEventList5(List<String> sensors) async {
+    final db = await database;
+
+    String where = "";
+    for (String id in sensors) {
+      where = "$where OR deviceID = '$id'";
+    }
+    where = "$where";
+    where = where.substring(4);
+
+    //첫번째 " AND"앞에 ")" 넣기
+    // where = where.replaceFirst(" AND", ") AND");
+    String sql = "SELECT * FROM $tableNameSensorEvents WHERE ($where) ORDER BY createdAt DESC LIMIT 10";
+    // print(sql);
+
+    List<Map<String, dynamic>> maps = await db.rawQuery(
+        sql
+    );
+
+    return List.generate(maps.length, (i) {
+      return SensorEvent(
+        id: maps[i]['id'],
+        deviceType: maps[i]['deviceType'],
+        accountID: maps[i]['accountID'],
+        event: maps[i]['event'],
+        state: maps[i]['state'],
+        createdAt: maps[i]['createdAt'],
+        updatedAt: maps[i]['updatedAt'],
+        deletedAt: maps[i]['deletedAt'],
+        userID: maps[i]['userID'],
+        sensorID: maps[i]['sensorID'],
+        locationID: maps[i]['locationID'],
+      );
+    });
+  }
+
+  /*Future<List<EventList>> getEventList(String date, String userID) async {
     final db = await database;
 
     String start = '$date 00:00:00.000000';
@@ -955,7 +1039,7 @@ class DBHelper {
         name: maps[i]['name'],
       );
     });
-  }
+  }*/
 
   Future<void> initAirplaneDayTable() async {
     final db = await database;
@@ -1003,7 +1087,7 @@ class DBHelper {
   Future<void> insertAirplaneTime(String startTime, String endTime) async {
     final db = await database;
 
-    String now = DateFormat("yyyy-MM-dd hh:mm:ss").format(DateTime.now());
+    String now = DateFormat("yyyy-MM-dd HH:mm:ss").format(DateTime.now());
     var uuid = const Uuid();
     await db.rawInsert("INSERT INTO $tableNameAirPlaneTime(id, startTime, endTime, createdAt) VALUES('${uuid.v4()}', '$startTime', '$endTime', '$now')");
   }
@@ -1044,5 +1128,98 @@ class DBHelper {
     final db = await database;
 
     await db.rawDelete('DELETE from $tableNameAirPlaneTime');
+  }
+
+  Future<void> insertAlarm(String locationID, String locationType, String alarm, int jaeSil) async {
+    final db = await database;
+
+    String now = DateFormat("yyyy-MM-dd HH:mm:ss").format(DateTime.now());
+    var uuid = const Uuid();
+    await db.rawInsert("INSERT INTO $tableNameAlarms(id, locationID, locationType, alarm, jaeSilStatus, createdAt) VALUES('${uuid.v4()}', '$locationID', '$locationType', '$alarm', $jaeSil, '$now')");
+  }
+
+  Future<List<AlarmInfo>> getAlarms(String date) async {
+    final db = await database;
+
+    String start = '$date 00:00:00.000000';
+    String end = '$date 23:59:59.999999';
+
+    final List<Map<String, dynamic>> maps =
+      await db.query(tableNameAlarms, where: 'createdAt >= ? AND createdAt <= ?', whereArgs: [start, end], orderBy: 'createdAt DESC');
+    return List.generate(maps.length, (i) {
+      return AlarmInfo(
+          id: maps[i]['id'],
+          alarm: maps[i]['alarm'],
+          jaeSilStatus: maps[i]['jaeSilStatus'],
+          createdAt: maps[i]['createdAt'],
+          updatedAt: maps[i]['updatedAt'],
+          deletedAt: maps[i]['deletedAt'],
+          userID: maps[i]['userID'],
+          locationID: maps[i]['locationID'],
+      );
+    });
+  }
+
+  Future<List<AlarmInfo>> getLastAlarms() async {
+    final db = await database;
+
+    final List<Map<String, dynamic>> maps = await db.query(tableNameAlarms, orderBy: 'createdAt DESC', limit: 1);
+    return List.generate(maps.length, (i) {
+      return AlarmInfo(
+        id: maps[i]['id'],
+        alarm: maps[i]['alarm'],
+        jaeSilStatus: maps[i]['jaeSilStatus'],
+        createdAt: maps[i]['createdAt'],
+        updatedAt: maps[i]['updatedAt'],
+        deletedAt: maps[i]['deletedAt'],
+        userID: maps[i]['userID'],
+        locationID: maps[i]['locationID'],
+      );
+    });
+  }
+
+  Future<void> createDbTable() async {
+    print("=====================");
+    final db = await database;
+    await db.rawQuery(
+      "CREATE TABLE $tableNameSensorEvents ("
+        "id TEXT PRIMARY KEY, "
+        "deviceType TEXT, "
+        "accountID TEXT, "
+        "event TEXT, "
+        "state TEXT, "
+        "createdAt TEXT, "
+        "updatedAt TEXT, "
+        "deletedAt TEXT, "
+        "userID TEXT, "
+        "sensorID TEXT, "
+        "locationID TEXT"
+      ")"
+    );
+  }
+
+  Future<void> alterDbTable() async {
+    final db = await database;
+    await db.rawQuery("ALTER TABLE alarms ADD COLUMN jaeSilStatus INTEGER;");
+  }
+
+  Future<void> emptyTable() async {
+    final db = await database;
+
+    await db.rawDelete('DELETE from $tableNameDevices');
+    await db.rawDelete('DELETE from $tableNameHubs');
+    await db.rawDelete('DELETE from $tableNameSensors');
+    await db.rawDelete('DELETE from $tableNameSensorEvents');
+    await db.rawDelete('DELETE from $tableNameLocations');
+    await db.rawDelete('DELETE from $tableNameRooms');
+    await db.rawDelete('DELETE from $tableNameAlarms');
+    // await db.rawDelete('DELETE from $tableNameAirPlaneDay');
+    // await db.rawDelete('DELETE from $tableNameAirPlaneTime');
+  }
+
+  Future<void> dropTable() async {
+    final db = await database;
+
+    await db.rawDelete('DROP TABLE $tableNameSensorEvents');
   }
 }

@@ -12,6 +12,7 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await setupFlutterNotifications();
 
   // debugPrint("백그라운드 메시지 처리.. ${message.notification!.body!}");
+  print("==========================");
 
   showFlutterNotificationData(message);
 }
@@ -25,7 +26,8 @@ Future<void> setupFlutterNotifications() async {
     return;
   }
   channel = const AndroidNotificationChannel(
-    'high_importance_channel', // id
+    //'high_importance_channel', // id
+    'foreground_service',
     'High Importance Notifications', // title
     description: 'This channel is used for important notifications.', // description
     importance: Importance.high,
@@ -62,7 +64,8 @@ void showFlutterNotification(RemoteMessage message) {
       notification.body,
       const NotificationDetails(
         android: AndroidNotificationDetails(
-          'high_importance_channel',
+          //'high_importance_channel',
+          'foreground_service',
           'high_importance_notification',
           importance: Importance.max,
           // channel.id,
@@ -88,7 +91,8 @@ void showFlutterNotificationData(RemoteMessage message) {
     message.data['body'],
     const NotificationDetails(
       android: AndroidNotificationDetails(
-        'high_importance_channel',
+        //'high_importance_channel',
+        'foreground_service',
         'high_importance_notification',
         importance: Importance.max,
         // channel.id,
@@ -137,7 +141,8 @@ void initializeNotification() async {
       .resolvePlatformSpecificImplementation<
       AndroidFlutterLocalNotificationsPlugin>()
       ?.createNotificationChannel(const AndroidNotificationChannel(
-      'high_importance_channel',
+      //'high_importance_channel',
+      'foreground_service',
       'high_importance_notification',
       importance: Importance.max
   ));

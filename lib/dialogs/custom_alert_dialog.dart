@@ -18,37 +18,47 @@ class _CustomAlertDialogState extends State<CustomAlertDialog> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 218,
+      height: 218.h,
       decoration: BoxDecoration(
         color: Constants.scaffoldBackgroundColor,
         borderRadius: BorderRadius.circular(20),
       ),
       child: Column(
         children: [
-          const SizedBox(height: 30,),
+          Expanded(
+            child: Container(
+              width: double.infinity,
+              height: double.infinity,
+              decoration: const BoxDecoration(
+                borderRadius: BorderRadius.only(topRight: Radius.circular(20), topLeft: Radius.circular(20)),
+              ),
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(24.w, 24.h, 24.w, 12.h),
+                child: Column(
+                  children: [
+                    Text(widget.title, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.sp),),
 
-          SizedBox(
-            height: 18,
-            child: Text(widget.title, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.sp),),
+                    SizedBox(height: 12.h),
+
+                    Expanded(
+                      child: SizedBox(
+                        height: double.infinity,
+                        width: double.infinity,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Flexible(child: Text(widget.message, style: TextStyle(fontSize: 14.sp), textAlign: TextAlign.center,)),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            )
           ),
-
-          const SizedBox(height: 18),
-
           SizedBox(
-            height: 42,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                const SizedBox(width: 24,),
-                Text(widget.message, style: TextStyle(fontSize: 14.sp), textAlign: TextAlign.start,),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 60),
-
-          Container(
-            height: 50,
+            height: 50.h,
             child: GestureDetector(
               child: Container(
                 decoration: const BoxDecoration(

@@ -10,6 +10,9 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:mqtt_client/mqtt_client.dart';
+import 'package:mqtt_client/mqtt_server_client.dart';
+import 'package:uuid/uuid.dart';
 
 import 'package:argoscareseniorsafeguard/database/db.dart';
 import 'package:argoscareseniorsafeguard/models/device.dart';
@@ -69,6 +72,7 @@ Future<void> initializeService() async {
       onBackground: onIosBackground,
     ),
   );
+
 }
 
 // to ensure this is executed
@@ -117,48 +121,33 @@ void onStart(ServiceInstance service) async {
     service.stopSelf();
   });
 
-  // bring to foreground
-  /*Timer.periodic(const Duration(minutes: 5), (timer) async {
-    if (service is AndroidServiceInstance) {
-      print('Argoscare BACKGROUND SERVICE(5 Minutes): ${DateTime.now()}');
-
-      DBHelper sd = DBHelper();
-
-      List<Device> deviceList = await sd.getDevices('4408d105-d4a8-45e2-a5d3-fd00cdbf597b');
-      print(deviceList[0]);
-
-      const storage = FlutterSecureStorage(
-        iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock),
-        aOptions: AndroidOptions(encryptedSharedPreferences: true),
-      );
-
-      final email = await storage.read(key: 'EMAIL');
-      final password = await storage.read(key: 'PASSWORD');
-
-      if (email != '' && password != '') {
-        try {
-          dio = await authDio();
-          final response = await dio.post(
-              "/auth/background_signin",
-              data: jsonEncode({
-                "email": email,
-                "password": password
-              })
-          );
-
-          final loginResponse = await dio.get(
-              "/auth/me"
-          );
-
-          print('name: ${loginResponse.data['name']}, id: ${loginResponse.data['id']}');
-        } catch (e) {
-          print(e);
-        }
+  service.on('startMqtt').listen((event) {
+    print("startMqtt");
+    mqttInit1(
+        Constants.MQTT_HOST,
+        Constants.MQTT_PORT,
+        Constants.MQTT_ID,
+        Constants.MQTT_PASSWORD
+    );
+    service.invoke(
+      'startedMqtt',
+      {
+        "result":"success"
       }
-    }
-  });*/
+    );
+  });
 
-  Timer.periodic(const Duration(seconds: 30), (timer) async {
+  service.on('receiveMqtt').listen((event) {
+    print("receiveMqtt");
+    service.invoke(
+        'receiveMqtt',
+        {
+          "result":event
+        }
+    );
+  });
+
+  /*Timer.periodic(const Duration(seconds: 30), (timer) async {
     if (service is AndroidServiceInstance) {
       if (await service.isForegroundService()) {
         /// OPTIONAL for use custom notification
@@ -176,7 +165,7 @@ void onStart(ServiceInstance service) async {
         } else {
           print("This is ForegroundService. Login: FALSE");
         }
-        /*flutterLocalNotificationsPlugin.show(
+        *//*flutterLocalNotificationsPlugin.show(
           777,
           'COOL SERVICE',
           'Awesome ${DateTime.now()}',
@@ -194,7 +183,7 @@ void onStart(ServiceInstance service) async {
         service.setForegroundNotificationInfo(
           title: "My App Service",
           content: "Updated at ${DateTime.now()}",
-        );*/
+        );*//*
       }
     }
 
@@ -204,7 +193,7 @@ void onStart(ServiceInstance service) async {
     print('Argoscare BACKGROUND SERVICE(30 Sec): ${DateTime.now()}');
 
     // test using external plugin
-    /*final deviceInfo = DeviceInfoPlugin();
+    *//*final deviceInfo = DeviceInfoPlugin();
     String? device;
     if (Platform.isAndroid) {
       final androidInfo = await deviceInfo.androidInfo;
@@ -222,6 +211,104 @@ void onStart(ServiceInstance service) async {
         "current_date": DateTime.now().toIso8601String(),
         "device": device,
       },
-    );*/
+    );*//*
+  });*/
+}
+
+late MqttServerClient mqttClient;
+
+void mqttInit1(String host, int port, String id, String password) async {
+  var uuid = const Uuid();
+  String uuid_v4 = uuid.v4();
+
+  mqttClient = MqttServerClient(host, uuid_v4);
+
+  mqttClient.logging(on: false);
+  mqttClient.setProtocolV311();
+  mqttClient.port = port;
+  mqttClient.keepAlivePeriod = 20;
+  mqttClient.connectTimeoutPeriod = 2000; // milliseconds
+  mqttClient.onDisconnected = onDisconnected;
+  mqttClient.onConnected = onConnected;
+  mqttClient.onSubscribed = onSubscribed;
+
+  final connMess = MqttConnectMessage()
+      .withClientIdentifier(uuid_v4)
+      .withWillTopic('will-topic') // If you set this you must set a will message
+      .withWillMessage('My Will message')
+      .startClean() // Non persistent session for testing
+      .authenticateAs(id, password)
+      .withWillQos(MqttQos.exactlyOnce);
+
+  mqttClient.connectionMessage = connMess;
+
+  try {
+    await mqttClient.connect();
+  } on NoConnectionException catch (e) {
+    // Raised by the client when connection fails.
+    logger.e('EXAMPLE::client exception - $e');
+    mqttClient.disconnect();
+  } on SocketException catch (e) {
+    // Raised by the socket layer
+    logger.e('EXAMPLE::socket exception - $e');
+    mqttClient.disconnect();
+  }
+
+  if (mqttClient.connectionStatus!.state == MqttConnectionState.connected) {
+  } else {
+    logger.e('EXAMPLE::ERROR Mosquitto client connection failed - disconnecting, status is ${mqttClient.connectionStatus}');
+    mqttClient.disconnect();
+  }
+
+  mqttClient.updates!.listen((List<MqttReceivedMessage<MqttMessage?>>? c) {
+    final recMess = c![0].payload as MqttPublishMessage;
+    final pt = MqttPublishPayload.bytesToStringAsString(recMess.payload.message);
+
+    // FlutterBackgroundService().invoke(
+    //     'receiveMqtt',
+    //     {
+    //       "topic":c[0].topic,
+    //       "event": pt
+    //     }
+    // );
+
+    print('${c[0].topic} / $pt');
+
+    // ref.read(mqttCurrentTopicProvider.notifier).state = c[0].topic;
+    // ref.read(mqttCurrentMessageProvider.notifier).state = pt;
   });
+
+  mqttClient.published!.listen((MqttPublishMessage message) {
+    // logger.i('EXAMPLE::Published notification:: topic is ${message.variableHeader!.topicName}, with Qos ${message.header!.qos}');
+  });
+}
+
+void onDisconnected() {
+  // if (mqttClient.connectionStatus!.disconnectionOrigin == MqttDisconnectionOrigin.solicited) {
+  //   debugPrint('EXAMPLE::OnDisconnected callback is solicited, this is correct');
+  // } else {
+  //   debugPrint('EXAMPLE::OnDisconnected callback is unsolicited or none, this is incorrect - exiting');
+  // }
+  //
+  // _ref.read(mqttCurrentStateProvider.notifier).doChangeState(MqttConnectionState.disconnected);
+}
+
+/// The successful connect callback
+void onConnected() {
+  debugPrint('EXAMPLE::OnConnected client callback - Client connection was successful');
+  mqttClient.subscribe('result/00003494543ebb58', MqttQos.atMostOnce);
+
+  // _ref.read(mqttCurrentStateProvider.notifier).doChangeState(MqttConnectionState.connected);
+
+  // mqttPublish('request/00003494543ebb58', jsonEncode({
+  //   "order": "device_add",
+  //   "deviceID": "aabbccdd11223344",
+  //   "accountID": "dn9318dn@gmail.com",
+  //   "device_type": "door_sensor",
+  //   "time": "20240321_175100"
+  // }));
+}
+
+void onSubscribed(String topic) {
+  debugPrint("onSubscribed() - $topic");
 }

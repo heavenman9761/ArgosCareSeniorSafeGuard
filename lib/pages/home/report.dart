@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:argoscareseniorsafeguard/models/sensor_infos.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -5,25 +7,27 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:table_calendar/table_calendar.dart';
-import 'package:timeline_tile/timeline_tile.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:argoscareseniorsafeguard/constants.dart';
 import 'package:argoscareseniorsafeguard/utils/calendar_utils.dart';
-import 'package:argoscareseniorsafeguard/models/event_list.dart';
+import 'package:argoscareseniorsafeguard/models/sensor_event.dart';
 import 'package:argoscareseniorsafeguard/models/location_infos.dart';
 import 'package:argoscareseniorsafeguard/database/db.dart';
+import 'package:argoscareseniorsafeguard/providers/providers.dart';
+import 'package:argoscareseniorsafeguard/pages/home/report_jaesil_widget.dart';
 
-class Report extends StatefulWidget {
-  const Report({super.key, required this.locationIndex});
+class Report extends ConsumerStatefulWidget {
+  const Report({super.key, required this.userID, required this.locationIndex});
 
+  final String userID;
   final int locationIndex;
 
   @override
-  State<Report> createState() => _ReportState();
+  ConsumerState<Report> createState() => _ReportState();
 }
 
-class _ReportState extends State<Report> {
+class _ReportState extends ConsumerState<Report> {
   CalendarFormat _calendarFormat = CalendarFormat.week;
   DateTime _focusedDay = DateTime.now();
   DateTime _selectedDay = DateTime.now();
@@ -115,78 +119,7 @@ class _ReportState extends State<Report> {
                     ),
                     Padding(
                       padding: EdgeInsets.fromLTRB(20.w, 0, 20.w, 0),
-                      child: Container(
-                          height: 88.h,
-                          decoration: BoxDecoration(
-                            color: Constants.borderColor,
-                            borderRadius: BorderRadius.circular(10),
-
-                          ),
-                          child: Padding(
-                            padding: EdgeInsets.fromLTRB(12.w, 12.h, 12.w, 12.h),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.spaceAround,
-                              children: [
-                                Row(
-                                  children: [
-                                    Container(
-                                        width: 72.w,
-                                        height: 28.h,
-                                        decoration: BoxDecoration(
-                                          color: Colors.black,
-                                          borderRadius: BorderRadius.circular(14),
-                                        ),
-                                        child: Row(
-                                          children: [
-                                            SizedBox(width: 13.w,),
-                                            Text("현재상태", style: TextStyle(fontSize: 12.sp, color: Colors.white), ),
-                                          ],
-                                        )
-                                    ),
-                                    const Spacer(),
-                                    Container(
-                                        width: 128.w,
-                                        height: 28.h,
-                                        decoration: BoxDecoration(
-                                          color: Colors.black.withOpacity(0.1),
-                                          borderRadius: BorderRadius.circular(14),
-                                        ),
-                                        child: Row(
-                                          mainAxisAlignment: MainAxisAlignment.center,
-                                          children: [
-                                            Text(DateFormat('MM.dd (E) HH:mm', 'ko').format(DateTime.now()), style: TextStyle(fontSize: 12.sp, color: Colors.black), ),
-                                          ],
-                                        )
-                                    )
-                                  ],
-                                ),
-                                const Spacer(),
-                                Row(
-                                  children: [
-                                    SvgPicture.asset('assets/images/alarm_small_green.svg', width: 16.w, height: 16.h,),
-                                    SizedBox(width: 8.w,),
-                                    RichText(
-                                        text: TextSpan(
-                                            text: "홍길동님은 현재 ",
-                                            style: TextStyle(fontSize: 14.sp, color: Colors.black,),
-                                            children: <TextSpan>[
-                                              TextSpan(
-                                                text: "재실",
-                                                style: TextStyle(fontSize: 14.sp, color: Constants.primaryColor, fontWeight: FontWeight.bold),
-                                              ),
-                                              TextSpan(
-                                                text: " 상태 입니다.",
-                                                style: TextStyle(fontSize: 14.sp, color: Colors.black,),
-                                              ),
-                                            ]
-                                        )
-                                    )
-                                  ],
-                                )
-                              ],
-                            ),
-                          )
-                      ),
+                      child: const ReportJaesilWidget()
                     ),
                     SizedBox(height: 16.h),
                     Padding(
@@ -405,10 +338,10 @@ class _ReportState extends State<Report> {
           child: Column(
             children: [
               Expanded(
-                child: FutureBuilder<List<EventList>>(
+                child: FutureBuilder<List<SensorEvent>>(
                   future: _getEventList(locationIndex),
                   builder: (context, snapshot) {
-                    final List<EventList>? eventList = snapshot.data;
+                    final List<SensorEvent>? eventList = snapshot.data;
                     if (snapshot.connectionState != ConnectionState.done) {
                       return const Center(
                         child: CircularProgressIndicator(),
@@ -430,10 +363,10 @@ class _ReportState extends State<Report> {
                         return ListView.builder(
                           itemCount: eventList.length,
                           itemBuilder: (context, index) {
-                            if (_getEvent(eventList[index])) {
+                            if (_filterEvent(eventList[index])) {
                               return _getEventWidget(locationIndex, eventList[index], index);
                             }
-                            return null;
+                            return const SizedBox();
                           },
                         );
                       } else {
@@ -457,18 +390,19 @@ class _ReportState extends State<Report> {
     return list;
   }
 
-  bool _getEvent(EventList event) { //움직임센서의 '움직임없음' 이벤트는 표시하지 않는다.
-    Map<String, String> data = _analysisStatus(event.getStatus()!);
+  bool _filterEvent(SensorEvent event) { //움직임센서의 '움직임없음' 이벤트는 표시하지 않는다.
+    //Map<String, String> data = _analysisStatus(event.getState()!);
+    Map<String, dynamic> data = json.decode(event.getState()!);
 
     if (event.getDeviceType() == "motion_sensor") {
-      if (data['motion'] == '0') {
+      if (data['motion'] == 0) {
         return false;
       }
     }
     return true;
   }
 
-  Widget _getEventWidget(int locationIndex, EventList event, int index) {
+  Widget _getEventWidget(int locationIndex, SensorEvent event, int index) {
     return Column(
       children: [
         Row(
@@ -552,9 +486,11 @@ class _ReportState extends State<Report> {
     );
   }
 
-  Widget _getEventTitle(int locationIndex, EventList event) {
-    Map<String, String> data = _analysisStatus(event.getStatus()!);
+  Widget _getEventTitle(int locationIndex, SensorEvent event) {
+    // Map<String, String> data = _analysisStatus(event.getState()!);
+    Map<String, dynamic> data = json.decode(event.getState()!);
     LocationInfo locationInfo = gLocationList[locationIndex];
+
 
     if (event.getDeviceType() == "door_sensor") {
       if (locationInfo.getType() == "entrance") {
@@ -564,7 +500,7 @@ class _ReportState extends State<Report> {
       }
 
     } else if (event.getDeviceType() == "motion_sensor") {
-      if (data['motion'] == '1') {
+      if (data['motion'] == 1) {
         return Text("움직임 감지", style: TextStyle(fontSize: 16.sp, color: Colors.black, fontWeight: FontWeight.bold));
       } else {
         // return Text("움직임 없음", style: TextStyle(fontSize: 16.sp, color: Colors.black, fontWeight: FontWeight.bold));
@@ -577,13 +513,14 @@ class _ReportState extends State<Report> {
     return const SizedBox();
   }
 
-  Widget _getEventIcon(int locationIndex, EventList event) {
-    Map<String, String> data = _analysisStatus(event.getStatus()!);
+  Widget _getEventIcon(int locationIndex, SensorEvent event) {
+    // Map<String, String> data = _analysisStatus(event.getState()!);
+    Map<String, dynamic> data = json.decode(event.getState()!);
 
     LocationInfo locationInfo = gLocationList[locationIndex];
     if (locationInfo.getType() == "entrance") {
       if (event.getDeviceType() == "door_sensor") {
-        if (data['door_window'] == '1') {
+        if (data['door_window'] == 1) {
           return SvgPicture.asset('assets/images/entrance_open.svg', width: 20.w, height: 20.h,);
         } else {
           return SvgPicture.asset('assets/images/entrance_close.svg', width: 20.w, height: 20.h,);
@@ -602,7 +539,7 @@ class _ReportState extends State<Report> {
     } else if (locationInfo.getType() == "refrigerator") {
       // return SvgPicture.asset('assets/images/refrigerator.svg', width: 20.w, height: 20.h,);
       if (event.getDeviceType() == "door_sensor") {
-        if (data['door_window'] == '1') {
+        if (data['door_window'] == 1) {
           return SvgPicture.asset('assets/images/refrigerator_open.svg', width: 20.w, height: 20.h,);
         } else {
           return SvgPicture.asset('assets/images/refrigerator_close.svg', width: 20.w, height: 20.h,);
@@ -629,14 +566,14 @@ class _ReportState extends State<Report> {
     return const SizedBox();
   }
 
-  Widget _getEventDescription(int locationIndex, EventList event) {
-    Map<String, String> data = _analysisStatus(event.getStatus()!);
-
+  Widget _getEventDescription(int locationIndex, SensorEvent event) {
+    // Map<String, String> data = _analysisStatus(event.getState()!);
+    Map<String, dynamic> data = json.decode(event.getState()!);
     String locationName = gLocationList[locationIndex].getName()!;
 
     if (locationName != "") {
       if (event.getDeviceType() == "door_sensor") {
-        if (data['door_window'] == '1') {
+        if (data['door_window'] == 1) {
           return Text("$locationName 열림", style: TextStyle(fontSize: 14.sp, color: Constants.dividerColor));
         } else {
           return Text("$locationName 닫힘", style: TextStyle(fontSize: 14.sp, color: Constants.dividerColor));
@@ -658,8 +595,26 @@ class _ReportState extends State<Report> {
     return formatDate;
   }
 
-  Future<List<EventList>> _getEventList(int locationIndex) async {
-    String date = DateFormat('yyyy-MM-dd').format(_selectedDay);
+  Future<List<SensorEvent>> _getEventList(int locationIndex) async {
+    try {
+      final response = await dio.post(
+          "/users/get_eventlist",
+          data: jsonEncode({
+            "userid": widget.userID,
+            "locationID": gLocationList[locationIndex].getID()!,
+            "startDate": DateFormat('yyyy-MM-dd 00:00:00').format(_focusedDay),
+            "endDate": DateFormat('yyyy-MM-dd 23:59:59').format(_focusedDay),
+          })
+      );
+
+      return (response.data as List)
+          .map((x) => SensorEvent.fromJson(x))
+          .toList();
+
+    } catch(e) {
+      return [];
+    }
+    /*String date = DateFormat('yyyy-MM-dd').format(_selectedDay);
     DBHelper sd = DBHelper();
 
     List<String> sensorIDs = [];
@@ -672,7 +627,7 @@ class _ReportState extends State<Report> {
       return await sd.getEventList2(date, sensorIDs);
     } else {
       return [];
-    }
+    }*/
   }
 
   Map<String, String> _analysisStatus(String statusMsg) {

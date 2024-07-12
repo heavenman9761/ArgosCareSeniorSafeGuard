@@ -5,11 +5,14 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter/scheduler.dart';
 
 import 'package:argoscareseniorsafeguard/constants.dart';
 import 'package:argoscareseniorsafeguard/pages/mydevice/pairing_hub.dart';
 import 'package:argoscareseniorsafeguard/providers/providers.dart';
 import 'package:argoscareseniorsafeguard/pages/home/location_widget.dart';
+import 'package:argoscareseniorsafeguard/pages/home/recent_alarm_widget.dart';
+import 'package:argoscareseniorsafeguard/pages/home/jaesil_widget.dart';
 
 class HomeWidget extends ConsumerStatefulWidget {
   const HomeWidget({super.key, required this.userName, required this.userID});
@@ -22,9 +25,30 @@ class HomeWidget extends ConsumerStatefulWidget {
 
 class _HomeWidgetState extends ConsumerState<HomeWidget> {
   int _drawedLocationIndex = -1;
+  bool _isInit = true;
+
+  @override
+  void initState() {
+    // if (_isInit) {
+    //   _isInit = false;
+    //   getLastAlarm();
+    // }
+    // _isInit = false;
+    super.initState();
+
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      getLastAlarm();
+    });
+  }
+
+  Future<void> getLastAlarm() async {
+    ref.read(alarmProvider.notifier).doChangeState(gLastAlarm);
+    ref.read(jaeSilStateProvider.notifier).doChangeState(JaeSilStateEnum.values[gLastAlarm.getJaeSilStatus()!]);
+  }
 
   @override
   Widget build(BuildContext context) {
+    _drawedLocationIndex = -1;      // -> 안하면 위젯이 사라진다.
     return Scaffold(
       backgroundColor: Constants.scaffoldBackgroundColor,
       body: Stack(
@@ -69,26 +93,7 @@ class _HomeWidgetState extends ConsumerState<HomeWidget> {
                         ],
                       ),
                       SizedBox(height: 5.h),
-                      Row(
-                        children: [
-                          Container(
-                              width: 132.w,
-                              height: 36.h,
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF404040).withOpacity(0.3),
-                                borderRadius: BorderRadius.circular(18),
-                              ),
-                              child: Row(
-                                children: [
-                                  SizedBox(width: 16.w,),
-                                  Text(AppLocalizations.of(context)!.jaesil_state_unknown, style: TextStyle(fontSize: 12.sp, color: Colors.white), ),
-                                  SizedBox(width: 4.w,),
-                                  SvgPicture.asset('assets/images/jaesil_unknown.svg', width: 20.w, height: 20.h,)
-                                ],
-                              )
-                          )
-                        ],
-                      )
+                      const JaeSilWidget(),
                     ],
                   )
               ),
@@ -277,54 +282,7 @@ class _HomeWidgetState extends ConsumerState<HomeWidget> {
       right: 20.w,
       height: 96.h,
       // width: 320.w,
-      child: SizedBox(
-        width: double.infinity,
-        height: double.infinity,
-        child: Card(
-          color: Constants.secondaryColor,
-          child: Padding(
-            padding: EdgeInsets.fromLTRB(16.w, 12.h, 16.w, 0),
-            child: Column( //허브가 없으면
-              children: [
-                Row(
-                  children: [
-                    Container(
-                        width: 72.w,
-                        height: 28.h,
-                        decoration: BoxDecoration(
-                          color: Constants.primaryColor,
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        child: Row(
-                          children: [
-                            SizedBox(width: 13.w,),
-                            Text(AppLocalizations.of(context)!.recent_notice, style: TextStyle(fontSize: 12.sp, color: Colors.white), ),
-                          ],
-                        )
-                    ),
-                    const Spacer(),
-                    Container(
-                        width: 108.w,
-                        height: 28.h,
-                        decoration: BoxDecoration(
-                          color: Constants.primaryColor.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(DateFormat('MM.dd (E) HH:mm', 'ko').format(DateTime.now()), style: TextStyle(fontSize: 12.sp, color: Constants.primaryColor), ),
-                          ],
-                        )
-                    )
-                  ],
-                ),
-                SizedBox(height: 18.h),
-              ],
-            ),
-          ),
-        ),
-      ),
+      child: RecentAlarmWidget(userID: widget.userID)
     );
   }
 
@@ -449,7 +407,7 @@ class _HomeWidgetState extends ConsumerState<HomeWidget> {
       title = gLocationList[index].getName()!;
     }
 
-    return LocationWidget(title: title, picture: picture, color: color, locationIndex: index);
+    return LocationWidget(userID: widget.userID, title: title, picture: picture, color: color, locationIndex: index);
 
   }
 
