@@ -3,6 +3,9 @@ class AirplaneTime {
   final String? startTime;
   final String? endTime;
   final String? createdAt;
+  final String? updatedAt;
+  final String? deletedAt;
+  final String? userID;
 
   String? getID() {
     return id;
@@ -20,11 +23,26 @@ class AirplaneTime {
     return createdAt;
   }
 
+  String? getUpdatedAt() {
+    return createdAt;
+  }
+
+  String? getDeletedAt() {
+    return deletedAt;
+  }
+
+  String? getUserID() {
+    return userID;
+  }
+
   AirplaneTime({
     this.id,
     required this.startTime,
     required this.endTime,
-    this.createdAt
+    this.createdAt,
+    this.updatedAt,
+    this.deletedAt,
+    this.userID
   });
 
   Map<String, dynamic> toMap() {
@@ -33,6 +51,9 @@ class AirplaneTime {
       'startTime': startTime ?? '',
       'endTime': endTime ?? '',
       'createdAt': createdAt ?? '',
+      'updatedAt': updatedAt ?? '',
+      'deletedAt': deletedAt ?? '',
+      'userID': userID ?? '',
     };
   }
 
@@ -42,6 +63,9 @@ class AirplaneTime {
       startTime: json['startTime'],
       endTime: json['endTime'],
       createdAt: json['createdAt'],
+      updatedAt: json['updatedAt'],
+      deletedAt: json['deletedAt'] ?? '',
+      userID: json['userID'],
     );
   }
 
@@ -52,6 +76,9 @@ class AirplaneTime {
         'startTime: $startTime, '
         'endTime: $endTime, '
         'createdAt: $createdAt, '
+        'updatedAt: $updatedAt, '
+        'deletedAt: $deletedAt, '
+        'userID: $userID, '
     '}';
   }
 

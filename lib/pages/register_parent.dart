@@ -563,7 +563,7 @@ class _RegisterParentState extends State<RegisterParent> {
           );
         }
     ).then((val) async {
-      if (val == 'ok') {
+      if (val == 'Ok') {
         try {
           var uri = Constants.BASE_URL;
           BaseOptions options = BaseOptions(

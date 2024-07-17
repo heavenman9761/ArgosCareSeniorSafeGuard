@@ -56,20 +56,20 @@ class HomePage extends ConsumerStatefulWidget {
   ConsumerState<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends ConsumerState<HomePage> {
+class _HomePageState extends ConsumerState<HomePage> with WidgetsBindingObserver {
   Timer? _timer;
   ReceivePort? _receivePort;
 
   @override
   void initState() {
+    WidgetsBinding.instance.addObserver(this);
     super.initState();
 
-    Future.delayed(const Duration(seconds: 3), () {
-      if (gHubList.isNotEmpty) {
-        _startForegroundTask();
-      }
-
-    });
+    // Future.delayed(const Duration(seconds: 3), () {
+    //   if (gHubList.isNotEmpty) {
+    //     _startForegroundTask();
+    //   }
+    // });
 
     /*if (widget.requireLogin) {
       asyncInitState();
@@ -103,14 +103,44 @@ class _HomePageState extends ConsumerState<HomePage> {
   @override
   void dispose() {
     super.dispose();
+    WidgetsBinding.instance.removeObserver(this);
     // mqttDisconnect();
-    _closeReceivePort();
+    // _closeReceivePort();
     // _stopTimer();
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+  }
+
+  // 앱 상태 변경시 호출
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    switch (state) {
+      case AppLifecycleState.resumed: /* 앱이 표시되고 사용자 입력에 응답합니다. (주의!) 최초 앱 실행때는 해당 이벤트가 발생하지 않습니다. */
+        print("resume");
+        if (ref.watch(mqttCurrentStateProvider) == MqttConnectionState.disconnected) {
+          mqttInit(ref, Constants.MQTT_HOST, Constants.MQTT_PORT, Constants.MQTT_ID, Constants.MQTT_PASSWORD);
+        }
+        break;
+      case AppLifecycleState.inactive: /* 앱이 비활성화 상태이고 사용자의 입력을 받지 않습니다. ios에서는 포 그라운드 비활성 상태에서 실행되는 앱 또는 Flutter 호스트 뷰에 해당합니다. 안드로이드에서는 화면 분할 앱, 전화 통화, PIP 앱, 시스템 대화 상자 또는 다른 창과 같은 다른 활동이 집중되면 앱이이 상태로 전환됩니다. inactive가 발생되고 얼마후 pasued가 발생합니다. */
+        print("inactive");
+        break;
+      case AppLifecycleState.paused: /* 앱이 현재 사용자에게 보이지 않고, 사용자의 입력을 받지 않으며, 백그라운드에서 동작 중입니다. 안드로이드의 onPause()와 동일합니다. 응용 프로그램이 이 상태에 있으면 엔진은 Window.onBeginFrame 및 Window.onDrawFrame 콜백을 호출하지 않습니다.*/
+        print("paused");
+        break;
+      case AppLifecycleState.detached: /* 응용 프로그램은 여전히 flutter 엔진에서 호스팅되지만 "호스트 View"에서 분리됩니다. 앱이 이 상태에 있으면 엔진이 "View"없이 실행됩니다. 엔진이 처음 초기화 될 때 "View" 연결 진행 중이거나 네비게이터 팝으로 인해 "View"가 파괴 된 후 일 수 있습니다. */
+        print("detached");
+        if (ref.watch(mqttCurrentStateProvider) == MqttConnectionState.connected) {
+          mqttDisconnect();
+        }
+
+        break;
+      case AppLifecycleState.hidden:
+        // TODO: Handle this case.
+        break;
+    }
   }
 
   @override
@@ -127,18 +157,16 @@ class _HomePageState extends ConsumerState<HomePage> {
           .state}');
     });
 
-    // ref.listen(mqttCurrentStateProvider, (previous, next) {
-    //   logger.i('current state: ${ref.watch(mqttCurrentStateProvider)}');
-    //   if (ref.watch(mqttCurrentStateProvider) == MqttConnectionState.connected) {
-    //     _mqttStartSubscribeTo();
-    //   } else if (ref.watch(mqttCurrentStateProvider) == MqttConnectionState.disconnected) {
-    //     mqttInit(ref,
-    //         Constants.MQTT_HOST,
-    //         Constants.MQTT_PORT,
-    //         Constants.MQTT_ID,
-    //         Constants.MQTT_PASSWORD);
-    //   }
-    // });
+    ref.listen(mqttCurrentStateProvider, (previous, next) {
+      logger.i('current state: ${ref.watch(mqttCurrentStateProvider)}');
+      if (ref.watch(mqttCurrentStateProvider) == MqttConnectionState.connected) {
+        print("main connected");
+        _mqttStartSubscribeTo();
+      } else if (ref.watch(mqttCurrentStateProvider) == MqttConnectionState.disconnected) {
+        print("main disconnected");
+        mqttInit(ref, Constants.MQTT_HOST, Constants.MQTT_PORT, Constants.MQTT_ID, Constants.MQTT_PASSWORD);
+      }
+    });
 
     ref.listen(sensorEventProvider, (previous, next) {
       // _analysisSensorEvent();
@@ -226,7 +254,7 @@ class _HomePageState extends ConsumerState<HomePage> {
   void _appSetting() {
     getMyDeviceToken();
     _checkPermissions();
-    // mqttInit(ref, Constants.MQTT_HOST, Constants.MQTT_PORT, Constants.MQTT_ID, Constants.MQTT_PASSWORD);
+    mqttInit(ref, Constants.MQTT_HOST, Constants.MQTT_PORT, Constants.MQTT_ID, Constants.MQTT_PASSWORD);
     _fcmSetListener();
     _getLastAlarm();
     // _getLastSensorEvent();
@@ -244,8 +272,8 @@ class _HomePageState extends ConsumerState<HomePage> {
     // _startBackgroundService();
 
 
-    DBHelper sd = DBHelper();
-    await sd.emptyTable();
+    // DBHelper sd = DBHelper();
+    // await sd.emptyTable();
     // await sd.alterDbTable();
   }
 
@@ -1152,8 +1180,58 @@ class _HomePageState extends ConsumerState<HomePage> {
         }
       }
 
-      if (mqttMsg['event'] == 'device_detected' && mqttMsg['state'] == 'device data success') {
-        _insertSensorEvent(message);
+      if (mqttMsg['event'] == 'alarm_update') {
+        Map<String, dynamic> alarm = mqttMsg['alarm'];
+
+        String createdAt = convertTimeStringToLocal(alarm['createdAt']);
+        String updatedAt = convertTimeStringToLocal(alarm['updatedAt']);
+
+        AlarmInfo alarmInfo = AlarmInfo(
+            id: alarm['id'],
+            alarm: alarm['alarm'],
+            jaeSilStatus: alarm['jaeSilStatus'],
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+            userID: alarm['userID'],
+            locationID: alarm['locationID']
+        );
+
+        gLastAlarm = alarmInfo;
+        ref.read(alarmProvider.notifier).doChangeState(gLastAlarm);
+        ref.read(jaeSilStateProvider.notifier).doChangeState(JaeSilStateEnum.values[gLastAlarm.getJaeSilStatus()!]);
+
+      } else if (mqttMsg['event'] == 'device_detected') {
+        Map<String, dynamic> msg = mqttMsg['sensorEvent'];
+
+        String createdAt = convertTimeStringToLocal(msg['createdAt']);
+        String updatedAt = convertTimeStringToLocal(msg['updatedAt']);
+
+        SensorEvent se = SensorEvent(
+          id: msg['id'],
+          deviceType: msg['deviceType'],
+          accountID: msg['accountID'],
+          event: msg['event'],
+          state: msg['state'].toString(),
+          createdAt: createdAt,
+          updatedAt: updatedAt,
+          deletedAt: msg['deletedAt'],
+          userID: msg['userID'],
+          sensorID: msg['sensorID'],
+          locationID: msg['locationID'],
+        );
+
+        if (msg['deviceType'] != Constants.DEVICE_TYPE_MOTION || !msg['state'].toString().contains('motion: 0')) {
+          ref.read(jaeSilStateProvider.notifier).doChangeState(JaeSilStateEnum.jsIn);
+        }
+
+        for (var location in gLocationList) {
+          if (location.getID() == se.getLocationID()) {
+            location.getEvents()!.clear();
+            location.getEvents()!.add(se);
+          }
+        }
+
+        ref.read(sensorEventProvider.notifier).doChangeState(se);
       }
     }
   }

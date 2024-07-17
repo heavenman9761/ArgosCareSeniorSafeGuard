@@ -12,6 +12,7 @@ import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
+import 'package:dio/dio.dart';
 
 import 'package:argoscareseniorsafeguard/utils/firebase_options.dart';
 import 'package:argoscareseniorsafeguard/pages/login_page.dart';
@@ -31,7 +32,7 @@ String userMail = '';
 Future<void> main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
 
-  ForegroundTaskService.init();
+  // ForegroundTaskService.init();
 
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
 
@@ -70,8 +71,12 @@ Future<void> checkLogin() async {
 
       saveUserInfo(loginResponse);
 
+    } on DioException catch (e) {
+      // if (e.response?.statusCode == 403) {
+        _isLogin = false;
+      // }
     } catch (e) {
-      // _isLogin = false;
+      _isLogin = false;
     }
   }
 }
@@ -105,7 +110,7 @@ class _MainAppState extends State<MainApp> {
   void initState() {
     super.initState();
 
-    _requestPermissionForAndroid();
+    // _requestPermissionForAndroid();
 
     _fetchLocale().then((locale) {
       setState(() {

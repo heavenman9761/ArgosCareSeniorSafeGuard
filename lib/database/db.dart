@@ -1080,6 +1080,10 @@ class DBHelper {
         id: maps[i]['id'],
         dayName: maps[i]['dayName'],
         enable: maps[i]['enable'],
+        createdAt: maps[i]['createdAt'],
+        updatedAt: maps[i]['updatedAt'],
+        deletedAt: maps[i]['deletedAt'],
+        userID: maps[i]['userID'],
       );
     });
   }

@@ -6,6 +6,8 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:flutter/services.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'package:argoscareseniorsafeguard/constants.dart';
 import 'package:argoscareseniorsafeguard/pages/mydevice/pairing_hub.dart';
@@ -13,6 +15,7 @@ import 'package:argoscareseniorsafeguard/providers/providers.dart';
 import 'package:argoscareseniorsafeguard/pages/home/location_widget.dart';
 import 'package:argoscareseniorsafeguard/pages/home/recent_alarm_widget.dart';
 import 'package:argoscareseniorsafeguard/pages/home/jaesil_widget.dart';
+import 'package:argoscareseniorsafeguard/pages/profile/parent_edit.dart';
 
 class HomeWidget extends ConsumerStatefulWidget {
   const HomeWidget({super.key, required this.userName, required this.userID});
@@ -26,18 +29,24 @@ class HomeWidget extends ConsumerStatefulWidget {
 class _HomeWidgetState extends ConsumerState<HomeWidget> {
   int _drawedLocationIndex = -1;
   bool _isInit = true;
+  bool _hasCallSupport = false;
 
   @override
   void initState() {
-    // if (_isInit) {
-    //   _isInit = false;
-    //   getLastAlarm();
-    // }
-    // _isInit = false;
     super.initState();
 
     SchedulerBinding.instance.addPostFrameCallback((_) {
       getLastAlarm();
+    });
+
+    canLaunchUrl(Uri(scheme: 'tel', path: gParentInfo['parentPhone'])).then((bool result) {
+      setState(() {
+        if (gParentInfo['parentPhone'].length == 11) {
+          _hasCallSupport = result;
+        } else {
+          _hasCallSupport = false;
+        }
+      });
     });
   }
 
@@ -136,7 +145,13 @@ class _HomeWidgetState extends ConsumerState<HomeWidget> {
                 padding: EdgeInsets.zero,
                 icon: SvgPicture.asset('assets/images/register_parent.svg', width: 44.w, height: 44.h,),
                 onPressed: () {
-                  debugPrint('icon press');
+                  Navigator.push(context, MaterialPageRoute(builder: (context) {
+                    return ParentEdit(userID: widget.userID);
+                  })).then((onValue) {
+                    setState(() {
+
+                    });
+                  });
                 },
               ),
             ],
@@ -162,21 +177,28 @@ class _HomeWidgetState extends ConsumerState<HomeWidget> {
           ),
           const Spacer(),
           Row(
-            children: [
-              // SvgPicture.asset('assets/images/register_parent.svg', width: 44.w, height: 44.h,),
-              IconButton(
-                constraints: const BoxConstraints(maxHeight: 88, maxWidth: 88),
-                splashRadius: 44,
-                padding: EdgeInsets.zero,
-                icon: gParentInfo['parentPhone'] != '' ? SvgPicture.asset('assets/images/call.svg', width: 44.w, height: 44.h,) : SvgPicture.asset('assets/images/call_grey.svg', width: 44.w, height: 44.h,),
-                onPressed: () {
-                  debugPrint('icon press');
-                },
-              ),
-            ],
+            children: [ _getCallButton(), ],
           )
         ],
       ),
+    );
+  }
+
+  Widget _getCallButton() {
+    return IconButton(
+      constraints: const BoxConstraints(maxHeight: 88, maxWidth: 88),
+      splashRadius: 44,
+      padding: EdgeInsets.zero,
+      icon: _hasCallSupport ? SvgPicture.asset('assets/images/call.svg', width: 44.w, height: 44.h,) : SvgPicture.asset('assets/images/call_grey.svg', width: 44.w, height: 44.h,),
+      onPressed: () async {
+        if (_hasCallSupport) {
+          final Uri launchUri = Uri(
+            scheme: 'tel',
+            path: gParentInfo['parentPhone'],
+          );
+          await launchUrl(launchUri);
+        }
+      },
     );
   }
 
@@ -383,31 +405,26 @@ class _HomeWidgetState extends ConsumerState<HomeWidget> {
 
   Widget _displayLocation(BuildContext context, int index) {
     late SvgPicture picture;
-    late String title;
-    late Color color;
+    String title = "";
+
     if (index == 0) {
       picture = SvgPicture.asset('assets/images/entrance.svg', width: 48.w, height: 48.h,);
-      color = Constants.dividerColor;
       title = AppLocalizations.of(context)!.location_entrance;
     } else if (index == 1) {
       picture = SvgPicture.asset('assets/images/refrigerator.svg', width: 48.w, height: 48.h,);
-      color = Constants.dividerColor;
       title = AppLocalizations.of(context)!.location_refrigerator;
     } else if (index == 2) {
       picture = SvgPicture.asset('assets/images/toilet.svg', width: 48.w, height: 48.h,);
-      color = Constants.dividerColor;
       title = AppLocalizations.of(context)!.location_toilet;
     } else if (index == 3) {
-      color = Constants.dividerColor;
       picture = SvgPicture.asset('assets/images/emergency.svg', width: 48.w, height: 48.h,);
       title = AppLocalizations.of(context)!.location_emergency;
     } else {
-      color = Constants.dividerColor;
       picture = SvgPicture.asset('assets/images/new_location.svg', width: 48.w, height: 48.h,);
       title = gLocationList[index].getName()!;
     }
 
-    return LocationWidget(userID: widget.userID, title: title, picture: picture, color: color, locationIndex: index);
+    return LocationWidget(userID: widget.userID, title: title, picture: picture, color: Constants.dividerColor, locationIndex: index);
 
   }
 

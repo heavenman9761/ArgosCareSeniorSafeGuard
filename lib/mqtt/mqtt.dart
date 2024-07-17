@@ -126,10 +126,12 @@ void mqttInit(WidgetRef ref, String host, int port, String id, String password) 
     final recMess = c![0].payload as MqttPublishMessage;
     final pt = MqttPublishPayload.bytesToStringAsString(recMess.payload.message);
 
+    String message = utf8.decode(pt.runes.toList());
+
     // print('${c[0].topic} / $pt');
 
     ref.read(mqttCurrentTopicProvider.notifier).state = c[0].topic;
-    ref.read(mqttCurrentMessageProvider.notifier).state = pt;
+    ref.read(mqttCurrentMessageProvider.notifier).state = message;
   });
 
   mqttClient.published!.listen((MqttPublishMessage message) {

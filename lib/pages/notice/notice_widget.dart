@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:argoscareseniorsafeguard/models/alarm_infos.dart';
+import 'package:argoscareseniorsafeguard/models/location_infos.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -341,9 +342,14 @@ class _NoticeWidgetState extends State<NoticeWidget> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                   children: [
-                                    Text("${alarmList[index].getAlarm()}", style: TextStyle(fontSize: 14.sp, color: const Color(0xFF040404), fontWeight: FontWeight.bold), ),
+                                    Row(
+                                      children: [
+                                        _getImage(alarmList[index].getLocationID()!),
+                                        SizedBox(width: 5.w),
+                                        Text("${alarmList[index].getAlarm()}", style: TextStyle(fontSize: 14.sp, color: const Color(0xFF040404), fontWeight: FontWeight.bold), ),
+                                      ],
+                                    ),
                                     Text(_getDateStr(alarmList[index].getCreatedAt()!), style: TextStyle(fontSize: 12.sp, color: Constants.dividerColor), ),
-
                                   ],
                                 ),
                               ),
@@ -367,6 +373,26 @@ class _NoticeWidgetState extends State<NoticeWidget> {
           ),
         ),
       );
+  }
+
+  Widget _getImage(String locationID) {
+    for (int i = 0; i < gLocationList.length; i++) {
+      LocationInfo location = gLocationList[i];
+      if (locationID == location.getID()) {
+        if (location.getType() == 'entrance') {
+          return SvgPicture.asset('assets/images/entrance.svg', width: 24.w, height: 24.h,);
+        } else if (location.getType() == 'refrigerator') {
+          return SvgPicture.asset('assets/images/refrigerator.svg', width: 24.w, height: 24.h,);
+        } else if (location.getType() == 'toilet') {
+          return SvgPicture.asset('assets/images/toilet.svg', width: 24.w, height: 24.h,);
+        } else if (location.getType() == 'emergency') {
+          return SvgPicture.asset('assets/images/emergency.svg', width: 24.w, height: 24.h,);
+        } else {
+          return SvgPicture.asset('assets/images/new_location.svg', width: 24.w, height: 24.h,);
+        }
+      }
+    }
+    return const SizedBox();
   }
 
   Future<List<AlarmInfo>> _getAlarmList() async {

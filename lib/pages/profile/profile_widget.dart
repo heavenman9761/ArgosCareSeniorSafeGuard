@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
@@ -30,7 +32,7 @@ class ProfileWidget extends StatefulWidget {
 class _ProfileWidgetState extends State<ProfileWidget> {
   final List<String> _languageList = ['한국어', 'English'];
   String _selectedLanguage = '한국어';
-  bool _allowAlarm = true;
+  bool _enableAlarm = false;
   @override
   void initState() {
     super.initState();
@@ -41,12 +43,11 @@ class _ProfileWidgetState extends State<ProfileWidget> {
     var prefs = await SharedPreferences.getInstance();
     setState(() {
       String localeStr = prefs.getString('languageCode') ?? 'ko';
-      _allowAlarm = prefs.getBool('allowAlarm') ?? true;
+      _enableAlarm = prefs.getBool('enableAlarm') ?? true;
 
       if (localeStr == "ko") { _selectedLanguage = "한국어"; }
       else if (localeStr == "en") { _selectedLanguage = "English"; }
     });
-
   }
 
   @override
@@ -250,7 +251,7 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                                                 SizedBox(height: 4.h,),
               
                                                 Text(
-                                                    "${gParentInfo['parentName']} | ${gParentInfo['parentSex'] == 1 ? '남' : '여'} | ${gParentInfo['parentAge']}세 | ${gParentInfo['parentPhone']}",
+                                                    "${gParentInfo['parentName'] == '' ? '성함: ?' : gParentInfo['parentName']} | ${gParentInfo['parentSex'] == -1 ? '성별: ?' : (gParentInfo['parentSex'] == 1 ? '남' : '여')} | ${gParentInfo['parentAge']}세 | ${gParentInfo['parentPhone']}",
                                                     style: TextStyle(fontSize: 12.sp, color: Constants.dividerColor),
                                                     overflow: TextOverflow.ellipsis
                                                 ),
@@ -272,12 +273,25 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                               child: FittedBox(
                                 fit: BoxFit.contain,
                                 child: CupertinoSwitch(
-                                  value: _allowAlarm,
+                                  value: _enableAlarm,
                                   activeColor: Constants.primaryColor,
                                   onChanged: (bool? value) async {
                                     final SharedPreferences pref = await SharedPreferences.getInstance();
-                                    pref.setBool('allowAlarm', value!);
-                                    _allowAlarm = value;
+                                    pref.setBool('enableAlarm', value!);
+                                    _enableAlarm = value;
+
+                                    try {
+                                      final response = await dio.post(
+                                          "/users/enableAlarm",
+                                          data: jsonEncode({
+                                            "userID": widget.userID,
+                                            "enableAlarm": _enableAlarm,
+                                          })
+                                      );
+                                    } catch(e) {
+                                      debugPrint(e as String?);
+                                    }
+
                                     setState(() {
 
                                     });

@@ -39,11 +39,26 @@ class _CustomConfirmDialogState extends State<CustomConfirmDialog> {
                   children: [
                     Text(widget.title, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.sp),),
 
+                    SizedBox(height: 12.h),
+
                     Expanded(
-                      child: Center(
-                        child: Flexible(child: Text(widget.message, style: TextStyle(fontSize: 14.sp), textAlign: TextAlign.center,)),
+                      child: SizedBox(
+                        height: double.infinity,
+                        width: double.infinity,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Flexible(child: Text(widget.message, style: TextStyle(fontSize: 14.sp), textAlign: TextAlign.center,)),
+                          ],
+                        ),
                       ),
                     ),
+
+                    // Expanded(
+                    //   child: Center(
+                    //     child: Flexible(child: Text(widget.message, style: TextStyle(fontSize: 14.sp), textAlign: TextAlign.center,)),
+                    //   ),
+                    // ),
                   ],
                 ),
               ),

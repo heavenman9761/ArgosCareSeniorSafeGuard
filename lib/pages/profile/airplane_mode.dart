@@ -15,7 +15,6 @@ import 'package:argoscareseniorsafeguard/components/my_textfield.dart';
 import 'package:argoscareseniorsafeguard/constants.dart';
 import 'package:argoscareseniorsafeguard/dialogs/custom_alert_dialog.dart';
 import 'package:argoscareseniorsafeguard/models/airplaneday.dart';
-import 'package:argoscareseniorsafeguard/database/db.dart';
 import 'package:argoscareseniorsafeguard/constants.dart';
 import 'package:argoscareseniorsafeguard/models/airplanetime.dart';
 import 'package:argoscareseniorsafeguard/dialogs/custom_alert_dialog.dart';
@@ -31,8 +30,6 @@ class AirPlaneMode extends StatefulWidget {
 class _AirPlaneModeState extends State<AirPlaneMode> {
   int _itemCount = 0;
 
-  bool _enable = gAirPlaneEnable;
-
   bool _sun_toggle = false;
   bool _mon_toggle = false;
   bool _tue_toggle = false;
@@ -42,59 +39,86 @@ class _AirPlaneModeState extends State<AirPlaneMode> {
   bool _sat_toggle = false;
 
 
-  String _start_ampm = "";
-  int _start_ampm_index = 0;
+  // String _start_ampm = "";
+  // int _start_ampm_index = 0;
   String _start_hour = "";
   int _start_hour_index = 0;
   String _start_minute = "";
   int _start_minute_index = 0;
 
-  String _end_ampm = "";
-  int _end_ampm_index = 0;
+  // String _end_ampm = "";
+  // int _end_ampm_index = 0;
   String _end_hour = "";
   int _end_hour_index = 0;
   String _end_minute = "";
   int _end_minute_index = 0;
 
   List<AirplaneTime> _gAirPlaneTimeList = [];
+  List<AirplaneDay> _gAirPlaneDayList = [];
+
+  bool _useAirplaneMode = false;
 
   @override
   void initState() {
     super.initState();
-    for (AirplaneDay l in gAirPlaneDayList) {
-      if (l.getDayName() == 'Sun' && l.getEnable() == 1) {
-        _sun_toggle = true;
-      }
-      if (l.getDayName() == 'Mon' && l.getEnable() == 1) {
-        _mon_toggle = true;
-      }
-      if (l.getDayName() == 'Tue' && l.getEnable() == 1) {
-        _tue_toggle = true;
-      }
-      if (l.getDayName() == 'Wed' && l.getEnable() == 1) {
-        _wed_toggle = true;
-      }
-      if (l.getDayName() == 'Thu' && l.getEnable() == 1) {
-        _thu_toggle = true;
-      }
-      if (l.getDayName() == 'Fri' && l.getEnable() == 1) {
-        _fri_toggle = true;
-      }
-      if (l.getDayName() == 'Sat' && l.getEnable() == 1) {
-        _sat_toggle = true;
-      }
-    }
+    asyncInit();
+  }
+
+  void asyncInit() async {
     setState(() {
-      _gAirPlaneTimeList.clear();
-      for (var item in gAirPlaneTimeList) {
-        _gAirPlaneTimeList.add(AirplaneTime(startTime: item.getStartTime()!, endTime: item.getEndTime()!));
+      _useAirplaneMode = gUseAirPlaneMode;
+
+      for (var item in gAirPlaneDayList) {
+        _gAirPlaneDayList.add(AirplaneDay(
+            id: item.getID()!,
+            dayName: item.getDayName()!,
+            enable: item.getEnable()!,
+            createdAt: item.getCreated()!,
+            updatedAt: item.getUpdated()!,
+            userID: item.getUserID()!
+        ));
       }
 
-      _start_ampm = Constants.ampm[_start_ampm_index];
+      print(_gAirPlaneDayList);
+
+      for (AirplaneDay l in _gAirPlaneDayList) {
+        if (l.getDayName() == 'Sun' && l.getEnable() == true) {
+          _sun_toggle = true;
+        }
+        if (l.getDayName() == 'Mon' && l.getEnable() == true) {
+          _mon_toggle = true;
+        }
+        if (l.getDayName() == 'Tue' && l.getEnable() == true) {
+          _tue_toggle = true;
+        }
+        if (l.getDayName() == 'Wed' && l.getEnable() == true) {
+          _wed_toggle = true;
+        }
+        if (l.getDayName() == 'Thu' && l.getEnable() == true) {
+          _thu_toggle = true;
+        }
+        if (l.getDayName() == 'Fri' && l.getEnable() == true) {
+          _fri_toggle = true;
+        }
+        if (l.getDayName() == 'Sat' && l.getEnable() == true) {
+          _sat_toggle = true;
+        }
+      }
+      _gAirPlaneTimeList.clear();
+      for (var item in gAirPlaneTimeList) {
+        _gAirPlaneTimeList.add(AirplaneTime(
+            id: item.getID(),
+            startTime: item.getStartTime()!,
+            endTime: item.getEndTime()!,
+            userID: item.getUserID()
+        ));
+      }
+
+      // _start_ampm = Constants.ampm[_start_ampm_index];
       _start_hour = Constants.hourTable[_start_hour_index];
       _start_minute = Constants.minuteTable[_start_minute_index];
 
-      _end_ampm = Constants.ampm[_end_ampm_index];
+      // _end_ampm = Constants.ampm[_end_ampm_index];
       _end_hour = Constants.hourTable[_end_hour_index];
       _end_minute = Constants.minuteTable[_end_minute_index];
     });
@@ -181,10 +205,10 @@ class _AirPlaneModeState extends State<AirPlaneMode> {
                                 child: FittedBox(
                                   fit: BoxFit.contain,
                                   child: CupertinoSwitch(
-                                    value: _enable,
+                                    value: _useAirplaneMode,
                                     activeColor: Constants.primaryColor,
                                     onChanged: (bool? value) {
-                                      _enable = value!;
+                                      _useAirplaneMode = value!;
                                       setState(() {
 
                                       });
@@ -425,47 +449,69 @@ class _AirPlaneModeState extends State<AirPlaneMode> {
   }
 
   void _save(BuildContext context) async {
-    DBHelper sd = DBHelper();
-
-    final SharedPreferences pref = await SharedPreferences.getInstance();
-    gAirPlaneEnable = _enable;
-    pref.setBool("airplaneEnable", gAirPlaneEnable);
-
-    for (AirplaneDay l in gAirPlaneDayList) {
+    for (AirplaneDay l in _gAirPlaneDayList) {
       if (l.getDayName() == 'Sun') {
-        l.setEnable(_sun_toggle ? 1 : 0);
+        l.setEnable(_sun_toggle ? true : false);
       }
       if (l.getDayName() == 'Mon') {
-        l.setEnable(_mon_toggle ? 1 : 0);
+        l.setEnable(_mon_toggle ? true : false);
       }
       if (l.getDayName() == 'Tue') {
-        l.setEnable(_tue_toggle ? 1 : 0);
+        l.setEnable(_tue_toggle ? true : false);
       }
       if (l.getDayName() == 'Wed') {
-        l.setEnable(_wed_toggle ? 1 : 0);
+        l.setEnable(_wed_toggle ? true : false);
       }
       if (l.getDayName() == 'Thu') {
-        l.setEnable(_thu_toggle ? 1 : 0);
+        l.setEnable(_thu_toggle ? true : false);
       }
       if (l.getDayName() == 'Fri') {
-        l.setEnable(_fri_toggle ? 1 : 0);
+        l.setEnable(_fri_toggle ? true : false);
       }
       if (l.getDayName() == 'Sat') {
-        l.setEnable(_sat_toggle ? 1 : 0);
+        l.setEnable(_sat_toggle ? true : false);
+      }
+    }
+
+    String dayJson = jsonEncode(_gAirPlaneDayList.map((e) => e.toMap()).toList()).toString();
+    String timeJson = jsonEncode(_gAirPlaneTimeList.map((e) => e.toMap()).toList()).toString();
+
+    try {
+      final response = await dio.post(
+          "/users/setAirplaneMode",
+          data: jsonEncode({
+            "userID": widget.userID,
+            "useAirplaneMode": _useAirplaneMode,
+            "days": dayJson,
+            "times": timeJson
+          })
+      );
+
+      final SharedPreferences pref = await SharedPreferences.getInstance();
+      pref.setBool("useAirplaneMode", response.data['useAirplaneMode']);
+      gUseAirPlaneMode = pref.getBool("useAirplaneMode") ?? false;
+
+      gAirPlaneDayList.clear();
+      gAirPlaneTimeList.clear();
+
+      final airPlaneDayList = response.data['AirplaneDay_Infos'] as List;
+      print(airPlaneDayList);
+      for (var l in airPlaneDayList) {
+        gAirPlaneDayList.add(AirplaneDay.fromJson(l));
       }
 
-      sd.updateAirplaneDayTable(_sun_toggle, _mon_toggle, _tue_toggle, _wed_toggle, _thu_toggle, _fri_toggle, _sat_toggle);
-    }
+      final airPlaneTimeList = response.data['AirplaneTime_Infos'] as List;
+      print(airPlaneTimeList);
+      for (var l in airPlaneTimeList) {
+        gAirPlaneTimeList.add(AirplaneTime.fromJson(l));
+      }
 
-    await sd.emptyAirplaneTimeTable();
-    for (var item in _gAirPlaneTimeList) {
-      await sd.insertAirplaneTime(item.getStartTime()!, item.getEndTime()!);
-    }
-    gAirPlaneTimeList.clear();
-    gAirPlaneTimeList = await sd.getAirplaneTimes();
+      if (!context.mounted) return;
+      Navigator.pop(context);
 
-    if (!context.mounted) return;
-    Navigator.pop(context);
+    } catch(e) {
+      print(e);
+    }
   }
 
   Widget _settingOfDays(int index) {
@@ -574,28 +620,28 @@ class _AirPlaneModeState extends State<AirPlaneMode> {
                         SizedBox(height: 20.h, child: Text("시작시간", style: TextStyle(fontSize: 16.sp),)),
                         Row(
                           children: [
-                            Flexible(
-                              flex: 1,
-                              child: SizedBox(
-                                height: 220.h,
-                                width: 320.w,
-                                child: CupertinoPicker.builder(
-                                    itemExtent: 44,
-                                    childCount: Constants.ampm.length,
-                                    onSelectedItemChanged: (i) {
-                                      bottomState(() {
-                                        setState(() {
-                                          _start_ampm = Constants.ampm[i];
-                                          _start_ampm_index = i;
-                                        });
-                                      });
-
-                                    },
-                                    itemBuilder: (context, index) {
-                                      return Center(child: Text(Constants.ampm[index], style: TextStyle(fontSize: 20.sp),));
-                                    }),
-                              ),
-                            ),
+                            // Flexible(
+                            //   flex: 1,
+                            //   child: SizedBox(
+                            //     height: 220.h,
+                            //     width: 320.w,
+                            //     child: CupertinoPicker.builder(
+                            //         itemExtent: 44,
+                            //         childCount: Constants.ampm.length,
+                            //         onSelectedItemChanged: (i) {
+                            //           bottomState(() {
+                            //             setState(() {
+                            //               _start_ampm = Constants.ampm[i];
+                            //               _start_ampm_index = i;
+                            //             });
+                            //           });
+                            //
+                            //         },
+                            //         itemBuilder: (context, index) {
+                            //           return Center(child: Text(Constants.ampm[index], style: TextStyle(fontSize: 20.sp),));
+                            //         }),
+                            //   ),
+                            // ),
                             Flexible(
                               flex: 1,
                               child: SizedBox(
@@ -710,28 +756,28 @@ class _AirPlaneModeState extends State<AirPlaneMode> {
                         SizedBox(height: 20.h, child: Text("종료시간", style: TextStyle(fontSize: 16.sp),)),
                         Row(
                           children: [
-                            Flexible(
-                              flex: 1,
-                              child: SizedBox(
-                                height: 220.h,
-                                width: 320.w,
-                                child: CupertinoPicker.builder(
-                                    itemExtent: 44,
-                                    childCount: Constants.ampm.length,
-                                    onSelectedItemChanged: (i) {
-                                      bottomState(() {
-                                        setState(() {
-                                          _end_ampm = Constants.ampm[i];
-                                          _end_ampm_index = i;
-                                        });
-                                      });
-
-                                    },
-                                    itemBuilder: (context, index) {
-                                      return Center(child: Text(Constants.ampm[index], style: TextStyle(fontSize: 20.sp),));
-                                    }),
-                              ),
-                            ),
+                            // Flexible(
+                            //   flex: 1,
+                            //   child: SizedBox(
+                            //     height: 220.h,
+                            //     width: 320.w,
+                            //     child: CupertinoPicker.builder(
+                            //         itemExtent: 44,
+                            //         childCount: Constants.ampm.length,
+                            //         onSelectedItemChanged: (i) {
+                            //           bottomState(() {
+                            //             setState(() {
+                            //               _end_ampm = Constants.ampm[i];
+                            //               _end_ampm_index = i;
+                            //             });
+                            //           });
+                            //
+                            //         },
+                            //         itemBuilder: (context, index) {
+                            //           return Center(child: Text(Constants.ampm[index], style: TextStyle(fontSize: 20.sp),));
+                            //         }),
+                            //   ),
+                            // ),
                             Flexible(
                               flex: 1,
                               child: SizedBox(
@@ -740,6 +786,7 @@ class _AirPlaneModeState extends State<AirPlaneMode> {
                                 child: CupertinoPicker.builder(
                                     itemExtent: 44,
                                     childCount: Constants.hourTable.length,
+                                    scrollController: FixedExtentScrollController(initialItem: _start_hour_index),
                                     onSelectedItemChanged: (i) {
                                       bottomState(() {
                                         setState(() {
@@ -763,6 +810,7 @@ class _AirPlaneModeState extends State<AirPlaneMode> {
                                 child: CupertinoPicker.builder(
                                     itemExtent: 44,
                                     childCount: Constants.minuteTable.length,
+                                    scrollController: FixedExtentScrollController(initialItem: _start_minute_index),
                                     onSelectedItemChanged: (i) {
                                       bottomState(() {
                                         setState(() {
@@ -784,10 +832,10 @@ class _AirPlaneModeState extends State<AirPlaneMode> {
                           onTap: () async {
                             /*print('$_start_ampm $_start_hour:$_start_minute');
                             print('$_end_ampm $_end_hour:$_end_minute');*/
-                            String startTime = '$_start_ampm $_start_hour:$_start_minute';
-                            String endTime = '$_end_ampm $_end_hour:$_end_minute';
-
-
+                            // String startTime = '$_start_ampm $_start_hour:$_start_minute';
+                            // String endTime = '$_end_ampm $_end_hour:$_end_minute';
+                            String startTime = '$_start_hour:$_start_minute';
+                            String endTime = '$_end_hour:$_end_minute';
 
                             if (!context.mounted) return;
                             Navigator.pop(context);

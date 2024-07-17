@@ -58,7 +58,12 @@ class _CustomPasswordDialogState extends State<CustomPasswordDialog> {
                       child: SizedBox(
                         width: double.infinity,
                         height: 8.h,
-                        child: Flexible(child: Text(widget.wifiName, style: TextStyle(fontSize: 14.sp), textAlign: TextAlign.center,)),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Flexible(child: Text(widget.wifiName, style: TextStyle(fontSize: 14.sp), textAlign: TextAlign.center,)),
+                          ],
+                        ),
                       ),
                     ),
 

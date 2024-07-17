@@ -42,8 +42,14 @@ class _ParentEditState extends State<ParentEdit> {
     if (gParentInfo['parentSex'] == 2) {
       _female = true;
     }
-    _yearIndex = Constants.ages.indexOf(gParentInfo['parentAge']);
+
+    if (gParentInfo['parentAge'] != 0) {
+      _yearIndex = Constants.ages.indexOf(gParentInfo['parentAge']);
+    } else {
+      _yearIndex = 0;
+    }
     _year = Constants.yearText[_yearIndex];
+
   }
 
   @override

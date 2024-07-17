@@ -78,16 +78,21 @@ class Constants {
     75, 74, 73, 72, 71, 60, 69, 68, 67, 66,
   ];
 
-  static const List<String> ampm = ['오전', '오후'];
+  // static const List<String> ampm = ['오전', '오후'];
 
   static const List<String> hourTable = [
-    '00', '01', '02', '03', '04', '05', '06', '07', '08', '09',
+    '01', '02', '03', '04', '05', '06', '07', '08', '09',
     '10', '11', '12', '13', '14', '15', '16', '17', '18', '19',
     '20', '21', '22', '23',
   ];
 
   static const List<String> minuteTable = [
-    '00', '05', '10', '15', '20', '25', '30', '35', '40', '45', '50', '55',
+    '00', '01', '02', '03', '04', '05', '06', '07', '08', '09',
+    '10', '11', '12', '13', '14', '15', '16', '17', '18', '19',
+    '20', '21', '22', '23', '24', '25', '26', '27', '28', '29',
+    '30', '31', '32', '33', '34', '35', '36', '37', '38', '39',
+    '40', '41', '42', '43', '44', '45', '46', '47', '48', '49',
+    '50', '51', '52', '53', '54', '55', '56', '57', '58', '59',
   ];
 
 
@@ -109,7 +114,7 @@ List<LocationInfo> gLocationList = [];
 List<AirplaneDay> gAirPlaneDayList = [];
 List<AirplaneTime> gAirPlaneTimeList = [];
 late AlarmInfo gLastAlarm;
-bool gAirPlaneEnable = false;
+bool gUseAirPlaneMode = false;
 // late LocationInfo gCurrentLocation;
 
 List<ShareInfo> gShareInfo = [];
@@ -180,13 +185,24 @@ void saveUserInfo(var loginResponse) async {
       userID: aList[0]['userID'],
       locationID: aList[0]['locationID'],
     );
-
   }
 
-  final shList = loginResponse.data['Share_Infos'] as List;
-  for (var sh in shList) {
-    gShareInfo.add(ShareInfo.fromJson(sh));
+  // final shList = loginResponse.data['Share_Infos'] as List;
+  // for (var sh in shList) {
+  //   gShareInfo.add(ShareInfo.fromJson(sh));
+  // }
+
+  final airPlaneDayList = loginResponse.data['AirplaneDay_Infos'] as List;
+  for (var l in airPlaneDayList) {
+    gAirPlaneDayList.add(AirplaneDay.fromJson(l));
   }
+
+  final airPlaneTimeList = loginResponse.data['AirplaneTime_Infos'] as List;
+  for (var l in airPlaneTimeList) {
+    gAirPlaneTimeList.add(AirplaneTime.fromJson(l));
+  }
+
+  print(gAirPlaneTimeList);
 
   final SharedPreferences pref = await SharedPreferences.getInstance();
 
@@ -204,6 +220,8 @@ void saveUserInfo(var loginResponse) async {
   pref.setString("provider", loginResponse.data['provider']);
   pref.setBool("admin", loginResponse.data['admin']);
   pref.setString("shareKey", loginResponse.data['shareKey']);
+  pref.setBool("enableAlarm", loginResponse.data['enableAlarm']);
+  pref.setBool("useAirplaneMode", loginResponse.data['useAirplaneMode']);
   pref.setBool("isLogin", true);
 
   gParentInfo['parentName'] = loginResponse.data['parentName'];
@@ -211,12 +229,12 @@ void saveUserInfo(var loginResponse) async {
   gParentInfo['parentPhone'] = loginResponse.data['parentPhone'];
   gParentInfo['parentSex'] = loginResponse.data['parentSex'];
 
-  gAirPlaneEnable = pref.getBool("airplaneEnable") ?? false;
+  gUseAirPlaneMode = pref.getBool("useAirplaneMode") ?? false;
 
-  DBHelper sd = DBHelper();
+  /*DBHelper sd = DBHelper();
   sd.initAirplaneDayTable();
   gAirPlaneDayList = await sd.getAirplaneDays();
-  gAirPlaneTimeList = await sd.getAirplaneTimes();
+  gAirPlaneTimeList = await sd.getAirplaneTimes();*/
 }
 
 var logger = Logger(

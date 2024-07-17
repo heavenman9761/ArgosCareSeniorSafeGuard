@@ -55,17 +55,15 @@ class _LocationWidgetState extends ConsumerState<LocationWidget> {
 
   @override
   Widget build(BuildContext context) {
-    // ref.listen(sensorEventProvider, (previous, next) {
-    //   // _analysisSensorEvent();
-    //   final List<SensorInfo> sensorList = gLocationList[widget.locationIndex].getSensors()!;
-    //
-    //   for (int i = 0; i < sensorList.length; i++) {
-    //     if (ref.watch(sensorEventProvider)!.getSensorID()! == sensorList[i].getSensorID()) {
-    //       _getRecentTime();
-    //     }
-    //   }
-    //
-    // });
+    ref.listen(sensorEventProvider, (previous, next) {
+      final List<SensorInfo> sensorList = gLocationList[widget.locationIndex].getSensors()!;
+      for (int i = 0; i < sensorList.length; i++) {
+        if (ref.watch(sensorEventProvider)!.getSensorID()! == sensorList[i].getID()) {
+          _getEventTime();
+        }
+      }
+
+    });
     return InkWell(
         onTap: () {
           Navigator.push(context,
