@@ -10,21 +10,22 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:argoscareseniorsafeguard/utils/calendar_utils.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter/scheduler.dart';
 
 import 'package:argoscareseniorsafeguard/constants.dart';
-import 'package:argoscareseniorsafeguard/database/db.dart';
+import 'package:argoscareseniorsafeguard/providers/providers.dart';
 
-class NoticeWidget extends StatefulWidget {
+class NoticeWidget extends ConsumerStatefulWidget {
   const NoticeWidget({super.key, required this.userName, required this.userID});
 
   final String userName;
   final String userID;
 
   @override
-  State<NoticeWidget> createState() => _NoticeWidgetState();
+  ConsumerState<NoticeWidget> createState() => _NoticeWidgetState();
 }
 
-class _NoticeWidgetState extends State<NoticeWidget> {
+class _NoticeWidgetState extends ConsumerState<NoticeWidget> {
   CalendarFormat _calendarFormat = CalendarFormat.week;
   DateTime _focusedDay = DateTime.now();
   DateTime _selectedDay = DateTime.now();
@@ -36,6 +37,9 @@ class _NoticeWidgetState extends State<NoticeWidget> {
     super.initState();
 
     _currentYearMonth = _formatter.format(_focusedDay);
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      ref.read(alarmReceivedProvider.notifier).state = 0;
+    });
   }
 
   @override
@@ -44,7 +48,14 @@ class _NoticeWidgetState extends State<NoticeWidget> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+  }
+
+  @override
   Widget build(BuildContext context) {
+
     return SafeArea(
       child: Scaffold(
         backgroundColor: Constants.scaffoldBackgroundColor,
@@ -316,47 +327,54 @@ class _NoticeWidgetState extends State<NoticeWidget> {
                         );
                       }
 
-                      return ListView.builder(
-                        itemCount: alarmList.length,
-                        itemBuilder: (context, index) {
-                          return Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Container(
-                                height: 80.h,
-                                width: double.infinity,
-                                padding: EdgeInsets.fromLTRB(16.w, 16.h, 16.w, 8.h),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(10),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.grey.withOpacity(0.1),
-                                      spreadRadius: 1,
-                                      blurRadius: 10,
-                                      offset: const Offset(0, 3), // changes position of shadow
-                                    ),
-                                  ],
-                                ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        _getImage(alarmList[index].getLocationID()!),
-                                        SizedBox(width: 5.w),
-                                        Text("${alarmList[index].getAlarm()}", style: TextStyle(fontSize: 14.sp, color: const Color(0xFF040404), fontWeight: FontWeight.bold), ),
-                                      ],
-                                    ),
-                                    Text(_getDateStr(alarmList[index].getCreatedAt()!), style: TextStyle(fontSize: 12.sp, color: Constants.dividerColor), ),
-                                  ],
-                                ),
-                              ),
-                              SizedBox(height: 8.h)
-                            ],
-                          );
+                      return RefreshIndicator(
+                        onRefresh: () async {
+                          setState(() {
+
+                          });
                         },
+                        child: ListView.builder(
+                          itemCount: alarmList.length,
+                          itemBuilder: (context, index) {
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Container(
+                                  height: 80.h,
+                                  width: double.infinity,
+                                  padding: EdgeInsets.fromLTRB(16.w, 16.h, 16.w, 8.h),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(10),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.grey.withOpacity(0.1),
+                                        spreadRadius: 1,
+                                        blurRadius: 10,
+                                        offset: const Offset(0, 3), // changes position of shadow
+                                      ),
+                                    ],
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          _getImage(alarmList[index].getLocationID()!),
+                                          SizedBox(width: 5.w),
+                                          Text("${alarmList[index].getAlarm()}", style: TextStyle(fontSize: 14.sp, color: const Color(0xFF040404), fontWeight: FontWeight.bold), ),
+                                        ],
+                                      ),
+                                      Text(_getDateStr(alarmList[index].getCreatedAt()!), style: TextStyle(fontSize: 12.sp, color: Constants.dividerColor), ),
+                                    ],
+                                  ),
+                                ),
+                                SizedBox(height: 8.h)
+                              ],
+                            );
+                          },
+                        ),
                       );
                     } else {
                       return const Center(

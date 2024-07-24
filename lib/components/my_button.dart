@@ -4,8 +4,9 @@ import 'package:argoscareseniorsafeguard/constants.dart';
 class MyButton extends StatelessWidget {
   final Function()? onTap;
   final String text;
+  final Color? color;
 
-  const MyButton({super.key, required this.onTap, required this.text});
+  const MyButton({super.key, required this.onTap, required this.text, this.color});
 
   @override
   Widget build(BuildContext context) {
@@ -17,7 +18,7 @@ class MyButton extends StatelessWidget {
         padding: const EdgeInsets.all(15),
         // margin: const EdgeInsets.symmetric(horizontal: 25),
         decoration: BoxDecoration(
-          color: Constants.primaryButtonColor,
+          color: color ?? Constants.primaryButtonColor,
           borderRadius: BorderRadius.circular(8),
         ),
         child: Center(

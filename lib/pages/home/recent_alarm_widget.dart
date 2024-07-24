@@ -101,22 +101,25 @@ class _RecentAlarmWidgetState extends ConsumerState<RecentAlarmWidget> {
     if (ref.watch(alarmProvider) != null) {
       AlarmInfo alarmInfo = ref.watch(alarmProvider)!;
 
-      return alarmInfo.getAlarm()!;
-
+      if (alarmInfo.getAlarm() != '') {
+        return alarmInfo.getAlarm()!;
+      } else {
+        return '알림이 없습니다.';
+      }
     } else {
       return "";
     }
   }
 
   String _getTime() {
-    if (ref.watch(alarmProvider) != null) {
+    try {
       AlarmInfo alarmInfo = ref.watch(alarmProvider)!;
 
       DateTime date = DateTime.parse(alarmInfo.getCreatedAt()!);
       return DateFormat('MM.dd(E) HH:mm', 'ko').format(date);
-
-    } else {
-      return "";
+    } catch (e) {
+      DateTime date = DateTime.now();
+      return DateFormat('MM.dd(E) HH:mm', 'ko').format(date);
     }
   }
 }

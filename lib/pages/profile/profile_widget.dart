@@ -1,22 +1,24 @@
 import 'dart:convert';
+import 'dart:io';
 
+import 'package:flutter/services.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-import 'package:argoscareseniorsafeguard/pages/setting_alarm.dart';
-import 'package:argoscareseniorsafeguard/database/db.dart';
-import 'package:argoscareseniorsafeguard/models/sensor.dart';
 import 'package:argoscareseniorsafeguard/constants.dart';
-import 'package:argoscareseniorsafeguard/pages/profile.dart';
+import 'package:mobile_device_identifier/mobile_device_identifier.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:argoscareseniorsafeguard/pages/share_manage.dart';
 import 'package:argoscareseniorsafeguard/pages/profile/parent_edit.dart';
 import 'package:argoscareseniorsafeguard/pages/profile/profile_edit.dart';
 import 'package:argoscareseniorsafeguard/pages/profile/airplane_mode.dart';
 import 'package:argoscareseniorsafeguard/pages/profile/onboarding_first.dart';
+import 'package:argoscareseniorsafeguard/dialogs/custom_confirm_dialog.dart';
+import 'package:argoscareseniorsafeguard/dialogs/custom_alert_dialog.dart';
 
 class ProfileWidget extends StatefulWidget {
   final String userID;
@@ -319,7 +321,7 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                             ),
                           )),
 
-                          _showCategory("요금제", SvgPicture.asset('assets/images/rateplan_small.svg', width: 16.w, height: 16.h,)),
+                          /*_showCategory("요금제", SvgPicture.asset('assets/images/rateplan_small.svg', width: 16.w, height: 16.h,)),
 
                           _showDetail("요금제", SizedBox(
                             width: 24.w,
@@ -334,60 +336,60 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                                 debugPrint('icon press');
                               },
                             ),
-                          )),
+                          )),*/
               
-                          _showCategory("장치공유", SvgPicture.asset('assets/images/share_small.svg', width: 16.w, height: 16.h,)),
-
-                          _showDetail("장치공유", SizedBox(
-                            width: 24.w,
-                            height: 24.h,
-                            // color: Colors.redAccent,
-                            child: IconButton(
-                              constraints: BoxConstraints(maxHeight: 48.h, maxWidth: 48.w),
-                              padding: EdgeInsets.zero,
-                              color: Constants.dividerColor,
-                              icon: const Icon(Icons.arrow_forward_ios_rounded, size: 18),
-                              onPressed: () {
-                                debugPrint('icon press');
-                              },
-                            ),
-                          )),
+                          // _showCategory("장치공유", SvgPicture.asset('assets/images/share_small.svg', width: 16.w, height: 16.h,)),
+                          //
+                          // _showDetail("장치공유", SizedBox(
+                          //   width: 24.w,
+                          //   height: 24.h,
+                          //   // color: Colors.redAccent,
+                          //   child: IconButton(
+                          //     constraints: BoxConstraints(maxHeight: 48.h, maxWidth: 48.w),
+                          //     padding: EdgeInsets.zero,
+                          //     color: Constants.dividerColor,
+                          //     icon: const Icon(Icons.arrow_forward_ios_rounded, size: 18),
+                          //     onPressed: () {
+                          //       debugPrint('icon press');
+                          //     },
+                          //   ),
+                          // )),
 
                           _showCategory("앱설정", Icon(Icons.phone_android, size: 16.h)),
 
-                          _showDetail("공지사항", SizedBox(
-                            width: 24.w,
-                            height: 24.h,
-                            // color: Colors.redAccent,
-                            child: IconButton(
-                              constraints: BoxConstraints(maxHeight: 48.h, maxWidth: 48.w),
-                              padding: EdgeInsets.zero,
-                              color: Constants.dividerColor,
-                              icon: const Icon(Icons.arrow_forward_ios_rounded, size: 18),
-                              onPressed: () {
-                                debugPrint('icon press');
-                              },
-                            ),
-                          )),
-              
-                          SizedBox(height: 16.h,),
+                          // _showDetail("공지사항", SizedBox(
+                          //   width: 24.w,
+                          //   height: 24.h,
+                          //   // color: Colors.redAccent,
+                          //   child: IconButton(
+                          //     constraints: BoxConstraints(maxHeight: 48.h, maxWidth: 48.w),
+                          //     padding: EdgeInsets.zero,
+                          //     color: Constants.dividerColor,
+                          //     icon: const Icon(Icons.arrow_forward_ios_rounded, size: 18),
+                          //     onPressed: () {
+                          //       debugPrint('icon press');
+                          //     },
+                          //   ),
+                          // )),
+                          //
+                          // SizedBox(height: 16.h,),
 
-                          _showDetail("서비스 소개", SizedBox(
-                            width: 24.w,
-                            height: 24.h,
-                            // color: Colors.redAccent,
-                            child: IconButton(
-                              constraints: BoxConstraints(maxHeight: 48.h, maxWidth: 48.w),
-                              padding: EdgeInsets.zero,
-                              color: Constants.dividerColor,
-                              icon: const Icon(Icons.arrow_forward_ios_rounded, size: 18),
-                              onPressed: () {
-                                debugPrint('icon press');
-                              },
-                            ),
-                          )),
-              
-                          SizedBox(height: 16.h,),
+                          // _showDetail("서비스 소개", SizedBox(
+                          //   width: 24.w,
+                          //   height: 24.h,
+                          //   // color: Colors.redAccent,
+                          //   child: IconButton(
+                          //     constraints: BoxConstraints(maxHeight: 48.h, maxWidth: 48.w),
+                          //     padding: EdgeInsets.zero,
+                          //     color: Constants.dividerColor,
+                          //     icon: const Icon(Icons.arrow_forward_ios_rounded, size: 18),
+                          //     onPressed: () {
+                          //       debugPrint('icon press');
+                          //     },
+                          //   ),
+                          // )),
+                          //
+                          // SizedBox(height: 16.h,),
 
                           _showDetail("이용안내", SizedBox(
                             width: 24.w,
@@ -408,22 +410,22 @@ class _ProfileWidgetState extends State<ProfileWidget> {
 
                           SizedBox(height: 16.h,),
 
-                          _showDetail("이용약관", SizedBox(
-                            width: 24.w,
-                            height: 24.h,
-                            // color: Colors.redAccent,
-                            child: IconButton(
-                              constraints: BoxConstraints(maxHeight: 48.h, maxWidth: 48.w),
-                              padding: EdgeInsets.zero,
-                              color: Constants.dividerColor,
-                              icon: const Icon(Icons.arrow_forward_ios_rounded, size: 18),
-                              onPressed: () {
-                                debugPrint('icon press');
-                              },
-                            ),
-                          )),
-
-                          SizedBox(height: 16.h,),
+                          // _showDetail("이용약관", SizedBox(
+                          //   width: 24.w,
+                          //   height: 24.h,
+                          //   // color: Colors.redAccent,
+                          //   child: IconButton(
+                          //     constraints: BoxConstraints(maxHeight: 48.h, maxWidth: 48.w),
+                          //     padding: EdgeInsets.zero,
+                          //     color: Constants.dividerColor,
+                          //     icon: const Icon(Icons.arrow_forward_ios_rounded, size: 18),
+                          //     onPressed: () {
+                          //       debugPrint('icon press');
+                          //     },
+                          //   ),
+                          // )),
+                          //
+                          // SizedBox(height: 16.h,),
 
                           _showDetail("버전정보", SizedBox(
                             width: 24.w,
@@ -435,7 +437,18 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                               color: Constants.dividerColor,
                               icon: const Icon(Icons.arrow_forward_ios_rounded, size: 18),
                               onPressed: () {
-                                debugPrint('icon press');
+                                showDialog(
+                                    barrierDismissible: false,
+                                    context: context,
+                                    builder: (context) {
+                                      return Dialog(
+                                        backgroundColor: Constants.scaffoldBackgroundColor,
+                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                                        insetPadding: EdgeInsets.all(20.w),
+                                        child: const CustomAlertDialog(title: "확인", message: "현재버전: 0.0.1"),
+                                      );
+                                    }
+                                );
                               },
                             ),
                           )),
@@ -452,7 +465,7 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                               color: Constants.dividerColor,
                               icon: const Icon(Icons.arrow_forward_ios_rounded, size: 18),
                               onPressed: () {
-                                debugPrint('icon press');
+                                _logout(context);
                               },
                             ),
                           )),
@@ -469,7 +482,7 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                               color: Constants.dividerColor,
                               icon: const Icon(Icons.arrow_forward_ios_rounded, size: 18),
                               onPressed: () {
-                                debugPrint('icon press');
+                                _unregister(context);
                               },
                             ),
                           )),
@@ -547,30 +560,111 @@ class _ProfileWidgetState extends State<ProfileWidget> {
     );
   }
 
-  Future<List<Sensor>> _getSensorList() async {
-    DBHelper sd = DBHelper();
-    return await sd.getSensors(widget.userID);
+  void _logout(BuildContext context) {
+    showDialog(
+        barrierDismissible: false,
+        context: context,
+        builder: (context) {
+          return Dialog(
+            backgroundColor: Constants.scaffoldBackgroundColor,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            insetPadding: EdgeInsets.all(20.w),
+            child: const CustomConfirmDialog(title: "확인", message: "로그아웃하고 앱을 종료하시겠습니까?"),
+          );
+        }
+    ).then((val) async {
+      if (val == 'Ok') {
+        try {
+          final mobileDeviceIdentifierPlugin = MobileDeviceIdentifier();
+          String deviceID = "";
+          deviceID = await mobileDeviceIdentifierPlugin.getDeviceId() ?? 'Unknown platform version';
+          deviceID = base64.encode(utf8.encode(deviceID));
+
+          await dio.get(
+            "/auth/logout/$deviceID",
+          );
+
+          _logoutProcess();
+
+        } catch (e) {
+          print("logout error");
+        }
+      }
+    });
   }
 
-  void _goSettingAlarm(BuildContext context) async {
-    List<Sensor> list = await _getSensorList();
-    if (!context.mounted) return;
-    Navigator.push(context, MaterialPageRoute(builder: (context) {
-      return SettingAlarm(userID: widget.userID, sensorList: list);
-    }));
+  void _unregister(BuildContext context) {
+    showDialog(
+        barrierDismissible: false,
+        context: context,
+        builder: (context) {
+          return Dialog(
+            backgroundColor: Constants.scaffoldBackgroundColor,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            insetPadding: EdgeInsets.all(20.w),
+            child: const CustomConfirmDialog(title: "확인", message: "회원탈퇴를 하면 모든 데이타가 삭제됩니다. 계속하시겠습니까?"),
+          );
+        }
+    ).then((val) async {
+      if (val == 'Ok') {
+        try {
+          await dio.post(
+              "/auth/unregister",
+              data: jsonEncode({
+                "userID": widget.userID,
+              })
+          );
+
+          _logoutProcess();
+
+        } catch (e) {
+          print(e);
+        }
+      }
+    });
   }
 
-  void _goShareManage(BuildContext context) async {
-    Navigator.push(context, MaterialPageRoute(builder: (context) {
-      return ShareManage(userID: widget.userID);
-    }));
-  }
+  void _logoutProcess() async {
+    try {
+      const storage = FlutterSecureStorage(
+        iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock),
+        aOptions: AndroidOptions(encryptedSharedPreferences: true),
+      );
+      await storage.delete(key: "ACCESS_TOKEN");
+      await storage.delete(key: 'ID');
+      await storage.delete(key: 'EMAIL');
+      await storage.delete(key: 'PASSWORD');
 
-  void _goProfile(BuildContext context) async {
-    List<Sensor> list = await _getSensorList();
-    if (!context.mounted) return;
-    Navigator.push(context, MaterialPageRoute(builder: (context) {
-      return const Profile();
-    }));
+      Directory appDocumentsDirectory = await getApplicationDocumentsDirectory();
+      Directory targetDir = Directory("${appDocumentsDirectory.path}/.cookies");
+      await targetDir.delete(recursive: true);
+      // await File("${appDocumentsDirectory.path}/.cookies").delete();
+
+      final SharedPreferences pref = await SharedPreferences.getInstance();
+      pref.remove('name');
+      pref.remove('parentName');
+      pref.remove('parentAge');
+      pref.remove('parentPhone');
+      pref.remove('parentSex');
+      pref.remove('addr_zip');
+      pref.remove('addr');
+      pref.remove('addr_detail');
+      pref.remove('mobilephone');
+      pref.remove('tel');
+      pref.remove('snsId');
+      pref.remove('provider');
+      pref.remove('admin');
+      pref.remove('shareKey');
+      pref.remove('isLogin');
+      pref.remove("useAirplaneMode");
+      pref.remove("enableAlarm");
+      pref.remove("useAirplaneMode");
+      pref.remove('saveLoginID');
+
+      SystemNavigator.pop();
+    } catch (e) {
+      print(e);
+    }
+
   }
 }

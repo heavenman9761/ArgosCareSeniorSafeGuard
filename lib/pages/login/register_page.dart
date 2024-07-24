@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:argoscareseniorsafeguard/dialogs/custom_confirm_dialog.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -17,10 +16,10 @@ import 'package:argoscareseniorsafeguard/utils/string_extensions.dart';
 import 'package:argoscareseniorsafeguard/components/my_button.dart';
 import 'package:argoscareseniorsafeguard/components/my_textfield.dart';
 import 'package:argoscareseniorsafeguard/constants.dart';
-import 'package:argoscareseniorsafeguard/pages/phone_certification.dart';
+import 'package:argoscareseniorsafeguard/pages/common/phone_certification.dart';
 import 'package:argoscareseniorsafeguard/providers/providers.dart';
 import 'package:argoscareseniorsafeguard/dialogs/custom_alert_dialog.dart';
-import 'package:argoscareseniorsafeguard/pages/register_parent.dart';
+import 'package:argoscareseniorsafeguard/pages/common/register_parent.dart';
 
 class RegisterPage extends ConsumerStatefulWidget {
   const RegisterPage({super.key, required this.optionalCheck});
@@ -159,7 +158,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
 
     _smsAuthOk = true;
     if (!_smsAuthOk) {
-      _showAlertDialog("오류", "휴대폰 인증이 완료 되지 않았습니다.\n휴대폰 인증을 완료 하여 주 십시요.");
+      _showAlertDialog("오류", "휴대폰 인증이 완료 되지 않았습니다.\n휴대폰 인증을 완료 하여 주십시요.");
       FocusScope.of(context).requestFocus(_phoneNumberFocusNode);
       return;
     }
@@ -665,7 +664,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                                         )
                                     ),
 
-                                    _smsAuthOk
+                                    /*_smsAuthOk
                                         ? const SizedBox()
                                         : Row(
                                           children: [
@@ -695,7 +694,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                                                   child: Text('본인 인증', style: TextStyle(fontSize: 14.sp, color: Constants.primaryColor), ),)
                                             ),
                                           ],
-                                        )
+                                        )*/
                                     /*TextButton(
                                             child: const Text("본인 인증"),
                                             onPressed: () async {

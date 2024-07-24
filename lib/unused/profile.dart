@@ -5,7 +5,7 @@ import 'package:argoscareseniorsafeguard/constants.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:argoscareseniorsafeguard/utils/string_extensions.dart';
-import 'package:argoscareseniorsafeguard/pages/change_password.dart';
+import 'package:argoscareseniorsafeguard/pages/profile/change_password.dart';
 
 class Profile extends StatefulWidget {
   const Profile({super.key});

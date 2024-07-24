@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -15,14 +14,13 @@ import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:dio/dio.dart';
 
 import 'package:argoscareseniorsafeguard/utils/firebase_options.dart';
-import 'package:argoscareseniorsafeguard/pages/login_page.dart';
-import 'package:argoscareseniorsafeguard/pages/Intro_page.dart';
+import 'package:argoscareseniorsafeguard/pages/login/login_page.dart';
+import 'package:argoscareseniorsafeguard/Intro_page.dart';
 import 'package:argoscareseniorsafeguard/pages/home_page.dart';
 import 'package:argoscareseniorsafeguard/constants.dart';
 import 'package:argoscareseniorsafeguard/utils/fcm.dart';
 import 'package:argoscareseniorsafeguard/utils/theme.dart';
 import 'package:argoscareseniorsafeguard/auth/auth_dio.dart';
-import 'package:argoscareseniorsafeguard/foregroundTaskHandler.dart';
 
 bool _isLogin = false;
 String userName = '';

@@ -1,23 +1,16 @@
 import 'dart:async';
 import 'dart:ui';
 import 'dart:io';
-import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter_background_service_android/flutter_background_service_android.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
 import 'package:uuid/uuid.dart';
 
-import 'package:argoscareseniorsafeguard/database/db.dart';
-import 'package:argoscareseniorsafeguard/models/device.dart';
 import 'package:argoscareseniorsafeguard/constants.dart';
-import 'package:argoscareseniorsafeguard/auth/auth_dio.dart';
 
 Future<void> initializeService() async {
   final service = FlutterBackgroundService();

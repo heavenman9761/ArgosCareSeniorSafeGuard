@@ -5,7 +5,7 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import 'package:argoscareseniorsafeguard/database/db.dart';
-import 'package:argoscareseniorsafeguard/models/event_list.dart';
+import 'package:argoscareseniorsafeguard/unused/event_list.dart';
 import 'package:argoscareseniorsafeguard/constants.dart';
 
 class AlarmsView extends StatefulWidget {

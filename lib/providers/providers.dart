@@ -261,8 +261,8 @@ final alarmDoorEndTimeProvider = StateProvider<String>((ref) {
 
 //------------------------------------------------------------------
 
-final alarmReceivedProvider = StateProvider<bool>((ref) {
-  return false;
+final alarmReceivedProvider = StateProvider<int>((ref) {
+  return 0;
 });
 
 //------------------------------------------------------------------

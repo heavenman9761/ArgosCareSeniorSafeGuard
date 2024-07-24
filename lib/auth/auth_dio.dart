@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:cookie_jar/cookie_jar.dart';
 import 'package:dio_cookie_manager/dio_cookie_manager.dart';
@@ -12,7 +13,7 @@ Future<Dio> authDio() async {
   Directory appDocumentsDirectory = await getApplicationDocumentsDirectory();
   var cookieJar = PersistCookieJar(ignoreExpires: true, storage: FileStorage("${appDocumentsDirectory.path}/.cookies/"));
 
-  var uri = Constants.BASE_URL;
+  var uri = kReleaseMode ? Constants.BASE_URL_RELEASE : Constants.BASE_URL_DEBUG;
   BaseOptions options = BaseOptions(
     baseUrl: uri,
   );

@@ -9,6 +9,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+import 'package:iamport_flutter/model/certification_data.dart';
+import 'package:iamport_flutter/model/url_data.dart';
+import 'package:argoscareseniorsafeguard/pages/common/phone_certification.dart';
+
 import 'package:argoscareseniorsafeguard/components/my_button.dart';
 import 'package:argoscareseniorsafeguard/components/my_textfield.dart';
 import 'package:argoscareseniorsafeguard/components/square_tile.dart';
@@ -17,13 +21,10 @@ import 'package:argoscareseniorsafeguard/constants.dart';
 import 'package:argoscareseniorsafeguard/auth/auth_dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:argoscareseniorsafeguard/utils/string_extensions.dart';
-import 'package:argoscareseniorsafeguard/main.dart';
-import 'package:argoscareseniorsafeguard/models/location_infos.dart';
-import 'package:argoscareseniorsafeguard/models/sensor_infos.dart';
-import 'package:argoscareseniorsafeguard/models/hub_infos.dart';
-import 'package:argoscareseniorsafeguard/models/share_infos.dart';
-import 'package:argoscareseniorsafeguard/pages/terms_page.dart';
+import 'package:argoscareseniorsafeguard/pages/login/terms_page.dart';
 import 'package:argoscareseniorsafeguard/dialogs/custom_alert_dialog.dart';
+import 'package:argoscareseniorsafeguard/pages/login/find_password.dart';
+import 'package:argoscareseniorsafeguard/pages/login/find_email.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -34,6 +35,9 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
+
+  final int findID = 1;
+  final int findPassword = 2;
 
   String email = '';
   String password = '';
@@ -136,21 +140,24 @@ class _LoginPageState extends State<LoginPage> {
         dio = await authDio();
 
         final response = await dio.post(
-            "/auth/signin",
-            data: jsonEncode({
-              "email": email,
-              "password": password
-            })
+          "/auth/signin",
+          data: jsonEncode({
+            "email": email,
+            "password": password
+          })
         );
 
-        if (!context.mounted) return;
-        _processLogin(context, response);
+        if (response.statusCode == 200 || response.statusCode == 201) {
+          if (!context.mounted) return;
+          _processLogin(context, response);
+        }
 
       } catch (e) {
-        debugPrint(e.toString());
+        print(e);
         setState(() {
           isLogging = false;
         });
+        if (!context.mounted) return;
         _showAlertDialog(AppLocalizations.of(context)!.login_button, AppLocalizations.of(context)!.login_failure_message);
       }
     }
@@ -389,8 +396,8 @@ class _LoginPageState extends State<LoginPage> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
-                        TextButton(onPressed: (){}, child: Text(AppLocalizations.of(context)!.login_find_id, style: TextStyle(color: Colors.grey[600]), )),
-                        TextButton(onPressed: (){}, child: Text(AppLocalizations.of(context)!.login_find_password, style: TextStyle(color: Colors.grey[600]), )),
+                        TextButton(onPressed: (){_phoneCertification(context, findID);}, child: Text(AppLocalizations.of(context)!.login_find_id, style: TextStyle(color: Colors.grey[600]), )),
+                        TextButton(onPressed: (){_phoneCertification(context, findPassword);}, child: Text(AppLocalizations.of(context)!.login_find_password, style: TextStyle(color: Colors.grey[600]), )),
                         TextButton(
                           child: Text(AppLocalizations.of(context)!.login_register, style: TextStyle(color: Colors.grey[600])),
                           onPressed: () {
@@ -459,11 +466,13 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   void _loginGoogle(BuildContext context) async {
-
+    _showAlertDialog("확인", "아직 지원되지 않습니다.");
   }
 
   void _loginKaKao(BuildContext context) async {
-    bool isInstalled = await isKakaoTalkInstalled();
+    _showAlertDialog("확인", "아직 지원되지 않습니다.");
+
+    /*bool isInstalled = await isKakaoTalkInstalled();
 
     if (!isInstalled) {
       if (!context.mounted) return;
@@ -525,6 +534,53 @@ class _LoginPageState extends State<LoginPage> {
 
       if (!context.mounted) return;
       _showAlertDialog(AppLocalizations.of(context)!.login_kakao, AppLocalizations.of(context)!.login_kakao_failure_message);
-    }
+    }*/
+  }
+
+  void _phoneCertification(BuildContext ctx, int kindWork) async {
+    // CertificationData data = CertificationData(
+    //     pg: 'inicis_unified',
+    //     merchantUid: 'mid_${DateTime.now().millisecondsSinceEpoch}',
+    //     mRedirectUrl: UrlData.redirectUrl
+    // );
+    //
+    // final result = await Navigator.push(context,
+    //     MaterialPageRoute(builder: (ctx) {
+    //       return PhoneCertification(userCode: 'imp71235150', data: data);
+    //     })
+    // );
+    //
+    // if (!ctx.mounted) return;
+    //
+    // if (result == '인증에 성공하였습니다.') {
+      if (kindWork == findID) {
+        Navigator.push(ctx,
+            MaterialPageRoute(builder: (context) {
+              return const FindEmail();
+            })
+        );
+      } else if (kindWork == findPassword) {
+        Navigator.push(ctx,
+            MaterialPageRoute(builder: (context) {
+              return const FindPassword();
+            })
+        );
+      }
+
+    // } else {
+    //   showDialog(
+    //       barrierDismissible: false,
+    //       context: ctx,
+    //       builder: (context) {
+    //         return Dialog(
+    //           backgroundColor: Constants.scaffoldBackgroundColor,
+    //           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+    //           insetPadding: EdgeInsets.all(20.w),
+    //           child: const CustomAlertDialog(title: "본인 인증", message: "본인인증에 실패했습니다."),
+    //         );
+    //       }
+    //   ).then((val) {
+    //   });
+    // }
   }
 }

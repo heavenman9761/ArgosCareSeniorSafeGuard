@@ -2,12 +2,11 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:isolate';
 
-import 'package:argoscareseniorsafeguard/models/hub.dart';
 import 'package:argoscareseniorsafeguard/models/sensor_event.dart';
-import 'package:argoscareseniorsafeguard/models/device.dart';
-import 'package:argoscareseniorsafeguard/models/sensor.dart';
 import 'package:argoscareseniorsafeguard/models/sensor_infos.dart';
 import 'package:argoscareseniorsafeguard/models/alarm_infos.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 
 import 'package:flutter/material.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -15,34 +14,22 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:mqtt_client/mqtt_client.dart';
-import 'package:intl/intl.dart';
-import 'package:flutter_background_service/flutter_background_service.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:flutter_foreground_task/flutter_foreground_task.dart';
+import 'package:mobile_device_identifier/mobile_device_identifier.dart';
 
 import 'package:argoscareseniorsafeguard/mqtt/mqtt.dart';
 import 'package:argoscareseniorsafeguard/providers/providers.dart';
-import 'package:argoscareseniorsafeguard/pages/add_hub_page1.dart';
-import 'package:argoscareseniorsafeguard/pages/add_sensor_page1.dart';
 import 'package:argoscareseniorsafeguard/constants.dart';
-import 'package:argoscareseniorsafeguard/database/db.dart';
 import 'package:argoscareseniorsafeguard/pages/home/home_widget.dart';
 import 'package:argoscareseniorsafeguard/pages/mydevice/mydevice_widget.dart';
 import 'package:argoscareseniorsafeguard/pages/profile/profile_widget.dart';
-import 'package:argoscareseniorsafeguard/components/nofify_badge_widget.dart';
 import 'package:argoscareseniorsafeguard/models/hub_infos.dart';
-import 'package:argoscareseniorsafeguard/models/location_infos.dart';
-import 'package:argoscareseniorsafeguard/back_services.dart';
-import 'package:argoscareseniorsafeguard/auth/auth_dio.dart';
 import 'package:argoscareseniorsafeguard/pages/notice/notice_widget.dart';
-import 'package:argoscareseniorsafeguard/foregroundTaskHandler.dart';
 
-@pragma('vm:entry-point')
+/*@pragma('vm:entry-point')
 void startCallback() {
   FlutterForegroundTask.setTaskHandler(ForegroundTaskHandler());
-}
+}*/
 
 class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key, required this.title, required this.userName, required this.userID, required this.userMail});
@@ -59,6 +46,7 @@ class HomePage extends ConsumerStatefulWidget {
 class _HomePageState extends ConsumerState<HomePage> with WidgetsBindingObserver {
   Timer? _timer;
   ReceivePort? _receivePort;
+  final _mobileDeviceIdentifierPlugin = MobileDeviceIdentifier();
 
   @override
   void initState() {
@@ -121,7 +109,9 @@ class _HomePageState extends ConsumerState<HomePage> with WidgetsBindingObserver
       case AppLifecycleState.resumed: /* 앱이 표시되고 사용자 입력에 응답합니다. (주의!) 최초 앱 실행때는 해당 이벤트가 발생하지 않습니다. */
         print("resume");
         if (ref.watch(mqttCurrentStateProvider) == MqttConnectionState.disconnected) {
-          mqttInit(ref, Constants.MQTT_HOST, Constants.MQTT_PORT, Constants.MQTT_ID, Constants.MQTT_PASSWORD);
+          kReleaseMode
+            ? mqttInit(ref, Constants.MQTT_HOST_RELEASE, Constants.MQTT_PORT_RELEASE, Constants.MQTT_ID_RELEASE, Constants.MQTT_PASSWORD_RELEASE)
+            : mqttInit(ref, Constants.MQTT_HOST_DEBUG, Constants.MQTT_PORT_DEBUG, Constants.MQTT_ID_DEBUG, Constants.MQTT_PASSWORD_DEBUG);
         }
         break;
       case AppLifecycleState.inactive: /* 앱이 비활성화 상태이고 사용자의 입력을 받지 않습니다. ios에서는 포 그라운드 비활성 상태에서 실행되는 앱 또는 Flutter 호스트 뷰에 해당합니다. 안드로이드에서는 화면 분할 앱, 전화 통화, PIP 앱, 시스템 대화 상자 또는 다른 창과 같은 다른 활동이 집중되면 앱이이 상태로 전환됩니다. inactive가 발생되고 얼마후 pasued가 발생합니다. */
@@ -160,11 +150,11 @@ class _HomePageState extends ConsumerState<HomePage> with WidgetsBindingObserver
     ref.listen(mqttCurrentStateProvider, (previous, next) {
       logger.i('current state: ${ref.watch(mqttCurrentStateProvider)}');
       if (ref.watch(mqttCurrentStateProvider) == MqttConnectionState.connected) {
-        print("main connected");
         _mqttStartSubscribeTo();
       } else if (ref.watch(mqttCurrentStateProvider) == MqttConnectionState.disconnected) {
-        print("main disconnected");
-        mqttInit(ref, Constants.MQTT_HOST, Constants.MQTT_PORT, Constants.MQTT_ID, Constants.MQTT_PASSWORD);
+        kReleaseMode
+            ? mqttInit(ref, Constants.MQTT_HOST_RELEASE, Constants.MQTT_PORT_RELEASE, Constants.MQTT_ID_RELEASE, Constants.MQTT_PASSWORD_RELEASE)
+            : mqttInit(ref, Constants.MQTT_HOST_DEBUG, Constants.MQTT_PORT_DEBUG, Constants.MQTT_ID_DEBUG, Constants.MQTT_PASSWORD_DEBUG);
       }
     });
 
@@ -186,18 +176,18 @@ class _HomePageState extends ConsumerState<HomePage> with WidgetsBindingObserver
                     label: '홈',
                     backgroundColor: Constants.scaffoldBackgroundColor
                 ),
-                /*ref.watch(alarmReceivedProvider)
+                ref.watch(alarmReceivedProvider) > 0
                     ? BottomNavigationBarItem(
-                        icon: Badge(label: const Text('0'), child: SvgPicture.asset('assets/images/bottombar_notify_unselect.svg')),
-                        activeIcon: Badge(label: const Text('0'), child: SvgPicture.asset('assets/images/bottombar_notify_select.svg')),
+                        icon: Badge(backgroundColor: Colors.redAccent, label: Text(ref.watch(alarmReceivedProvider).toString()), child: SvgPicture.asset('assets/images/bottombar_notify_unselect.svg')),
+                        activeIcon: Badge(backgroundColor: Colors.redAccent, label: Text(ref.watch(alarmReceivedProvider).toString()), child: SvgPicture.asset('assets/images/bottombar_notify_select.svg')),
                         label: '알림',
                         backgroundColor: Constants.scaffoldBackgroundColor
                     )
-                    : */BottomNavigationBarItem(
-                    icon: SvgPicture.asset('assets/images/bottombar_notify_unselect.svg'),
-                    activeIcon: SvgPicture.asset('assets/images/bottombar_notify_select.svg'),
-                    label: '알림',
-                    backgroundColor: Constants.scaffoldBackgroundColor
+                    : BottomNavigationBarItem(
+                        icon: SvgPicture.asset('assets/images/bottombar_notify_unselect.svg'),
+                        activeIcon: SvgPicture.asset('assets/images/bottombar_notify_select.svg'),
+                        label: '알림',
+                        backgroundColor: Constants.scaffoldBackgroundColor
                 ),
                 BottomNavigationBarItem(
                     icon: SvgPicture.asset('assets/images/bottombar_device_unselect.svg'),
@@ -252,9 +242,12 @@ class _HomePageState extends ConsumerState<HomePage> with WidgetsBindingObserver
   }
 
   void _appSetting() {
-    getMyDeviceToken();
+    _initDeviceId();
     _checkPermissions();
-    mqttInit(ref, Constants.MQTT_HOST, Constants.MQTT_PORT, Constants.MQTT_ID, Constants.MQTT_PASSWORD);
+    kReleaseMode
+        ? mqttInit(ref, Constants.MQTT_HOST_RELEASE, Constants.MQTT_PORT_RELEASE, Constants.MQTT_ID_RELEASE, Constants.MQTT_PASSWORD_RELEASE)
+        : mqttInit(ref, Constants.MQTT_HOST_DEBUG, Constants.MQTT_PORT_DEBUG, Constants.MQTT_ID_DEBUG, Constants.MQTT_PASSWORD_DEBUG);
+
     _fcmSetListener();
     _getLastAlarm();
     // _getLastSensorEvent();
@@ -264,6 +257,18 @@ class _HomePageState extends ConsumerState<HomePage> with WidgetsBindingObserver
     // sd.createDbTable();
     // _getLastEvent();
     // _getHubInfos();
+  }
+
+  Future<void> _initDeviceId() async {
+    String deviceID;
+    try {
+      deviceID = await _mobileDeviceIdentifierPlugin.getDeviceId() ?? 'Unknown platform version';
+      deviceID = base64.encode(utf8.encode(deviceID));
+      getMyDeviceToken(deviceID);
+
+    } on PlatformException {
+      deviceID = '';
+    }
   }
 
 
@@ -277,7 +282,7 @@ class _HomePageState extends ConsumerState<HomePage> with WidgetsBindingObserver
     // await sd.alterDbTable();
   }
 
-  Future<bool> _startForegroundTask() async {
+  /*Future<bool> _startForegroundTask() async {
     print("_startForegroundTask()");
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
@@ -308,13 +313,13 @@ class _HomePageState extends ConsumerState<HomePage> with WidgetsBindingObserver
         callback: startCallback,
       );
     }
-  }
+  }*/
 
-  Future<bool> _stopForegroundTask() {
+  /*Future<bool> _stopForegroundTask() {
     return FlutterForegroundTask.stopService();
-  }
+  }*/
 
-  bool _registerReceivePort(ReceivePort? newReceivePort) {
+  /*bool _registerReceivePort(ReceivePort? newReceivePort) {
     if (newReceivePort == null) {
       return false;
     }
@@ -396,12 +401,12 @@ class _HomePageState extends ConsumerState<HomePage> with WidgetsBindingObserver
     });
 
     return _receivePort != null;
-  }
+  }*/
 
-  void _closeReceivePort() {
+  /*void _closeReceivePort() {
     _receivePort?.close();
     _receivePort = null;
-  }
+  }*/
 
   void _getLastAlarm() {
     // DBHelper sd = DBHelper();
@@ -439,9 +444,9 @@ class _HomePageState extends ConsumerState<HomePage> with WidgetsBindingObserver
     }
   }*/
 
-  void _startBackgroundService() async {
+  /*void _startBackgroundService() async {
     await initializeService();
-    /*FlutterBackgroundService().invoke("setAsBackground"); //// Android O 버전 이상부터는 백그라운드 실행이 제한되기 때문에 ForegroundMode로 해야 함.
+    *//*FlutterBackgroundService().invoke("setAsBackground"); //// Android O 버전 이상부터는 백그라운드 실행이 제한되기 때문에 ForegroundMode로 해야 함.
 
     final service = FlutterBackgroundService();
     var isRunning = await service.isRunning();
@@ -450,8 +455,8 @@ class _HomePageState extends ConsumerState<HomePage> with WidgetsBindingObserver
       // service.startService();
     } else {
       service.startService();
-    }*/
-  }
+    }*//*
+  }*/
 
   /*void _getHubInfos() async {
 
@@ -506,6 +511,7 @@ class _HomePageState extends ConsumerState<HomePage> with WidgetsBindingObserver
 
   void _fcmSetListener() {
     FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
+      print("_fcmSetListener()");
       RemoteNotification? notification = message.notification;
 
       // if (notification != null) {
@@ -523,11 +529,7 @@ class _HomePageState extends ConsumerState<HomePage> with WidgetsBindingObserver
       );
 
 
-      if (!ref.watch(alarmReceivedProvider.notifier).state) {
-        ref
-            .read(alarmReceivedProvider.notifier)
-            .state = true;
-      }
+
 
       // logger.i("Foreground 메시지 수신: ${message.notification!.body!}");
     });
@@ -1035,8 +1037,8 @@ class _HomePageState extends ConsumerState<HomePage> with WidgetsBindingObserver
   }
 
   Future<void> _delSensor(String sensorID) async {
-    DBHelper sd = DBHelper();
-    await sd.deleteSensor(sensorID);
+    // DBHelper sd = DBHelper();
+    // await sd.deleteSensor(sensorID);
   }
 
   /*Future<void> _saveDevice(String deviceID, String deviceType) async {
@@ -1088,8 +1090,8 @@ class _HomePageState extends ConsumerState<HomePage> with WidgetsBindingObserver
   }*/
 
   Future<void> _delDevice(String deviceID) async {
-    DBHelper sd = DBHelper();
-    await sd.deleteDevice(deviceID);
+    // DBHelper sd = DBHelper();
+    // await sd.deleteDevice(deviceID);
 
   }
 
@@ -1154,6 +1156,16 @@ class _HomePageState extends ConsumerState<HomePage> with WidgetsBindingObserver
       }
 
     } else if (topic == ref.watch(resultTopicProvider)) {
+      if (mqttMsg['order'] == 'allReset') {
+        gHubList.clear();
+        gSensorList.clear();
+        gLastAlarm = AlarmInfo(
+          id: '', alarm: '', jaeSilStatus: 0, createdAt: '', updatedAt: '', userID: '', locationID: ''
+        );
+
+        ref.read(homeBottomNavigationProvider.notifier).state = 0;
+      }
+
       if (mqttMsg['event'] == 'gatewayADD') {
         if (mqttMsg['state'] == 'success') {
           // _saveDevice(mqttMsg['deviceID'], Constants.DEVICE_TYPE_HUB);
@@ -1175,12 +1187,10 @@ class _HomePageState extends ConsumerState<HomePage> with WidgetsBindingObserver
         // _goHome();
       } else if (mqttMsg['event'] == 'device_del') {
         if (mqttMsg['state'] == 'device del success') {
-          _delDevice(mqttMsg['deviceID']);
-          _delSensor(mqttMsg['deviceID']);
+          // _delDevice(mqttMsg['deviceID']);
+          // _delSensor(mqttMsg['deviceID']);
         }
-      }
-
-      if (mqttMsg['event'] == 'alarm_update') {
+      } else if (mqttMsg['event'] == 'alarm_update') {
         Map<String, dynamic> alarm = mqttMsg['alarm'];
 
         String createdAt = convertTimeStringToLocal(alarm['createdAt']);
@@ -1199,6 +1209,7 @@ class _HomePageState extends ConsumerState<HomePage> with WidgetsBindingObserver
         gLastAlarm = alarmInfo;
         ref.read(alarmProvider.notifier).doChangeState(gLastAlarm);
         ref.read(jaeSilStateProvider.notifier).doChangeState(JaeSilStateEnum.values[gLastAlarm.getJaeSilStatus()!]);
+        ref.read(alarmReceivedProvider.notifier).state = ref.watch(alarmReceivedProvider) + 1;
 
       } else if (mqttMsg['event'] == 'device_detected') {
         Map<String, dynamic> msg = mqttMsg['sensorEvent'];
@@ -1220,6 +1231,11 @@ class _HomePageState extends ConsumerState<HomePage> with WidgetsBindingObserver
           locationID: msg['locationID'],
         );
 
+        int low_batt = 0;
+        if (msg['state'].toString().contains('low_batt: 1')) {
+          low_batt = 1;
+        }
+
         if (msg['deviceType'] != Constants.DEVICE_TYPE_MOTION || !msg['state'].toString().contains('motion: 0')) {
           ref.read(jaeSilStateProvider.notifier).doChangeState(JaeSilStateEnum.jsIn);
         }
@@ -1228,6 +1244,13 @@ class _HomePageState extends ConsumerState<HomePage> with WidgetsBindingObserver
           if (location.getID() == se.getLocationID()) {
             location.getEvents()!.clear();
             location.getEvents()!.add(se);
+            for (var sensor in location.getSensors()!) {
+              if (sensor.getID() == se.sensorID) {
+                sensor.setBattery(low_batt);
+                break;
+              }
+            }
+            break;
           }
         }
 

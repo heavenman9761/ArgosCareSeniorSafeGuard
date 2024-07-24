@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -20,6 +21,29 @@ import 'package:argoscareseniorsafeguard/models/accesspoint.dart';
 import 'package:argoscareseniorsafeguard/mqtt/mqtt.dart';
 import 'package:argoscareseniorsafeguard/dialogs/custom_password_dialog.dart';
 import 'package:argoscareseniorsafeguard/dialogs/custom_wifilist_dialog.dart';
+
+/*class DeviceConnectionEvent{
+  final int eventType;
+  Map data;
+
+  int getEventType() {
+    return eventType;
+  }
+
+  Map getData() {
+    return data;
+  }
+
+  void setData(value) {
+    data = value;
+  }
+
+  DeviceConnectionEvent({
+    required this.eventType,
+    required this.data
+  });
+
+}*/
 
 class PairingHub extends ConsumerStatefulWidget {
   const PairingHub({super.key});
@@ -321,7 +345,11 @@ class _PairingHubState extends ConsumerState<PairingHub> {
                         if (accessPoints.isNotEmpty) {
                           showWifiDialog(context);
                         }
-                      }
+                      }/* else {
+                        if (accessPoints.isEmpty) {
+                          ref.read(findHubStateProvider.notifier).doChangeState(FindHubState.wifiListEmpty);
+                        }
+                      }*/
                     });
                   }
                 }
@@ -396,8 +424,12 @@ class _PairingHubState extends ConsumerState<PairingHub> {
         || ref.watch(findHubStateProvider) == FindHubState.settingWifiScanError
         || ref.watch(findHubStateProvider) == FindHubState.settingWifiError
         || ref.watch(findHubStateProvider) == FindHubState.bluetoothNotEnabledError
-        || ref.watch(findHubStateProvider) == FindHubState.wifiNotEnabledError) {
+        || ref.watch(findHubStateProvider) == FindHubState.wifiNotEnabledError
+        || ref.watch(findHubStateProvider) == FindHubState.wifiListEmpty
+        || ref.watch(findHubStateProvider) == FindHubState.wifiAuthError) {
       title = AppLocalizations.of(context)!.paring_hub_sheet_title_error;
+    } else if (ref.watch(findHubStateProvider) == FindHubState.stopByUser) {
+      title = "취소";
     } else {
       title = '';
     }
@@ -449,6 +481,15 @@ class _PairingHubState extends ConsumerState<PairingHub> {
     } else if (ref.watch(findHubStateProvider) == FindHubState.settingWifiDone) {
       message = AppLocalizations.of(context)!.paring_hub_searching_done;
 
+    } else if (ref.watch(findHubStateProvider) == FindHubState.stopByUser) {
+      message = "허브검색이 취소되었습니다.";
+
+    } else if (ref.watch(findHubStateProvider) == FindHubState.wifiListEmpty) {
+      message = '사용할 수 있는 wifi 가 없습니다. 허브의 Pairing 버튼을 10초간 누른 후 재시도 하시기 바랍니다.';
+
+    } else if (ref.watch(findHubStateProvider) == FindHubState.wifiAuthError) {
+      message = 'wifi 비빌번호가 틀립니다. 허브의 Pairing 버튼을 10초간 누른 후 재시도 하시기 바랍니다.';
+
     } else {
       message = '';
     }
@@ -477,7 +518,10 @@ class _PairingHubState extends ConsumerState<PairingHub> {
         || ref.watch(findHubStateProvider) == FindHubState.settingWifiError
         || ref.watch(findHubStateProvider) == FindHubState.bluetoothNotEnabledError
         || ref.watch(findHubStateProvider) == FindHubState.wifiNotEnabledError
-        || ref.watch(findHubStateProvider) == FindHubState.findingHubEmpty) {
+        || ref.watch(findHubStateProvider) == FindHubState.findingHubEmpty
+        || ref.watch(findHubStateProvider) == FindHubState.stopByUser
+        || ref.watch(findHubStateProvider) == FindHubState.wifiListEmpty
+        || ref.watch(findHubStateProvider) == FindHubState.wifiAuthError) {
       return SizedBox(
           width: 96.w,
           height: 76.h,
@@ -630,10 +674,10 @@ class _PairingHubState extends ConsumerState<PairingHub> {
       await Constants.platform.invokeMethod('settingHub', <String, dynamic>{
         "hubName": hubName,
         "accountID": email,
-        "serverIp": Constants.MQTT_HOST,
-        "serverPort": Constants.MQTT_PORT.toString(),
-        "userID": Constants.MQTT_ID, //mqtt 계정
-        "userPw": Constants.MQTT_PASSWORD
+        "serverIp": kReleaseMode ? Constants.MQTT_HOST_RELEASE : Constants.MQTT_HOST_DEBUG,
+        "serverPort": kReleaseMode ? Constants.MQTT_PORT_RELEASE.toString() : Constants.MQTT_PORT_DEBUG.toString(),
+        "userID": kReleaseMode ? Constants.MQTT_ID_RELEASE : Constants.MQTT_ID_DEBUG, //mqtt 계정
+        "userPw": kReleaseMode ? Constants.MQTT_PASSWORD_RELEASE : Constants.MQTT_PASSWORD_DEBUG
       });
 
       debugPrint('received from java [hubID]: $result');
@@ -660,20 +704,25 @@ class _PairingHubState extends ConsumerState<PairingHub> {
       List<dynamic> list = json.decode(strApList);
       accessPoints.clear();
 
-      for (int i = 0; i < list.length; i++) {
-        AccessPoint ap = AccessPoint.fromJson(list[i]);
-        debugPrint(ap.toString());
-        accessPoints.add(ap);
+      if (list.isNotEmpty) {
+        for (int i = 0; i < list.length; i++) {
+          AccessPoint ap = AccessPoint.fromJson(list[i]);
+          debugPrint(ap.toString());
+          accessPoints.add(ap);
+        }
+      } else {
+        print("리스트 없음");
       }
+
 
       ref.read(findHubStateProvider.notifier).doChangeState(FindHubState.settingWifiScanDone);
 
       return accessPoints.isNotEmpty ? true : false;
     } on PlatformException catch (e) {
-      ref.read(findHubStateProvider.notifier).doChangeState(FindHubState.settingWifiScanError);
-
       logger.e(e.message);
-
+      if (e.message == 'APList is Empty') {
+        ref.read(findHubStateProvider.notifier).doChangeState(FindHubState.wifiListEmpty);
+      }
       return false;
     }
   }
@@ -706,7 +755,11 @@ class _PairingHubState extends ConsumerState<PairingHub> {
       }
     } on PlatformException catch (e) {
       logger.e(e.message);
-      ref.read(findHubStateProvider.notifier).doChangeState(FindHubState.settingWifiError);
+      if (e.message == "Wi-Fi Authentication failed.") {
+        ref.read(findHubStateProvider.notifier).doChangeState(FindHubState.wifiAuthError);
+      } else {
+        ref.read(findHubStateProvider.notifier).doChangeState(FindHubState.settingWifiError);
+      }
     }
   }
 
@@ -720,29 +773,6 @@ class _PairingHubState extends ConsumerState<PairingHub> {
       return false;
     }
   }
-
-  /*void _showWifiPasswordDialog(BuildContext context, AccessPoint ap) {
-    showDialog(
-        barrierDismissible: false,
-        context: context,
-        builder: (context) {
-          return Dialog(
-            backgroundColor: Constants.scaffoldBackgroundColor,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-            insetPadding: EdgeInsets.all(20.w),
-            child: CustomPasswordDialog(title: AppLocalizations.of(context)!.paring_hub_input_wifi_password, wifiName: ap.getWifiName()!),
-          );
-        }
-    ).then((val) {
-      print(val);
-      if (val != null) {
-        setState(() {
-          wifiPassword = val;
-          _setWifiConfig();
-        });
-      }
-    });
-  }*/
 
   void showWifiDialog(BuildContext context) {
     showDialog(
@@ -761,8 +791,20 @@ class _PairingHubState extends ConsumerState<PairingHub> {
         selectedAp = val;
         debugPrint("selectedAp : $val");
         _setWifiConfig();
-        // _showWifiPasswordDialog(context, selectedAp);
+      }else {
+        _stopSettingHub();
       }
     });
+  }
+
+  Future<void> _stopSettingHub() async {
+    try {
+      ref.read(findHubStateProvider.notifier).doChangeState(FindHubState.stopByUser);
+
+      final String result = await Constants.platform.invokeMethod('stopByUser');
+
+    } on PlatformException catch (e) {
+      print(e);
+    }
   }
 }

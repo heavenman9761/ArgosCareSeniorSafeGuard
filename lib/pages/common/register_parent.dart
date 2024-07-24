@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -53,8 +54,8 @@ class _RegisterParentState extends State<RegisterParent> {
   bool _male = false;
   bool _female = false;
 
-  String _year = "";
-  int _yearIndex = -1;
+  String _year = Constants.yearText[0];
+  int _yearIndex = 0;
 
   @override
   void initState() {
@@ -464,6 +465,7 @@ class _RegisterParentState extends State<RegisterParent> {
                         width: 320.w,
                         child: CupertinoPicker.builder(
                             itemExtent: 44,
+                            scrollController: FixedExtentScrollController(initialItem: 0),
                             childCount: Constants.yearText.length,
                             onSelectedItemChanged: (i) {
                               bottomState(() {
@@ -513,7 +515,7 @@ class _RegisterParentState extends State<RegisterParent> {
     }
 
     try {
-      var uri = Constants.BASE_URL;
+      var uri = kReleaseMode ? Constants.BASE_URL_RELEASE : Constants.BASE_URL_DEBUG;
       BaseOptions options = BaseOptions(
         baseUrl: uri,
       );
@@ -565,7 +567,7 @@ class _RegisterParentState extends State<RegisterParent> {
     ).then((val) async {
       if (val == 'Ok') {
         try {
-          var uri = Constants.BASE_URL;
+          var uri = kReleaseMode ? Constants.BASE_URL_RELEASE : Constants.BASE_URL_DEBUG;
           BaseOptions options = BaseOptions(
             baseUrl: uri,
           );

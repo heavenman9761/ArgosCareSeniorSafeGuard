@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:argoscareseniorsafeguard/database/db.dart';
-import 'package:argoscareseniorsafeguard/models/device.dart';
-import 'package:argoscareseniorsafeguard/models/hub.dart';
-import 'package:argoscareseniorsafeguard/models/sensor.dart';
+import 'package:argoscareseniorsafeguard/unused//device.dart';
+import 'package:argoscareseniorsafeguard/unused//hub.dart';
+import 'package:argoscareseniorsafeguard/unused/sensor.dart';
 import 'package:argoscareseniorsafeguard/constants.dart';
-import 'package:argoscareseniorsafeguard/pages/alarms_detail_view.dart';
+import 'package:argoscareseniorsafeguard/unused/alarms_detail_view.dart';
 import 'package:intl/intl.dart';
 
 class AlarmsView extends StatefulWidget {

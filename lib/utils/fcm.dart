@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:argoscareseniorsafeguard/utils/firebase_options.dart';
 
@@ -15,7 +16,13 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   // debugPrint("백그라운드 메시지 처리.. ${message.notification!.body!}");
   print("==========================");
 
-  showFlutterNotificationData(message);
+  final SharedPreferences pref = await SharedPreferences.getInstance();
+  pref.reload();
+  bool? isLogin = pref.getBool("isLogin") ?? false;
+
+  if (isLogin) {
+    showFlutterNotificationData(message);
+  }
 }
 
 late AndroidNotificationChannel channel;

@@ -4,13 +4,12 @@ import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'package:argoscareseniorsafeguard/constants.dart';
 
-import 'package:argoscareseniorsafeguard/models/device.dart';
-import 'package:argoscareseniorsafeguard/models/hub.dart';
-import 'package:argoscareseniorsafeguard/models/sensor.dart';
+import 'package:argoscareseniorsafeguard/unused/device.dart';
+import 'package:argoscareseniorsafeguard/unused/hub.dart';
+import 'package:argoscareseniorsafeguard/unused//sensor.dart';
 import 'package:argoscareseniorsafeguard/models/sensor_event.dart';
-import 'package:argoscareseniorsafeguard/models/location.dart';
-import 'package:argoscareseniorsafeguard/models/room.dart';
-// import 'package:argoscareseniorsafeguard/models/event_list.dart';
+import 'package:argoscareseniorsafeguard/unused/location.dart';
+import 'package:argoscareseniorsafeguard/unused/room.dart';
 import 'package:argoscareseniorsafeguard/models/airplaneday.dart';
 import 'package:argoscareseniorsafeguard/models/airplanetime.dart';
 import 'package:argoscareseniorsafeguard/models/alarm_infos.dart';

@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:argoscareseniorsafeguard/models/sensor_infos.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -13,9 +12,8 @@ import 'package:argoscareseniorsafeguard/constants.dart';
 import 'package:argoscareseniorsafeguard/utils/calendar_utils.dart';
 import 'package:argoscareseniorsafeguard/models/sensor_event.dart';
 import 'package:argoscareseniorsafeguard/models/location_infos.dart';
-import 'package:argoscareseniorsafeguard/database/db.dart';
-import 'package:argoscareseniorsafeguard/providers/providers.dart';
 import 'package:argoscareseniorsafeguard/pages/home/report_jaesil_widget.dart';
+import 'package:argoscareseniorsafeguard/providers/providers.dart';
 
 class Report extends ConsumerStatefulWidget {
   const Report({super.key, required this.userID, required this.locationIndex});
@@ -48,6 +46,11 @@ class _ReportState extends ConsumerState<Report> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen(sensorEventProvider, (previous, next) {
+      setState(() {
+
+      });
+    });
     return DefaultTabController(
         length: gLocationList.length,
         initialIndex: widget.locationIndex,
@@ -332,57 +335,64 @@ class _ReportState extends ConsumerState<Report> {
     List<Widget> list = [];
     for (int locationIndex = 0; locationIndex < gLocationList.length; locationIndex++) {
       list.add(
-        Container(
-          width: 10,
-          color: Constants.scaffoldBackgroundColor,
-          child: Column(
-            children: [
-              Expanded(
-                child: FutureBuilder<List<SensorEvent>>(
-                  future: _getEventList(locationIndex),
-                  builder: (context, snapshot) {
-                    final List<SensorEvent>? eventList = snapshot.data;
-                    if (snapshot.connectionState != ConnectionState.done) {
-                      return const Center(
-                        child: CircularProgressIndicator(),
-                      );
-                    }
-                    if (snapshot.hasError) {
-                      return Center(
-                        child: Text(snapshot.error.toString()),
-                      );
-                    }
-                    if (snapshot.hasData) {
-                      if (eventList != null) {
-                        if (eventList.isEmpty) {
-                          return Center(
-                            child: Text("데이터가 없습니다.", style: TextStyle(fontSize: 14.sp, color: Constants.dividerColor), textAlign: TextAlign.center),
+        RefreshIndicator(
+          onRefresh: () async {
+            setState(() {
+
+            });
+          },
+          child: Container(
+            width: double.infinity,
+            color: Constants.scaffoldBackgroundColor,
+            child: Column(
+              children: [
+                Expanded(
+                  child: FutureBuilder<List<SensorEvent>>(
+                    future: _getEventList(locationIndex),
+                    builder: (context, snapshot) {
+                      final List<SensorEvent>? eventList = snapshot.data;
+                      if (snapshot.connectionState != ConnectionState.done) {
+                        return const Center(
+                          child: CircularProgressIndicator(),
+                        );
+                      }
+                      if (snapshot.hasError) {
+                        return Center(
+                          child: Text(snapshot.error.toString()),
+                        );
+                      }
+                      if (snapshot.hasData) {
+                        if (eventList != null) {
+                          if (eventList.isEmpty) {
+                            return Center(
+                              child: Text("데이터가 없습니다.", style: TextStyle(fontSize: 14.sp, color: Constants.dividerColor), textAlign: TextAlign.center),
+                            );
+                          }
+
+                          return ListView.builder(
+                            itemCount: eventList.length,
+                            itemBuilder: (context, index) {
+                              if (_filterEvent(eventList[index])) {
+                                return _getEventWidget(locationIndex, eventList[index], index);
+                              }
+                              return const SizedBox();
+                            },
+                          );
+                        } else {
+                          return const Center(
+                            child: CircularProgressIndicator(),
                           );
                         }
-
-                        return ListView.builder(
-                          itemCount: eventList.length,
-                          itemBuilder: (context, index) {
-                            if (_filterEvent(eventList[index])) {
-                              return _getEventWidget(locationIndex, eventList[index], index);
-                            }
-                            return const SizedBox();
-                          },
-                        );
                       } else {
                         return const Center(
                           child: CircularProgressIndicator(),
                         );
                       }
-                    } else {
-                      return const Center(
-                        child: CircularProgressIndicator(),
-                      );
-                    }
-                  },
+                    },
+                  )
                 )
-              )
-            ]
+              ]
+            ),
           ),
         ),
       );
@@ -493,7 +503,7 @@ class _ReportState extends ConsumerState<Report> {
 
 
     if (event.getDeviceType() == "door_sensor") {
-      if (locationInfo.getType() == "entrance") {
+      if (locationInfo.getType() == "entrance" || locationInfo.getType() == "customer") {
         return Text("입출입 감지", style: TextStyle(fontSize: 16.sp, color: Colors.black, fontWeight: FontWeight.bold));
       } else if (locationInfo.getType() == "refrigerator") {
         return Text("감지", style: TextStyle(fontSize: 16.sp, color: Colors.black, fontWeight: FontWeight.bold));

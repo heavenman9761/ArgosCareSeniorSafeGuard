@@ -11,7 +11,7 @@ class SensorInfo {
   final String? modelName;
   final bool? online;
   final String? status;
-  final int? battery;
+  int? battery;
   final bool? isUse;
   final bool? shared;
   final String? ownerID;
@@ -63,6 +63,10 @@ class SensorInfo {
 
   int? getBattery() {
     return battery;
+  }
+
+  void setBattery(value) {
+    battery = value;
   }
 
   bool? getIsUse() {

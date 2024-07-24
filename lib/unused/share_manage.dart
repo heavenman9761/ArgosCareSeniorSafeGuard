@@ -6,7 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/services.dart';
 
 import 'package:argoscareseniorsafeguard/constants.dart';
-import 'package:argoscareseniorsafeguard/models/request_share_infos.dart';
+import 'package:argoscareseniorsafeguard/unused/request_share_infos.dart';
 import 'package:argoscareseniorsafeguard/providers/providers.dart';
 
 class ShareManage extends ConsumerStatefulWidget {

@@ -8,10 +8,15 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:remedi_kopo/remedi_kopo.dart';
 
+import 'package:iamport_flutter/model/certification_data.dart';
+import 'package:iamport_flutter/model/url_data.dart';
+import 'package:argoscareseniorsafeguard/pages/common/phone_certification.dart';
+
 import 'package:argoscareseniorsafeguard/components/my_button.dart';
 import 'package:argoscareseniorsafeguard/components/my_textfield.dart';
 import 'package:argoscareseniorsafeguard/constants.dart';
 import 'package:argoscareseniorsafeguard/dialogs/custom_alert_dialog.dart';
+import 'package:argoscareseniorsafeguard/pages/profile/change_password.dart';
 
 class ProfileEdit extends StatefulWidget {
   const ProfileEdit({super.key, required this.userID});
@@ -388,7 +393,7 @@ class _ProfileEditState extends State<ProfileEdit> {
 
                     SizedBox(height: 12.h),
 
-                    SizedBox(
+                    Container(
                       // color: Colors.blueAccent,
                         height: 60.h,
                         width: double.infinity,
@@ -420,6 +425,10 @@ class _ProfileEditState extends State<ProfileEdit> {
                     ),
 
                     const SizedBox(height: 10),
+                    //
+
+
+                    // const SizedBox(height: 10),
 
                     Padding(
                       padding: EdgeInsets.fromLTRB(20.w, 20.h, 20.w, 20.h),
@@ -428,6 +437,17 @@ class _ProfileEditState extends State<ProfileEdit> {
                           _updateProfile(context);
                         },
                         text: "확인",
+                      ),
+                    ),
+
+                    Padding(
+                      padding: EdgeInsets.fromLTRB(20.w, 0.h, 20.w, 20.h),
+                      child: MyButton(
+                        color: Colors.redAccent,
+                        onTap: () {
+                          _phoneCertification(context);
+                        },
+                        text: "비밀번호변경",
                       ),
                     ),
 
@@ -484,5 +504,43 @@ class _ProfileEditState extends State<ProfileEdit> {
         }
     ).then((val) {
     });
+  }
+
+  void _phoneCertification(BuildContext ctx) async {
+    // CertificationData data = CertificationData(
+    //     pg: 'inicis_unified',
+    //     merchantUid: 'mid_${DateTime.now().millisecondsSinceEpoch}',
+    //     mRedirectUrl: UrlData.redirectUrl
+    // );
+    //
+    // final result = await Navigator.push(context,
+    //     MaterialPageRoute(builder: (ctx) {
+    //       return PhoneCertification(userCode: 'imp71235150', data: data);
+    //     })
+    // );
+    //
+    // if (!ctx.mounted) return;
+    //
+    // if (result == '인증에 성공하였습니다.') {
+      Navigator.push(ctx,
+          MaterialPageRoute(builder: (context) {
+            return ChangePassword(userID: widget.userID);
+          })
+      );
+    // } else {
+    //   showDialog(
+    //       barrierDismissible: false,
+    //       context: ctx,
+    //       builder: (context) {
+    //         return Dialog(
+    //           backgroundColor: Constants.scaffoldBackgroundColor,
+    //           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+    //           insetPadding: EdgeInsets.all(20.w),
+    //           child: const CustomAlertDialog(title: "본인 인증", message: "본인인증에 실패했습니다."),
+    //         );
+    //       }
+    //   ).then((val) {
+    //   });
+    // }
   }
 }

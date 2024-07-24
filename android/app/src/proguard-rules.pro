@@ -30,6 +30,8 @@
 -keep class * implements com.google.gson.JsonSerializer
 -keep class * implements com.google.gson.JsonDeserializer
 
+-keep class android.window.BackEvent
+
 # Prevent R8 from leaving Data object members always null
 -keepclassmembers,allowobfuscation class * {
   @com.google.gson.annotations.SerializedName <fields>;
@@ -66,3 +68,4 @@
 -dontwarn espressif.wifi_config
 -dontwarn espressif.wifi_constants
 -dontwarn espressif.wifi_scan
+-dontwarn android.window.BackEvent

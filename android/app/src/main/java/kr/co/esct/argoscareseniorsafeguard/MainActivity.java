@@ -123,6 +123,10 @@ public class MainActivity extends FlutterActivity {
                                 mainActivityResult = result;
 
                                 startWifiProvision();
+                            } else if (call.method.equals("stopByUser")) {
+                                mainActivityResult = result;
+
+                                closeErrorActivity("Stop by User");
                             } else {
                                 result.notImplemented();
                             }
@@ -394,7 +398,7 @@ public class MainActivity extends FlutterActivity {
 
             Log.d(TAG, "scanCompleted() - " + deviceNameList.toString());
 
-            EventBus.getDefault().unregister(this);
+//            EventBus.getDefault().unregister(this);
             mainActivityResult.success(deviceNameList);
         }
 
@@ -639,27 +643,31 @@ public class MainActivity extends FlutterActivity {
 
     private void completeWifiList() {
 
-        // Add "Join network" Option as a list item
-        WiFiAccessPoint wifiAp = new WiFiAccessPoint();
-        wifiAp.setWifiName("Join Other Network");
-        wifiAPList.add(wifiAp);
-
         try {
-            JSONArray jsonArr = new JSONArray();
-            for (int i = 0; i < wifiAPList.size(); i++) {
-                WiFiAccessPoint ap = wifiAPList.get(i);
+            if (!wifiAPList.isEmpty()) {
+                JSONArray jsonArr = new JSONArray();
+                for (int i = 0; i < wifiAPList.size(); i++) {
+                    WiFiAccessPoint ap = wifiAPList.get(i);
 
-                JSONObject jsonObj = new JSONObject();
-                jsonObj.put("WifiName", ap.getWifiName());
-                jsonObj.put("rssi", ap.getRssi());
-                jsonObj.put("security", ap.getSecurity());
-                jsonObj.put("password", ap.getPassword());
+                    JSONObject jsonObj = new JSONObject();
+                    jsonObj.put("WifiName", ap.getWifiName());
+                    jsonObj.put("rssi", ap.getRssi());
+                    jsonObj.put("security", ap.getSecurity());
+                    jsonObj.put("password", ap.getPassword());
 
-                jsonArr.put(jsonObj);
+                    jsonArr.put(jsonObj);
+                }
+
+                String data = jsonArr.toString();
+                mainActivityResult.success(data);
+            } else {
+                Log.e(TAG, "================= AP Empty");
+                if (provisionManager != null && provisionManager.getEspDevice() != null) {
+                    provisionManager.getEspDevice().disconnectDevice();
+                }
+                mainActivityResult.error("APListEmpty", "APList is Empty", null);
             }
 
-            String data = jsonArr.toString();
-            mainActivityResult.success(data);
         } catch (JSONException e) {
             e.printStackTrace();
             closeErrorActivity("Failed to Wifi Scan()");
@@ -679,7 +687,7 @@ public class MainActivity extends FlutterActivity {
         if (provisionManager != null && provisionManager.getEspDevice() != null) {
             provisionManager.getEspDevice().disconnectDevice();
         }
-        EventBus.getDefault().unregister(this);
+//        EventBus.getDefault().unregister(this);
         mainActivityResult.error("UNAVAILABLE", msg, null);
     }
 

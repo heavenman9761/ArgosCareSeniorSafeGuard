@@ -70,15 +70,28 @@ class LocationInfo {
   }
 
   List<SensorInfo>? getSensors() {
-    return sensors;
+    if (sensors == null) {
+      return [];
+    } else {
+      return sensors;
+    }
   }
 
   List<SensorEvent>? getEvents() {
-    return events;
+    if (events == null) {
+      return [];
+    } else {
+      return events;
+    }
+
   }
 
   List<AlarmInfo>? getAlarms() {
-    return alarms;
+    if (alarms == null) {
+      return [];
+    } else {
+      return alarms;
+    }
   }
 
   void setEvents(List<SensorEvent>? value) {

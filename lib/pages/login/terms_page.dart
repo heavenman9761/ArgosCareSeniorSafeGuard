@@ -4,7 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import 'package:argoscareseniorsafeguard/constants.dart';
 import 'package:argoscareseniorsafeguard/components/my_button.dart';
-import 'package:argoscareseniorsafeguard/pages/register_page.dart';
+import 'package:argoscareseniorsafeguard/pages/login/register_page.dart';
 
 class TermsPage extends StatefulWidget {
   const TermsPage({super.key});

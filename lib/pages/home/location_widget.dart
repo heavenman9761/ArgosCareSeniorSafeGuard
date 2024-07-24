@@ -1,7 +1,5 @@
 import 'dart:async';
-import 'dart:convert';
 
-import 'package:argoscareseniorsafeguard/models/event_list.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -12,10 +10,7 @@ import 'package:argoscareseniorsafeguard/providers/providers.dart';
 import 'package:argoscareseniorsafeguard/pages/home/report.dart';
 import 'package:argoscareseniorsafeguard/constants.dart';
 import 'package:argoscareseniorsafeguard/models/sensor_infos.dart';
-import 'package:argoscareseniorsafeguard/models/location_infos.dart';
 import 'package:argoscareseniorsafeguard/models/sensor_event.dart';
-import 'package:argoscareseniorsafeguard/database/db.dart';
-import 'package:argoscareseniorsafeguard/models/alarm_infos.dart';
 
 class LocationWidget extends ConsumerStatefulWidget {
   const LocationWidget({super.key, required this.userID, required this.title, required this.picture, required this.color, required this.locationIndex});
@@ -130,52 +125,63 @@ class _LocationWidgetState extends ConsumerState<LocationWidget> {
   String _getEventTime() {
     _getElapsedTime();
 
-    List<SensorEvent> list = gLocationList[widget.locationIndex].getEvents()!;
-    if (list.isNotEmpty) {
-      DateTime date = DateTime.parse(list[0].getCreatedAt()!);
-      return DateFormat('MM.dd(E) HH:mm', 'ko').format(date);
-    } else {
+    try {
+      List<SensorEvent> list = gLocationList[widget.locationIndex].getEvents()!;
+      if (list.isNotEmpty) {
+        DateTime date = DateTime.parse(list[0].getCreatedAt()!);
+        return DateFormat('MM.dd(E) HH:mm', 'ko').format(date);
+      } else {
+        return "이벤트 없음";
+      }
+    } catch (e) {
       return "이벤트 없음";
     }
+
   }
 
   void _getElapsedTime() async {
 
-    List<SensorEvent> list = gLocationList[widget.locationIndex].getEvents()!;
-    if (list.isNotEmpty) {
-      var now = DateTime.now();
-      var eventTime = DateTime.parse(list[0].getCreatedAt()!);
-      int difference = int.parse(now.difference(eventTime).inSeconds.toString()); //시간차를 초단위로 구한다.
+    try {
+      List<SensorEvent> list = gLocationList[widget.locationIndex].getEvents()!;
+      if (list.isNotEmpty) {
+        var now = DateTime.now();
+        var eventTime = DateTime.parse(list[0].getCreatedAt()!);
+        int difference = int.parse(now.difference(eventTime).inSeconds.toString()); //시간차를 초단위로 구한다.
 
-      int min = (difference / 60).round();
+        int min = (difference / 60).round();
 
-      if (min < 1) {
-        _longTime = false;
-        _elapsedTime = "방금 전";
+        if (min < 1) {
+          _longTime = false;
+          _elapsedTime = "방금 전";
 
-      } else if (min >= 1 && min < 5) {
-        _longTime = false;
-        _elapsedTime = "조금 전";
+        } else if (min >= 1 && min < 5) {
+          _longTime = false;
+          _elapsedTime = "조금 전";
 
-      } else if (min >= 5 && min < 60) {
-        _longTime = false;
-        _elapsedTime = '$min 분 전';
+        } else if (min >= 5 && min < 60) {
+          _longTime = false;
+          _elapsedTime = '$min 분 전';
 
-      } else if (min >= 60) {
-        _longTime = true;
-        if (min >= 60 && min < 60*24) {
-          int hour = (min / 60).round();
-          _elapsedTime = '$hour 시간 전';
-        } else {
-          int day = (min / 1440).round();
-          _elapsedTime = '$day 일 전';
+        } else if (min >= 60) {
+          _longTime = true;
+          if (min >= 60 && min < 60*24) {
+            int hour = (min / 60).round();
+            _elapsedTime = '$hour 시간 전';
+          } else {
+            int day = (min / 1440).round();
+            _elapsedTime = '$day 일 전';
 
+          }
         }
+      } else {
+        _longTime = false;
+        _elapsedTime = "이벤트 없음";
       }
-    } else {
+    } catch (e) {
       _longTime = false;
       _elapsedTime = "이벤트 없음";
     }
+
 
     setState(() {
 

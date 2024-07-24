@@ -11,18 +11,16 @@ import 'package:dio/dio.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import 'package:argoscareseniorsafeguard/utils/device_info.dart';
 import 'package:argoscareseniorsafeguard/models/sensor_event.dart';
 import 'package:argoscareseniorsafeguard/models/hub_infos.dart';
 import 'package:argoscareseniorsafeguard/models/sensor_infos.dart';
 import 'package:argoscareseniorsafeguard/models/location_infos.dart';
-import 'package:argoscareseniorsafeguard/models/share_infos.dart';
+import 'package:argoscareseniorsafeguard/unused/share_infos.dart';
 import 'package:argoscareseniorsafeguard/models/airplaneday.dart';
 import 'package:argoscareseniorsafeguard/models/airplanetime.dart';
 import 'package:argoscareseniorsafeguard/models/alarm_infos.dart';
-import 'package:argoscareseniorsafeguard/database/db.dart';
 
 class Constants {
   static const platform = MethodChannel('est.co.kr/IoT_Hub');
@@ -35,15 +33,23 @@ class Constants {
   static const DEVICE_TYPE_MOTION = 'motion_sensor';
   static const DEVICE_TYPE_DOOR = 'door_sensor';
 
-  static const MQTT_HOST = '14.42.209.174';
-  static const MQTT_PORT = 6002;
-  static const MQTT_ID = 'mings';
-  static const MQTT_PASSWORD = 'Sct91234!';
+  static const MQTT_HOST_DEBUG = '14.42.209.174';
+  static const MQTT_PORT_DEBUG = 6002;
+  static const MQTT_ID_DEBUG = 'mings';
+  static const MQTT_PASSWORD_DEBUG = 'Sct91234!';
   // static const MQTT_ID_BACK = 'scthealthcare';
   // static const MQTT_PASSWORD_BACK = 'Sct91234!';
 
-  static const BASE_URL = 'http://14.42.209.174:6008/api';
-  static const KAKAO_REDIRECT_URL = 'http://14.42.209.174:6008/api/auth/kakao_flutter/callback';
+  static const BASE_URL_DEBUG = 'http://14.42.209.174:6008/api';
+  static const KAKAO_REDIRECT_URL_DEBUG = 'http://14.42.209.174:6008/api/auth/kakao_flutter/callback';
+
+  static const MQTT_HOST_RELEASE = '14.42.209.174';
+  static const MQTT_PORT_RELEASE = 6002;
+  static const MQTT_ID_RELEASE = 'mings';
+  static const MQTT_PASSWORD_RELEASE = 'Sct91234!';
+
+  static const BASE_URL_RELEASE = 'http://14.42.209.174:6008/api';
+  static const KAKAO_REDIRECT_URL_RELEASE = 'http://14.42.209.174:6008/api/auth/kakao_flutter/callback';
 
   static const APP_TITLE = 'Argos Care';
 
@@ -136,6 +142,29 @@ void saveUserInfo(var loginResponse) async {
     gHubList.add(HubInfo.fromJson(h));
   }
 
+  final alarms = loginResponse.data['Alarm_Infos'] as List;
+  if (alarms.isNotEmpty) {
+    gLastAlarm = AlarmInfo(
+      id: alarms[0]['id'],
+      alarm: alarms[0]['alarm'],
+      jaeSilStatus: alarms[0]['jaeSilStatus'],
+      createdAt: alarms[0]['createdAt'],
+      updatedAt: alarms[0]['updatedAt'],
+      userID: alarms[0]['userID'],
+      locationID: alarms[0]['locationID'],
+    );
+  } else {
+    gLastAlarm = AlarmInfo(
+      id: '',
+      alarm: '',
+      jaeSilStatus: 0,
+      createdAt: '',
+      updatedAt: '',
+      userID: '',
+      locationID: '',
+    );
+  }
+
   final lList = loginResponse.data['Location_Infos'] as List;
   for (var l in lList) {
     List<SensorInfo> sl = [];
@@ -145,9 +174,9 @@ void saveUserInfo(var loginResponse) async {
     }
 
     List<AlarmInfo> al = [];
-    for (var a in l['Alarm_Infos']) {
+    /*for (var a in l['Alarm_Infos']) {
       al.add(AlarmInfo.fromJson(a));
-    }
+    }*/
 
     List<SensorEvent> el = [];
     for (var e in l['Sensor_Event_Infos']) {
@@ -174,19 +203,6 @@ void saveUserInfo(var loginResponse) async {
     );
   }
 
-  final aList = loginResponse.data['Alarm_Infos'] as List;
-  if (aList.isNotEmpty) {
-    gLastAlarm = AlarmInfo(
-      id: aList[0]['id'],
-      alarm: aList[0]['alarm'],
-      jaeSilStatus: aList[0]['jaeSilStatus'],
-      createdAt: aList[0]['createdAt'],
-      updatedAt: aList[0]['updatedAt'],
-      userID: aList[0]['userID'],
-      locationID: aList[0]['locationID'],
-    );
-  }
-
   // final shList = loginResponse.data['Share_Infos'] as List;
   // for (var sh in shList) {
   //   gShareInfo.add(ShareInfo.fromJson(sh));
@@ -201,8 +217,6 @@ void saveUserInfo(var loginResponse) async {
   for (var l in airPlaneTimeList) {
     gAirPlaneTimeList.add(AirplaneTime.fromJson(l));
   }
-
-  print(gAirPlaneTimeList);
 
   final SharedPreferences pref = await SharedPreferences.getInstance();
 
@@ -251,7 +265,7 @@ enum FindHubState {
   bluetoothNotEnabledError, wifiNotEnabledError,
   settingMqtt, settingMqttError, settingMqttDone,
   settingWifiScan, settingWifiScanError, settingWifiScanDone,
-  settingWifi, settingWifiError, settingWifiDone,
+  settingWifi, settingWifiError, settingWifiDone, stopByUser, wifiListEmpty, wifiAuthError
 }
 
 enum FindSensorState {
@@ -396,7 +410,7 @@ String analysisSimpleSensorEvent(SensorEvent event) {
   }
 }
 
-void getMyDeviceToken() async {
+void getMyDeviceToken(String deviceID) async {
   final token = await FirebaseMessaging.instance.getToken();
 
   const storage = FlutterSecureStorage(
@@ -411,6 +425,7 @@ void getMyDeviceToken() async {
         data: jsonEncode({
           "email": email,
           "token": token,
+          "deviceID": deviceID,
           "platform": "android"
         })
     );

@@ -4,13 +4,13 @@ import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
-import "package:argoscareseniorsafeguard/models/device.dart";
-import "package:argoscareseniorsafeguard/models/hub.dart";
-import "package:argoscareseniorsafeguard/models/sensor.dart";
+import "package:argoscareseniorsafeguard/unused//device.dart";
+import "package:argoscareseniorsafeguard/unused/hub.dart";
+import "package:argoscareseniorsafeguard/unused/sensor.dart";
 import 'package:argoscareseniorsafeguard/database/db.dart';
 import 'package:argoscareseniorsafeguard/constants.dart';
 import 'package:argoscareseniorsafeguard/models/sensor_event.dart';
-import 'package:argoscareseniorsafeguard/components/humi_temp_chart.dart';
+import 'package:argoscareseniorsafeguard/unused//humi_temp_chart.dart';
 
 class DeviceDetailView extends StatefulWidget {
   const DeviceDetailView({super.key, required this.device, required this.userID});
