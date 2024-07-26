@@ -17,8 +17,11 @@ import 'package:argoscareseniorsafeguard/pages/profile/parent_edit.dart';
 import 'package:argoscareseniorsafeguard/pages/profile/profile_edit.dart';
 import 'package:argoscareseniorsafeguard/pages/profile/airplane_mode.dart';
 import 'package:argoscareseniorsafeguard/pages/profile/onboarding_first.dart';
+import 'package:argoscareseniorsafeguard/pages/profile/announcement.dart';
+
 import 'package:argoscareseniorsafeguard/dialogs/custom_confirm_dialog.dart';
 import 'package:argoscareseniorsafeguard/dialogs/custom_alert_dialog.dart';
+
 
 class ProfileWidget extends StatefulWidget {
   final String userID;
@@ -163,7 +166,10 @@ class _ProfileWidgetState extends State<ProfileWidget> {
               
                                                 SizedBox(height: 4.h,),
               
-                                                Text('${widget.userName}(${widget.userMail})', style: TextStyle(fontSize: 12.sp, color: Constants.dividerColor), overflow: TextOverflow.ellipsis),
+                                                Text('${widget.userName}(${widget.userMail})',
+                                                    style: TextStyle(fontSize: 12.sp, color: Constants.dividerColor),
+                                                    overflow: TextOverflow.ellipsis
+                                                ),
                                               ],
                                             ),
                                           ),
@@ -357,22 +363,24 @@ class _ProfileWidgetState extends State<ProfileWidget> {
 
                           _showCategory("앱설정", Icon(Icons.phone_android, size: 16.h)),
 
-                          // _showDetail("공지사항", SizedBox(
-                          //   width: 24.w,
-                          //   height: 24.h,
-                          //   // color: Colors.redAccent,
-                          //   child: IconButton(
-                          //     constraints: BoxConstraints(maxHeight: 48.h, maxWidth: 48.w),
-                          //     padding: EdgeInsets.zero,
-                          //     color: Constants.dividerColor,
-                          //     icon: const Icon(Icons.arrow_forward_ios_rounded, size: 18),
-                          //     onPressed: () {
-                          //       debugPrint('icon press');
-                          //     },
-                          //   ),
-                          // )),
-                          //
-                          // SizedBox(height: 16.h,),
+                          _showDetail("공지사항", SizedBox(
+                            width: 24.w,
+                            height: 24.h,
+                            // color: Colors.redAccent,
+                            child: IconButton(
+                              constraints: BoxConstraints(maxHeight: 48.h, maxWidth: 48.w),
+                              padding: EdgeInsets.zero,
+                              color: Constants.dividerColor,
+                              icon: const Icon(Icons.arrow_forward_ios_rounded, size: 18),
+                              onPressed: () {
+                                Navigator.push(context, MaterialPageRoute(builder: (context) {
+                                  return Announcement(userID: widget.userID);
+                                }));
+                              },
+                            ),
+                          )),
+
+                          SizedBox(height: 16.h,),
 
                           // _showDetail("서비스 소개", SizedBox(
                           //   width: 24.w,

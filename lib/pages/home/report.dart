@@ -610,7 +610,7 @@ class _ReportState extends ConsumerState<Report> {
       final response = await dio.post(
           "/users/get_eventlist",
           data: jsonEncode({
-            "userid": widget.userID,
+            "userID": widget.userID,
             "locationID": gLocationList[locationIndex].getID()!,
             "startDate": DateFormat('yyyy-MM-dd 00:00:00').format(_focusedDay),
             "endDate": DateFormat('yyyy-MM-dd 23:59:59').format(_focusedDay),
